@@ -1,0 +1,1411 @@
+// LOOLO — Esquema Fase 1 (columna vertebral)
+// Convención:
+//   - Tablas de Better Auth: globales, SIN RLS de tenant (las gestiona la capa de auth).
+//   - Catálogos RBAC (Role, Permission): globales del sistema, SIN RLS de tenant.
+//   - Tablas de dominio LOOLO: org-scoped, CON RLS + FORCE (ver scripts/apply-rls.ts).
+//   - events != audit_logs. audit_logs es append-only (grants en apply-rls).
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────────────────────────────────────────────────────────────
+// BETTER AUTH (dueño de autenticación, sesiones, organizaciones, membresías)
+// Prisma genera el DDL; Better Auth opera la lógica vía su adaptador.
+// Globales: NO llevan RLS de tenant.
+// ───────────────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  email         String    @unique
+  name          String?
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions    Session[]
+  accounts    Account[]
+  memberships Member[]
+
+  @@map("users")
+}
+
+model Session {
+  id                   String   @id @default(uuid()) @db.Uuid
+  userId               String   @db.Uuid
+  token                String   @unique
+  expiresAt            DateTime
+  ipAddress            String?
+  userAgent            String?
+  activeOrganizationId String?  @db.Uuid
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Account {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @db.Uuid
+  accountId    String
+  providerId   String
+  password     String?
+  accessToken  String?
+  refreshToken String?
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id @default(uuid()) @db.Uuid
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@map("verifications")
+}
+
+model Organization {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String   @unique
+  logo      String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  members     Member[]
+  invitations Invitation[]
+
+  @@map("organizations")
+}
+
+model Member {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  userId         String   @db.Uuid
+  role           String   @default("member") // rol grueso de Better Auth (owner/admin/member)
+  createdAt      DateTime @default(now())
+
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  membershipRoles MembershipRole[] // ← capa fina de LOOLO
+
+  @@unique([organizationId, userId])
+  @@map("organization_memberships")
+}
+
+model Invitation {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  email          String
+  role           String   @default("member")
+  status         String   @default("pending")
+  expiresAt      DateTime
+  inviterId      String?  @db.Uuid
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("invitations")
+}
+
+// ───────────────────────────────────────────────────────────────────
+// RBAC LOOLO — catálogos GLOBALES del sistema (sin RLS de tenant).
+// El vínculo por organización ocurre en MembershipRole (cuelga de Member).
+// ───────────────────────────────────────────────────────────────────
+
+enum RoleScope {
+  ORG // asignable a una membresía de organización
+  PLATFORM // soporte/plataforma — NO asignable como membresía normal
+}
+
+model Permission {
+  id          String   @id @default(uuid()) @db.Uuid
+  key         String   @unique // p.ej. "contacts.read", "billing.charge"
+  description String
+  createdAt   DateTime @default(now())
+
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+model Role {
+  id        String    @id @default(uuid()) @db.Uuid
+  key       String    @unique // owner, admin, front_desk, clinician, billing, accountant, support_restricted
+  name      String
+  scope     RoleScope @default(ORG)
+  assignable Boolean  @default(true) // support_restricted => false
+  createdAt DateTime  @default(now())
+
+  permissions     RolePermission[]
+  membershipRoles MembershipRole[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  roleId       String @db.Uuid
+  permissionId String @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model MembershipRole {
+  id        String   @id @default(uuid()) @db.Uuid
+  memberId  String   @db.Uuid
+  roleId    String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, roleId])
+  @@map("membership_roles")
+}
+
+// ───────────────────────────────────────────────────────────────────
+// ESTADO COMPARTIDO — máquina de estados (regla 13).
+// ───────────────────────────────────────────────────────────────────
+
+enum RecordState {
+  OK
+  MISSING_DATA
+  REQUIRES_HUMAN
+  BLOCKED
+  ARCHIVED
+}
+
+enum ChannelType {
+  WHATSAPP
+  INSTAGRAM
+  FACEBOOK
+  TIKTOK
+  WEB
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+// Quién ejecuta una acción auditada (incl. IA copiloto y acceso de soporte).
+enum ActorType {
+  USER
+  SYSTEM
+  AI
+  SUPPORT
+}
+
+// Ciclo de vida del acceso temporal de soporte.
+enum SupportGrantStatus {
+  PENDING
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+// ───────────────────────────────────────────────────────────────────
+// DOMINIO LOOLO — org-scoped. CON RLS + FORCE.
+// Reglas 6 y 7: contact/prospect/patient/opportunity son entidades SEPARADAS.
+// Soft delete en datos sensibles (archivedAt / deletedAt).
+// ───────────────────────────────────────────────────────────────────
+
+model Contact {
+  id             String      @id @default(uuid()) @db.Uuid
+  organizationId String      @db.Uuid
+  fullName       String?
+  phone          String?
+  email          String?
+  source         ChannelType?
+  state          RecordState @default(OK)
+  archivedAt     DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  prospects     Prospect[]
+  patients      Patient[]
+  opportunities Opportunity[]
+  conversations Conversation[]
+
+  phoneNormalized String?
+  emailNormalized String?
+  primaryChannel  ContactIdentifierKind?
+  mergedIntoId    String?  @db.Uuid
+  notes           String?
+
+  @@index([organizationId])
+  @@map("contacts")
+}
+
+model Prospect {
+  id             String      @id @default(uuid()) @db.Uuid
+  organizationId String      @db.Uuid
+  contactId      String      @db.Uuid
+  state          RecordState @default(OK)
+  archivedAt     DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  status ProspectStatus @default(NEW)
+  source ChannelType?
+
+  @@index([organizationId])
+  @@map("prospects")
+}
+
+model Patient {
+  id             String      @id @default(uuid()) @db.Uuid
+  organizationId String      @db.Uuid
+  contactId      String      @db.Uuid
+  state          RecordState @default(OK)
+  archivedAt     DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  status PatientStatus @default(NEW)
+  source ChannelType?
+
+  @@index([organizationId])
+  @@map("patients")
+}
+
+model Opportunity {
+  id             String      @id @default(uuid()) @db.Uuid
+  organizationId String      @db.Uuid
+  contactId      String      @db.Uuid
+  state          RecordState @default(OK)
+  valueCents     Int?
+  archivedAt     DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  title String?
+  stage OpportunityStage @default(NEW)
+
+  @@index([organizationId])
+  @@map("opportunities")
+}
+
+model Channel {
+  id             String      @id @default(uuid()) @db.Uuid
+  organizationId String      @db.Uuid
+  type           ChannelType
+  identifier     String // número WhatsApp, handle IG, etc.
+  createdAt      DateTime    @default(now())
+
+  conversations Conversation[]
+
+  @@index([organizationId])
+  @@map("channels")
+}
+
+model Conversation {
+  id             String      @id @default(uuid()) @db.Uuid
+  organizationId String      @db.Uuid
+  channelId      String      @db.Uuid
+  contactId      String?     @db.Uuid
+  state          RecordState @default(OK)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  channel  Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  contact  Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  messages Message[]
+
+  status        ConversationStatus @default(OPEN)
+  initialIntent InitialIntent      @default(UNKNOWN)
+  lastMessageAt DateTime?
+  opportunityId String?            @db.Uuid
+
+  // Fase 3B: Follow operativo
+  assignedToUserId String?               @db.Uuid
+  assignedAt       DateTime?
+  category         ConversationCategory?
+  priority         ConversationPriority  @default(NORMAL)
+  firstResponseAt  DateTime?
+  closedAt         DateTime?
+  closedByUserId   String?               @db.Uuid
+
+  @@index([organizationId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  conversationId String           @db.Uuid
+  direction      MessageDirection
+  body           String
+  receivedAt     DateTime         @default(now())
+  createdAt      DateTime         @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  channelId  String?           @db.Uuid
+  externalId String?
+  senderType MessageSenderType @default(CONTACT)
+
+  @@index([conversationId])
+  @@map("messages")
+}
+
+// ───────────────────────────────────────────────────────────────────
+// INFRAESTRUCTURA TRANSVERSAL
+// events: hechos de dominio (payload validado por Zod + versionado) → reportes (regla 21)
+// audit_logs: rastro de seguridad, APPEND-ONLY (grants en apply-rls) (reglas 22, 23)
+// ───────────────────────────────────────────────────────────────────
+
+model Event {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  type           String // p.ej. "conversation.received"
+  version        Int      @default(1)
+  payload        Json
+  occurredAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([type])
+  @@map("events")
+}
+
+model AuditLog {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String?   @db.Uuid
+  actorUserId    String?   @db.Uuid
+  actorType      ActorType @default(USER)
+  action         String
+  entityType     String
+  entityId       String?
+  metadata       Json?
+  ipAddress      String?
+  createdAt      DateTime  @default(now())
+
+  @@index([organizationId])
+  @@map("audit_logs")
+}
+
+// Acceso temporal de SOPORTE (no es rol de organización). Justificado, expirable,
+// revocable y auditado. Org-scoped → RLS.
+model SupportAccessGrant {
+  id             String             @id @default(uuid()) @db.Uuid
+  organizationId String             @db.Uuid
+  grantedBy      String             @db.Uuid
+  supportUserId  String?            @db.Uuid
+  reason         String
+  scope          String             @default("read_logs_anonymized")
+  status         SupportGrantStatus @default(PENDING)
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  revokedBy      String?            @db.Uuid
+  usedAt         DateTime?
+  useCount       Int                @default(0)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([organizationId])
+  @@index([status])
+  @@map("support_access_grants")
+}
+
+// ───────────────────────────────────────────────────────────────────
+// FASE 2B-1 — Configuración: catálogos globales + módulos por organización
+// Catálogos globales (sin RLS de tenant). organization_modules es org-scoped (RLS+FORCE).
+// ───────────────────────────────────────────────────────────────────
+
+enum ModuleGroup {
+  CHANNELS
+  FOLLOW
+  CONTACTS
+  AGENDA
+  CLINICAL
+  ODONTOGRAM
+  TREATMENT_PLAN
+  QUOTES
+  PAYMENTS
+  INVOICING
+  PORTAL
+  FOLLOWUP
+  REPORTS
+  FINANCE
+  IDENTITY
+  CONFIG
+  INTEGRATIONS
+  DATA_MODEL
+  AI_AUTOMATION
+  QA
+  DOCUMENTS
+  NOTIFICATIONS
+  CATALOGS
+  ADJUSTMENTS
+  MIGRATION
+  PORTAL_ACCESS
+  SUPPORT
+  INVENTORY
+  MARKETING
+}
+
+enum ModuleType {
+  CORE
+  TRANSVERSAL
+  OPERATIONAL
+}
+
+enum ModuleFunctionalStatus {
+  programmed_now
+  prepared_for_later
+  pending_definition
+}
+
+enum TemplatePhase {
+  PILOTO
+  BETA
+  PRODUCCION
+}
+
+enum TemplateDetailLevel {
+  BASICO
+  COMPLETO
+}
+
+model ModuleCatalog {
+  id                        String                 @id @default(uuid()) @db.Uuid
+  key                       String                 @unique
+  name                      String
+  description               String?
+  moduleGroup               ModuleGroup
+  moduleType                ModuleType
+  status                    String                 @default("active")
+  isCore                    Boolean                @default(false)
+  isTransversal             Boolean                @default(false)
+  defaultEnabled            Boolean                @default(false)
+  defaultVisible            Boolean                @default(false)
+  defaultShowInMenu         Boolean                @default(false)
+  defaultShowInDock         Boolean                @default(false)
+  defaultDashboardAvailable Boolean                @default(false)
+  functionalStatus          ModuleFunctionalStatus @default(pending_definition)
+  createdAt                 DateTime               @default(now())
+  updatedAt                 DateTime               @updatedAt
+
+  templateModules     TemplateModule[]
+  organizationModules OrganizationModule[]
+
+  @@map("module_catalog")
+}
+
+model BusinessTemplate {
+  id               String              @id @default(uuid()) @db.Uuid
+  key              String              @unique
+  category         String
+  groupName        String
+  professionUnit   String
+  specialtyService String
+  templateName     String
+  phase            TemplatePhase       @default(PILOTO)
+  detailLevel      TemplateDetailLevel @default(COMPLETO)
+  version          Int                 @default(1)
+  status           String              @default("active")
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  templateModules     TemplateModule[]
+  organizationModules OrganizationModule[]
+
+  @@map("business_templates")
+}
+
+model TemplateModule {
+  id                        String   @id @default(uuid()) @db.Uuid
+  templateId                String   @db.Uuid
+  moduleId                  String   @db.Uuid
+  isRequired                Boolean  @default(false)
+  isRecommended             Boolean  @default(false)
+  isOptional                Boolean  @default(false)
+  defaultEnabled            Boolean  @default(false)
+  defaultVisible            Boolean  @default(false)
+  defaultShowInMenu         Boolean  @default(false)
+  defaultShowInDock         Boolean  @default(false)
+  defaultDashboardAvailable Boolean  @default(false)
+  menuSortOrder             Int?
+  labelOverride             String?
+  iconKey                   String?
+  notes                     String?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  template BusinessTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  module   ModuleCatalog    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, moduleId])
+  @@index([templateId])
+  @@map("template_modules")
+}
+
+model OrganizationModule {
+  id                     String    @id @default(uuid()) @db.Uuid
+  organizationId         String    @db.Uuid
+  moduleId               String    @db.Uuid
+  templateId             String?   @db.Uuid
+  appliedTemplateVersion Int?
+  enabled                Boolean   @default(false)
+  visible                Boolean   @default(false)
+  showInMenu             Boolean   @default(false)
+  showInDock             Boolean   @default(false)
+  dashboardAvailable     Boolean   @default(false)
+  menuSortOrder          Int?
+  dockSortOrder          Int?
+  dashboardSortOrder     Int?
+  labelOverride          String?
+  iconKey                String?
+  customized             Boolean   @default(false)
+  configuredBy           String?   @db.Uuid
+  configuredAt           DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  module   ModuleCatalog     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  template BusinessTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, moduleId])
+  @@index([organizationId])
+  @@map("organization_modules")
+}
+
+// ───────────────────────────────────────────────────────────────────
+// FASE 2B-2 — Dashboard / widgets / preferencias
+// Catalogo global (sin RLS). organization_dashboard_widgets org-scoped (RLS).
+// user_preferences DOBLE RLS (organizationId + userId via app.current_user_id).
+// ───────────────────────────────────────────────────────────────────
+
+enum WidgetType {
+  SUMMARY
+  LIST
+  CALENDAR
+  METRIC
+  PLACEHOLDER
+}
+
+enum WidgetFunctionalStatus {
+  programmed_now
+  prepared_for_later
+  pending_definition
+}
+
+model DashboardWidgetCatalog {
+  id                  String                 @id @default(uuid()) @db.Uuid
+  key                 String                 @unique
+  name                String
+  description         String?
+  sourceModuleKey     String?
+  widgetType          WidgetType
+  requiredPermissions String[]               @default([])
+  configSchemaKey     String                 @default("placeholder")
+  functionalStatus    WidgetFunctionalStatus @default(pending_definition)
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+
+  @@map("dashboard_widget_catalog")
+}
+
+model OrganizationDashboardWidget {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  widgetKey      String
+  enabled        Boolean  @default(false)
+  visible        Boolean  @default(false)
+  size           String   @default("md")
+  sortOrder      Int?
+  configJson     Json?
+  customized     Boolean  @default(false)
+  configuredBy   String?  @db.Uuid
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, widgetKey])
+  @@index([organizationId])
+  @@map("organization_dashboard_widgets")
+}
+
+model UserPreference {
+  id                  String   @id @default(uuid()) @db.Uuid
+  userId              String   @db.Uuid
+  organizationId      String   @db.Uuid
+  preferenceKey       String
+  preferenceValueJson Json
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([userId, organizationId, preferenceKey])
+  @@index([organizationId, userId])
+  @@map("user_preferences")
+}
+
+
+// ───────────────────────────────────────────────────────────────────
+// FASE 3A — Identidad operativa (enums + tablas nuevas)
+// Columnas ALTER reflejadas arriba; ver migración 0006.
+// ───────────────────────────────────────────────────────────────────
+
+enum ContactIdentifierKind {
+  PHONE
+  EMAIL
+  WHATSAPP
+  INSTAGRAM
+  FACEBOOK
+  TIKTOK
+  OTHER
+}
+
+enum ConversationStatus {
+  OPEN
+  PENDING
+  SNOOZED
+  CLOSED
+}
+
+enum OpportunityStage {
+  NEW
+  QUALIFYING
+  QUOTE_PENDING
+  WON
+  LOST
+}
+
+enum InitialIntent {
+  APPOINTMENT
+  PRICE
+  INFO
+  COMPLAINT
+  OTHER
+  UNKNOWN
+}
+
+enum MessageSenderType {
+  CONTACT
+  AGENT
+  SYSTEM
+}
+
+enum ProspectStatus {
+  NEW
+  ACTIVE
+  INACTIVE
+}
+
+enum PatientStatus {
+  NEW
+  ACTIVE
+  INACTIVE
+}
+
+model ContactIdentifier {
+  id              String                @id @default(uuid()) @db.Uuid
+  organizationId  String                @db.Uuid
+  contactId       String                @db.Uuid
+  kind            ContactIdentifierKind
+  valueNormalized String
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@unique([organizationId, kind, valueNormalized])
+  @@index([organizationId])
+  @@index([contactId])
+  @@map("contact_identifiers")
+}
+
+model ContactMerge {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  survivorId     String   @db.Uuid
+  mergedId       String   @db.Uuid
+  mergedBy       String?  @db.Uuid
+  reason         String?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId])
+  @@map("contact_merges")
+}
+
+// ───────────────────────────────────────────────────────────────────
+// FASE 3B — Follow operativo (bandeja, tareas, trazabilidad, acciones inertes)
+// ───────────────────────────────────────────────────────────────────
+
+enum ConversationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum ConversationCategory {
+  APPOINTMENT
+  PRICE
+  INFO
+  COMPLAINT
+  FOLLOWUP
+  OTHER
+}
+
+enum TaskStatus {
+  OPEN
+  DONE
+  CANCELLED
+}
+
+enum ConversationActionType {
+  ASSIGNED
+  CLASSIFIED
+  PRIORITY_CHANGED
+  CLOSED
+  REOPENED
+  SUGGESTED_ACTION
+  APPOINTMENT_CREATED
+}
+
+model ConversationTask {
+  id               String     @id @default(uuid()) @db.Uuid
+  organizationId   String     @db.Uuid
+  conversationId   String     @db.Uuid
+  contactId        String?    @db.Uuid
+  title            String
+  status           TaskStatus @default(OPEN)
+  dueAt            DateTime?
+  assignedToUserId String?    @db.Uuid
+  createdBy        String     @db.Uuid
+  completedAt      DateTime?
+  completedBy      String?    @db.Uuid
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@index([organizationId, conversationId])
+  @@index([organizationId, assignedToUserId, status])
+  @@map("conversation_tasks")
+}
+
+// Tercera bitácora: trazabilidad HUMANA operativa. Append-only (sin DELETE/UPDATE para app_user vía grants).
+model ConversationActionLog {
+  id             String                 @id @default(uuid()) @db.Uuid
+  organizationId String                 @db.Uuid
+  conversationId String                 @db.Uuid
+  actorUserId    String                 @db.Uuid
+  actionType     ConversationActionType
+  actionKey      String?
+  note           String?
+  createdAt      DateTime               @default(now())
+
+  @@index([organizationId, conversationId])
+  @@map("conversation_action_log")
+}
+
+// Catálogo INERTE de acciones manuales (no ejecuta nada; solo se registra su uso).
+model SuggestedActionCatalog {
+  id                 String   @id @default(uuid()) @db.Uuid
+  key                String   @unique
+  label              String
+  description        String?
+  requiredPermission String
+  isSensitive        Boolean  @default(false)
+  status             String   @default("active")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("suggested_action_catalog")
+}
+
+// ───────────────────────────────────────────────────────────────────
+// FASE 4A — Agenda base (recursos, citas, disponibilidad, bloqueos)
+// Anti-solapamiento por EXCLUDE gist (definido en migración 0008; Prisma no lo modela).
+// ───────────────────────────────────────────────────────────────────
+
+enum ResourceKind {
+  PROFESSIONAL
+  CHAIR
+  ROOM
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELED
+  NO_SHOW
+  RESCHEDULED
+}
+
+enum AppointmentSource {
+  MANUAL
+  FROM_CONVERSATION
+}
+
+model Resource {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  kind           ResourceKind
+  name           String
+  linkedUserId   String?      @db.Uuid
+  timezone       String       @default("America/Mexico_City")
+  active         Boolean      @default(true)
+  // F7A: metadatos dentales opcionales (nullable, aditivo, no rompe F4A)
+  specialty      String?
+  color          String?
+  cedula         String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, kind])
+  @@map("resources")
+}
+
+model Appointment {
+  id                     String            @id @default(uuid()) @db.Uuid
+  organizationId         String            @db.Uuid
+  contactId              String?           @db.Uuid
+  patientId              String?           @db.Uuid
+  conversationId         String?           @db.Uuid
+  opportunityId          String?           @db.Uuid
+  professionalResourceId String?           @db.Uuid
+  chairResourceId        String?           @db.Uuid
+  startAt                DateTime
+  endAt                  DateTime
+  status                 AppointmentStatus @default(SCHEDULED)
+  source                 AppointmentSource @default(MANUAL)
+  reason                 String?
+  rescheduledFromId      String?           @db.Uuid
+  createdBy              String            @db.Uuid
+  canceledAt             DateTime?
+  canceledByUserId       String?           @db.Uuid
+  cancelReason           String?
+  noShowAt               DateTime?
+  completedAt            DateTime?
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+
+  @@index([organizationId, startAt])
+  @@index([professionalResourceId, startAt])
+  @@index([chairResourceId, startAt])
+  @@map("appointments")
+}
+
+model AvailabilityRule {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  resourceId     String   @db.Uuid
+  weekday        Int      @db.SmallInt
+  startMinute    Int      @db.SmallInt
+  endMinute      Int      @db.SmallInt
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId, resourceId, weekday])
+  @@map("availability_rules")
+}
+
+model ScheduleBlock {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  resourceId     String   @db.Uuid
+  startAt        DateTime
+  endAt          DateTime
+  reason         String?
+  createdBy      String   @db.Uuid
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId, resourceId, startAt])
+  @@map("schedule_blocks")
+}
+
+// ───────────────────────────────────────────────────────────────────
+// FASE 5A — Consulta clínica base (datos de salud: acceso estrecho)
+// clinical_notes es APPEND-ONLY (grants en migración 0009; Prisma no modela grants).
+// ───────────────────────────────────────────────────────────────────
+
+enum EncounterStatus {
+  DRAFT
+  IN_PROGRESS
+  FINALIZED
+  CANCELED
+}
+
+model ClinicalEncounter {
+  id                     String          @id @default(uuid()) @db.Uuid
+  organizationId         String          @db.Uuid
+  appointmentId          String?         @db.Uuid
+  patientId              String          @db.Uuid
+  professionalResourceId String?         @db.Uuid
+  status                 EncounterStatus @default(DRAFT)
+  chiefComplaint         String
+  preliminaryDiagnosis   String?
+  observations           String?
+  indications            String?
+  startedAt              DateTime?
+  finalizedAt            DateTime?
+  finalizedByUserId      String?         @db.Uuid
+  canceledAt             DateTime?
+  canceledByUserId       String?         @db.Uuid
+  createdBy              String          @db.Uuid
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+
+  @@index([organizationId, patientId])
+  @@index([appointmentId])
+  @@map("clinical_encounters")
+}
+
+model ClinicalNote {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  encounterId    String   @db.Uuid
+  authorUserId   String   @db.Uuid
+  body           String
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, encounterId])
+  @@map("clinical_notes")
+}
+
+// ───────────────────────────────────────────────────────────────────
+// FASE 5B — Odontograma base (hallazgos append-only ligados a consulta)
+// Append-only por grants (migración 0010); corrección = supersedesFindingId.
+// ───────────────────────────────────────────────────────────────────
+
+enum ToothSurface {
+  MESIAL
+  DISTAL
+  OCCLUSAL
+  VESTIBULAR
+  LINGUAL
+  INCISAL
+}
+
+enum OdontogramFindingType {
+  CARIES
+  RESTORATION
+  CROWN
+  ENDODONTICS
+  IMPLANT
+  FRACTURE
+  MOBILITY
+  MISSING
+  SEALANT
+  OTHER
+}
+
+enum ToothStatus {
+  PRESENT
+  ABSENT
+  EXTRACTED
+  IMPACTED
+  UNERUPTED
+  ROOT_ONLY
+}
+
+model OdontogramFinding {
+  id                  String                @id @default(uuid()) @db.Uuid
+  organizationId      String                @db.Uuid
+  patientId           String                @db.Uuid
+  encounterId         String                @db.Uuid
+  toothFdi            Int                   @db.SmallInt
+  surface             ToothSurface?
+  findingType         OdontogramFindingType
+  toothStatus         ToothStatus
+  note                String?
+  supersedesFindingId String?               @db.Uuid
+  recordedByUserId    String                @db.Uuid
+  createdAt           DateTime              @default(now())
+
+  @@index([organizationId, patientId, toothFdi])
+  @@index([organizationId, encounterId])
+  @@index([supersedesFindingId])
+  @@map("odontogram_findings")
+}
+
+// ───────────────────────────────────────────────────────────────────
+// FASE 5C — Plan de tratamiento base (mutable por estado, transiciones controladas)
+// Índice único parcial "un plan ACTIVE por paciente" definido en migración 0011.
+// ───────────────────────────────────────────────────────────────────
+
+enum TreatmentPlanStatus {
+  DRAFT
+  PROPOSED
+  ACCEPTED
+  ACTIVE
+  COMPLETED
+  REJECTED
+  CANCELED
+}
+
+enum TreatmentItemStatus {
+  PROPOSED
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+  CANCELED
+}
+
+enum TreatmentPriority {
+  URGENT
+  HIGH
+  NORMAL
+  LOW
+}
+
+enum ProcedureType {
+  EXAM
+  PROPHYLAXIS
+  RESTORATION
+  ENDODONTICS
+  EXTRACTION
+  CROWN
+  BRIDGE
+  IMPLANT
+  PERIODONTAL
+  ORTHODONTICS
+  SURGERY
+  OTHER
+}
+
+model TreatmentPlan {
+  id                     String              @id @default(uuid()) @db.Uuid
+  organizationId         String              @db.Uuid
+  patientId              String              @db.Uuid
+  encounterId            String?             @db.Uuid
+  professionalResourceId String?             @db.Uuid
+  status                 TreatmentPlanStatus @default(DRAFT)
+  title                  String?
+  notes                  String?
+  createdBy              String              @db.Uuid
+  proposedAt             DateTime?
+  acceptedAt             DateTime?
+  activatedAt            DateTime?
+  completedAt            DateTime?
+  rejectedAt             DateTime?
+  canceledAt             DateTime?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+
+  @@index([organizationId, patientId])
+  @@map("treatment_plans")
+}
+
+model TreatmentPlanItem {
+  id                     String              @id @default(uuid()) @db.Uuid
+  organizationId         String              @db.Uuid
+  planId                 String              @db.Uuid
+  toothFdi               Int?                @db.SmallInt
+  surface                ToothSurface?
+  procedureType          ProcedureType
+  status                 TreatmentItemStatus @default(PROPOSED)
+  priority               TreatmentPriority   @default(NORMAL)
+  sequence               Int                 @default(0)
+  note                   String?
+  professionalResourceId String?             @db.Uuid
+  linkedFindingId        String?             @db.Uuid
+  createdBy              String              @db.Uuid
+  completedAt            DateTime?
+  canceledAt             DateTime?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+
+  @@index([organizationId, planId, sequence])
+  @@index([linkedFindingId])
+  @@map("treatment_plan_items")
+}
+
+// ───────────────────────────────────────────────────────────────────
+// FASE 6A — Presupuestos (dinero en centavos MXN, snapshot por línea)
+// quote_lines: append/edit solo en DRAFT; DELETE reforzado por RLS (migración 0013).
+// Totales persistidos = suma de líneas (redondeo half-up por línea).
+// ───────────────────────────────────────────────────────────────────
+
+enum QuoteStatus {
+  DRAFT
+  PROPOSED
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CANCELED
+}
+
+enum Currency {
+  MXN
+}
+
+model Quote {
+  id                 String      @id @default(uuid()) @db.Uuid
+  organizationId     String      @db.Uuid
+  patientId          String      @db.Uuid
+  treatmentPlanId    String?     @db.Uuid
+  status             QuoteStatus @default(DRAFT)
+  currency           Currency    @default(MXN)
+  quoteNumber        String?
+  validUntil         DateTime?
+  subtotalCents      BigInt      @default(0)
+  discountTotalCents BigInt      @default(0)
+  taxTotalCents      BigInt      @default(0)
+  totalCents         BigInt      @default(0)
+  notes              String?
+  createdBy          String      @db.Uuid
+  proposedAt         DateTime?
+  acceptedAt         DateTime?
+  rejectedAt         DateTime?
+  expiredAt          DateTime?
+  canceledAt         DateTime?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  @@index([organizationId, patientId])
+  @@index([treatmentPlanId])
+  @@map("quotes")
+}
+
+model QuoteLine {
+  id                  String         @id @default(uuid()) @db.Uuid
+  organizationId      String         @db.Uuid
+  quoteId             String         @db.Uuid
+  treatmentPlanItemId String?        @db.Uuid
+  description         String
+  procedureType       ProcedureType?
+  toothFdi            Int?           @db.SmallInt
+  surface             ToothSurface?
+  quantity            Int
+  unitPriceCents      BigInt
+  discountCents       BigInt         @default(0)
+  taxRateBps          Int            @default(0)
+  subtotalCents       BigInt
+  taxCents            BigInt
+  totalCents          BigInt
+  currency            Currency       @default(MXN)
+  sortOrder           Int            @default(0)
+  createdAt           DateTime       @default(now())
+
+  @@index([organizationId, quoteId, sortOrder])
+  @@index([treatmentPlanItemId])
+  @@map("quote_lines")
+}
+
+// ───────────────────────────────────────────────────────────────────
+// FASE 6B — Pagos/Cobros (ledger append-only PAYMENT/REVERSAL, centavos MXN)
+// Saldo derivado (sin caché). Una reversa por pago (índice único parcial, migración 0014).
+// Sin UPDATE/DELETE para app_user. PAYMENT solo contra quote ACCEPTED.
+// ───────────────────────────────────────────────────────────────────
+
+enum PaymentEntryKind {
+  PAYMENT
+  REVERSAL
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  TRANSFER
+  CHECK
+  OTHER
+}
+
+enum PaymentStatus {
+  CONFIRMED
+}
+
+model Payment {
+  id                String           @id @default(uuid()) @db.Uuid
+  organizationId    String           @db.Uuid
+  quoteId           String           @db.Uuid
+  patientId         String           @db.Uuid
+  entryKind         PaymentEntryKind
+  amountCents       BigInt
+  method            PaymentMethod
+  status            PaymentStatus    @default(CONFIRMED)
+  reference         String?
+  reversesPaymentId String?          @db.Uuid
+  voidReason        String?
+  recordedByUserId  String           @db.Uuid
+  paidAt            DateTime         @default(now())
+  createdAt         DateTime         @default(now())
+
+  @@index([organizationId, quoteId])
+  @@index([organizationId, patientId])
+  @@map("payments")
+}
+
+// ───────────────────────────────────────────────────────────────────
+// FASE 7A — Configuración / Catálogos / Onboarding
+// 8 tablas nuevas org-scoped (RLS FORCE). ALTER resources ya aplicado arriba.
+// ───────────────────────────────────────────────────────────────────
+
+enum DocumentTemplateKind {
+  PRESCRIPTION
+  CONSENT
+  DOCUMENT
+  MESSAGE
+}
+
+enum NotificationChannel {
+  WHATSAPP
+  EMAIL
+  SMS
+}
+
+enum ImportJobKind {
+  PATIENTS
+  SERVICES
+}
+
+enum ImportJobStatus {
+  DRY_RUN_COMPLETE
+  COMMITTED
+  FAILED
+}
+
+model ServiceCatalog {
+  id                    String   @id @default(uuid()) @db.Uuid
+  organizationId        String   @db.Uuid
+  code                  String
+  name                  String
+  basePriceCents        BigInt   @default(0)
+  defaultDurationMin    Int      @default(30)
+  suggestedDepositCents BigInt   @default(0)
+  specialty             String?
+  active                Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([organizationId, code])
+  @@index([organizationId, active])
+  @@map("service_catalog")
+}
+
+model PaymentMethodConfig {
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String        @db.Uuid
+  method         PaymentMethod
+  enabled        Boolean       @default(true)
+  displayOrder   Int           @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@unique([organizationId, method])
+  @@index([organizationId])
+  @@map("payment_method_config")
+}
+
+model QuoteSetting {
+  id                String   @id @default(uuid()) @db.Uuid
+  organizationId    String   @unique @db.Uuid
+  validityDays      Int      @default(30)
+  defaultDepositBps Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("quote_setting")
+}
+
+model ClinicTaxProfile {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @unique @db.Uuid
+  rfc            String
+  legalName      String
+  regimeCode     String
+  fiscalZip      String
+  fiscalAddress  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("clinic_tax_profile")
+}
+
+model MedicationCatalog {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  name           String
+  presentation   String?
+  defaultDose    String?
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId, active])
+  @@map("medication_catalog")
+}
+
+model DocumentTemplate {
+  id             String               @id @default(uuid()) @db.Uuid
+  organizationId String               @db.Uuid
+  kind           DocumentTemplateKind
+  name           String
+  body           String
+  variables      Json                 @default("[]")
+  active         Boolean              @default(true)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@index([organizationId, kind, active])
+  @@map("document_templates")
+}
+
+model NotificationRule {
+  id             String              @id @default(uuid()) @db.Uuid
+  organizationId String              @db.Uuid
+  eventKey       String
+  channel        NotificationChannel
+  enabled        Boolean             @default(true)
+  maxPerDay      Int                 @default(5)
+  quietStart     String?
+  quietEnd       String?
+  requiresOptin  Boolean             @default(false)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@unique([organizationId, eventKey, channel])
+  @@index([organizationId])
+  @@map("notification_rule")
+}
+
+model ImportJob {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @db.Uuid
+  kind           ImportJobKind
+  status         ImportJobStatus
+  isDryRun       Boolean         @default(true)
+  total          Int             @default(0)
+  okCount        Int             @default(0)
+  errorCount     Int             @default(0)
+  errorReport    Json            @default("[]")
+  createdBy      String          @db.Uuid
+  committedAt    DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([organizationId, status])
+  @@map("import_job")
+}

@@ -1,0 +1,103 @@
+FASE 7A FINAL — Configuración / Catálogos / Onboarding
+=======================================================
+Fecha: 2026-06-03
+Migración final aplicada: 0015_phase7a_configuration.sql
+No existe migración 0016: CONFIRMADO
+No se avanzó fuera de 7A: CONFIRMADO
+
+SALUD TÉCNICA
+─────────────
+Total de pruebas verdes: 227 / 227
+  - 182 pruebas previas (F1–F6B) intactas
+  -  45 pruebas nuevas de Fase 7A
+TypeCheck (tsc --noEmit): LIMPIO
+Prisma generate: CORRECTO (v7.8.0)
+Suite completa: VERDE (13 archivos de prueba, 0 fallos)
+
+MIGRACIONES APLICADAS
+─────────────────────
+0001_init.sql
+0002_rls_policies.sql
+0003_phase2a_security.sql
+0004_phase2b1_modules_templates.sql
+0005_phase2b2_dashboard_preferences.sql
+0006_phase3a_identity_ops.sql
+0007_phase3b_follow_ops.sql
+0008_phase4a_agenda.sql
+0009_phase5a_clinical.sql
+0010_phase5b_odontogram.sql
+0011_phase5c_treatment_plan.sql
+0012_phase6a_quotes.sql
+0013_phase6a_quote_lines_delete_rls.sql
+0014_phase6b_payments.sql
+0015_phase7a_configuration.sql  ← NUEVA (7A)
+
+QUÉ SE IMPLEMENTÓ EN 7A
+─────────────────────────
+
+Migración 0015:
+  - 4 ENUMs nuevos: DocumentTemplateKind, NotificationChannel, ImportJobKind, ImportJobStatus
+  - ALTER TABLE resources: ADD COLUMN specialty TEXT NULL, color TEXT NULL, cedula TEXT NULL (aditivo, sin romper F4A)
+  - 8 tablas nuevas (todas con RLS ENABLE + FORCE, grants SELECT/INSERT/UPDATE, sin DELETE para app_user):
+      service_catalog        — procedimientos con precio base en centavos, duración, soft-delete
+      payment_method_config  — habilita/deshabilita métodos del enum PaymentMethod existente; UNIQUE(org,method)
+      quote_setting          — vigencia y depósito en basis points (0–10 000); 1 fila por org
+      clinic_tax_profile     — datos fiscales (RFC, régimen, CP); SENSIBLE; 1 fila por org
+      medication_catalog     — medicamentos con presentación y dosis; soft-delete
+      document_templates     — plantillas PRESCRIPTION/CONSENT/DOCUMENT/MESSAGE; variables en allowlist
+      notification_rule      — reglas anti-spam por (org, eventKey, channel); UNIQUE triple
+      import_job             — registro de dry-run / commit; append-only
+
+schema.prisma:
+  - Resource: campos specialty, color, cedula nullable agregados
+  - 8 modelos nuevos + 4 enums nuevos
+
+RBAC (rbac.ts):
+  - 7 permisos nuevos: config.view, config.manage, catalog.manage, pricing.manage,
+                       import.run, tax_profile.view, tax_profile.manage
+  - Asignaciones por rol:
+      owner/admin    → todos los 7 nuevos
+      front_desk     → config.view
+      clinician      → config.view
+      billing        → config.view + tax_profile.view
+      accountant     → config.view + tax_profile.view + tax_profile.manage
+
+Dominio (src/server/domain/config/):
+  - schemas.ts            — validadores Zod (precios en centavos, BPS, RFC MX, CP, variables allowlist)
+                            BODY_VAR_RE: usa matchAll con regex local por llamada (sin bug de lastIndex)
+  - service-catalog.ts    — CRUD + soft-delete; DuplicateServiceCodeError; auditoría escritura
+  - payment-method-config.ts — upsert por (org,method); rechaza método fuera del enum
+  - quote-setting.ts      — upsert/get; defaultDepositBps 0–10 000 enforced en DB y Zod
+  - tax-profile.ts        — upsert/get; audita TODA lectura Y escritura; RFC normalizado a mayúsculas
+  - medication-catalog.ts — CRUD + soft-delete; auditoría escritura
+  - document-templates.ts — CRUD + soft-delete; kind ∈ enum cerrado; variables vs body validado
+  - notification-rules.ts — upsert/list; hour HH:MM validado; sin envío de mensajes reales
+  - import.ts             — runImport(isDryRun); pacientes respetan F3A (Contacto→Paciente, dedup E.164);
+                            servicios idempotentes por code; error_report sin datos sensibles completos;
+                            dedup de duplicados dentro del mismo batch (Set en memoria)
+
+Pruebas 7A (tests/phase7a.test.ts — 45 pruebas):
+  - RLS aislamiento por tabla (8 tablas verificadas)
+  - Permisos por rol (PermissionDeniedError verificado)
+  - tax_profile: audit de lectura y escritura verificado
+  - payment_method_config: enum inválido rechazado; UNIQUE sin duplicados
+  - service_catalog: centavos exactos sin pérdida flotante; soft-delete; código duplicado
+  - document_templates: kind inválido rechazado; variable fuera de allowlist rechazada
+  - import servicios: dry-run sin inserción; commit + idempotencia; dup en batch
+  - import pacientes: F3A (dedup E.164, contacto antes que paciente); idempotencia
+  - ALTER resources no rompe F4A (campos nuevos NULL en recursos existentes)
+
+CONFIRMACIÓN DE LÍMITES — NO SE AVANZÓ FUERA DE 7A
+────────────────────────────────────────────────────
+✗ Ficha Viva (7B)
+✗ Portal de paciente (8C)
+✗ CFDI / timbrado (8A)
+✗ Recetas / consentimientos reales (7D-3 / 8B)
+✗ Reportes / dashboards avanzados (8D)
+✗ Branch / multisucursal (9A)
+✗ Follow nuevos
+✗ Migración 0016
+✗ Eventos de dominio en 7A (solo audit_logs)
+✗ Tabla provider/doctor, operatory/chair, working_hours (usan Resource existente)
+✗ price_list versionado (precio base simple en service_catalog)
+✗ WhatsApp / IA / envío real de notificaciones

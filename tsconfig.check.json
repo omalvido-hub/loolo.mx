@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "src/server/domain/**/*.ts",
+    "prisma/seed-modules.ts",
+    "prisma/seed-dashboard.ts",
+    "tests/**/*.ts",
+    "prisma/seed-follow.ts"
+  ]
+}
