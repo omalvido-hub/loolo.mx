@@ -1,0 +1,53 @@
+LOOLO — Fase 7B: Ficha Viva interna del paciente
+================================================
+
+Fecha de cierre: 2026-06-03
+
+Estado
+------
+- Fase: 7B cerrada
+- Sin migración: NO existe 0016 (migraciones 0001–0015 intactas)
+- Pruebas: 258/258 verdes (227 previas + 31 nuevas de 7B)
+- Typecheck: limpio en archivos de dominio 7B (4 errores pre-existentes en UI/config, fuera del alcance de 7B)
+
+Archivos creados
+----------------
+- src/server/domain/patient-record/schemas.ts  → Schemas Zod de salida PatientLiveRecord
+- src/server/domain/patient-record/resolver.ts → Domain service resolvePatientLiveRecord
+- tests/phase7b.test.ts                        → 31 pruebas obligatorias de 7B
+
+Qué implementa 7B
+-----------------
+- Resolver de solo lectura: resolvePatientLiveRecord(run, ctx, patientId)
+- Schema Zod cerrado: identity, operative, clinical (metadatos), odontogramSummary,
+  treatment, financial, tasks, timeline, recommendedActions, _meta
+- Permiso de entrada: patients.view (fail-closed; denegación auditada en tx propia)
+- Filtrado por sección según permisos: clinical.view, odontogram.view, treatment.view,
+  quote.view+payment.view, tasks.view — sección omitida si falta permiso
+- Auditoría: patient_record.viewed por apertura, sin contenido sensible
+- clinical_notes: NUNCA devuelve body (solo conteo/fecha/estado)
+- timeline: eventos de negocio seguros; solo de secciones visibles; sin audit_logs crudos
+- balanceCents: derivado del ledger PAYMENT - REVERSAL en cada lectura (nunca cacheado)
+- recommendedActions: reglas deterministas (schedule_appointment, accept_quote, record_payment)
+- Multi-tenant: RLS garantiza aislamiento por organizationId
+
+Pruebas obligatorias cubiertas
+-------------------------------
+✓ Composición correcta de cada sección desde datos sembrados
+✓ Filtrado por permisos ROL POR ROL (owner, admin, front_desk, clinician, billing, accountant)
+✓ clinician sin payment.view → sin sección financiera
+✓ Contexto sin clinical.view → sin sección clínica
+✓ clinical_notes: el resolver NUNCA devuelve body (prueba explícita)
+✓ timeline: no incluye eventos de secciones no visibles; sin audit_logs crudos
+✓ Saldo: balanceCents = PAYMENT - REVERSAL (incluyendo caso con reverso)
+✓ Multi-tenant: paciente de otra org → NOT_FOUND (RLS)
+✓ Auditoría: UNA entrada patient_record.viewed por apertura sin contenido sensible
+✓ Denegación: FORBIDDEN + auditado en transacción propia
+✓ Paciente archivado (state=ARCHIVED, archivedAt, deletedAt) → respuesta controlada
+✓ Montos siempre enteros (centavos); sin float
+
+Restricciones respetadas
+-------------------------
+- Sin 0016. Sin GitHub. Sin push. Sin pull. Sin remote.
+- .env fuera del commit.
+- No se programó fuera de 7B (sin 7C, portal paciente, odontograma visual, CFDI, etc.)
