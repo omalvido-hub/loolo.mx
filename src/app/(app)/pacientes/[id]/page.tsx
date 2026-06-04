@@ -4,7 +4,10 @@ import { getActorContext } from "@/server/auth/context";
 import { makeTenantRunner } from "@/server/db/tenant";
 import { resolvePatientLiveRecord } from "@/server/domain/patient-record/resolver";
 import { listEncountersSafeForPatient } from "@/server/domain/clinical/encounter-views";
+import { getOdontogramMasterView } from "@/server/domain/clinical/odontogram-views";
 import { PatientLiveRecordView } from "@/components/patients/PatientLiveRecordView";
+import { OdontogramMasterSection } from "@/components/odontogram/OdontogramMasterSection";
+import { OdontogramNoPermission } from "@/components/odontogram/OdontogramNoPermission";
 import type { EncounterListItem } from "@/server/domain/clinical/encounter-views";
 
 export default async function PacienteDetallePage({
@@ -56,5 +59,19 @@ export default async function PacienteDetallePage({
     }
   }
 
-  return <PatientLiveRecordView record={result.value} encounters={encounters} patientId={id} />;
+  // Odontograma vigente — UI-4 solo lectura.
+  const odoResult = await getOdontogramMasterView(run, ctx, id);
+
+  return (
+    <div>
+      <PatientLiveRecordView record={result.value} encounters={encounters} patientId={id} />
+      <div className="px-8 pb-10 max-w-4xl mx-auto space-y-6">
+        {odoResult.ok ? (
+          <OdontogramMasterSection view={odoResult.value} patientId={id} />
+        ) : odoResult.reason === "FORBIDDEN" ? (
+          <OdontogramNoPermission />
+        ) : null}
+      </div>
+    </div>
+  );
 }

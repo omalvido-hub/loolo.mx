@@ -3,8 +3,11 @@ import { requireOrganization, UnauthorizedError, NoOrganizationError } from "@/s
 import { getActorContext } from "@/server/auth/context";
 import { makeTenantRunner } from "@/server/db/tenant";
 import { getEncounterSafeView } from "@/server/domain/clinical/encounter-views";
+import { getOdontogramEncounterView } from "@/server/domain/clinical/odontogram-views";
 import { EncounterDetailView } from "@/components/clinical/EncounterDetailView";
 import { ClinicalNoPermission } from "@/components/clinical/ClinicalNoPermission";
+import { EncounterFindings } from "@/components/odontogram/EncounterFindings";
+import { OdontogramNoPermission } from "@/components/odontogram/OdontogramNoPermission";
 
 export default async function ConsultaDetallePage({
   params,
@@ -44,5 +47,26 @@ export default async function ConsultaDetallePage({
     notFound();
   }
 
-  return <EncounterDetailView view={result.value} patientId={id} />;
+  // Hallazgos de esta consulta — UI-4 solo lectura.
+  const odoResult = await getOdontogramEncounterView(run, ctx, id, encounterId);
+
+  return (
+    <div>
+      <EncounterDetailView view={result.value} patientId={id} />
+      <div className="px-8 pb-10 max-w-3xl mx-auto">
+        <div className="rounded-xl border bg-card ring-1 ring-foreground/10 overflow-hidden">
+          <div className="px-4 py-3 border-b bg-muted/30">
+            <h2 className="font-medium text-base">Odontograma</h2>
+          </div>
+          <div className="px-4 py-4">
+            {odoResult.ok ? (
+              <EncounterFindings view={odoResult.value} patientId={id} />
+            ) : odoResult.reason === "FORBIDDEN" ? (
+              <OdontogramNoPermission />
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

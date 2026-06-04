@@ -1,0 +1,111 @@
+FASE UI-4 — Odontograma dental solo lectura
+Fecha: 2026-06-03
+
+═══════════════════════════════════════════════════════════════
+RESUMEN
+═══════════════════════════════════════════════════════════════
+
+Se implementó el odontograma dental en modo solo lectura, conectado
+a la ficha del paciente y a la vista de consulta clínica.
+
+═══════════════════════════════════════════════════════════════
+PÁGINAS INTEGRADAS
+═══════════════════════════════════════════════════════════════
+
+1. /pacientes/[id]
+   - Sección "Odontograma vigente" al pie de la ficha del paciente.
+   - Muestra el estado global actual del paciente (hallazgos activos).
+   - Usa getOdontogramMasterView + resolveOdontogram + groupByTooth.
+   - Si el actor no tiene odontogram.view: muestra OdontogramNoPermission.
+
+2. /pacientes/[id]/consultas/[encounterId]
+   - Sección "Hallazgos de esta consulta" en la vista de consulta.
+   - Muestra SOLO los hallazgos registrados en esa consulta.
+   - Usa getOdontogramEncounterView.
+   - Si el actor no tiene odontogram.view: muestra OdontogramNoPermission.
+
+═══════════════════════════════════════════════════════════════
+ARCHIVOS CREADOS
+═══════════════════════════════════════════════════════════════
+
+Dominio / proyección:
+  src/server/domain/clinical/odontogram-views.ts
+
+Componentes presentacionales:
+  src/components/odontogram/OdontogramChart.tsx
+  src/components/odontogram/ToothGlyph.tsx
+  src/components/odontogram/ToothSurfaceZone.tsx
+  src/components/odontogram/OdontogramLegend.tsx
+  src/components/odontogram/FindingsPanel.tsx
+  src/components/odontogram/FindingRow.tsx
+  src/components/odontogram/EncounterFindings.tsx
+  src/components/odontogram/OdontogramEmpty.tsx
+  src/components/odontogram/OdontogramNoPermission.tsx
+  src/components/odontogram/OdontogramError.tsx
+  src/components/odontogram/OdontogramMasterSection.tsx
+
+Páginas modificadas:
+  src/app/(app)/pacientes/[id]/page.tsx (agrega sección de odontograma)
+  src/app/(app)/pacientes/[id]/consultas/[encounterId]/page.tsx (agrega hallazgos)
+
+Pruebas:
+  tests/phase-ui4.test.ts
+
+═══════════════════════════════════════════════════════════════
+PROYECCIÓN SEGURA
+═══════════════════════════════════════════════════════════════
+
+getOdontogramMasterView:
+  - Exige odontogram.view. Fail-closed.
+  - Usa TenantRunner / RLS (sin BYPASSRLS).
+  - SELECT explícito: sin note, sin recordedByUserId, sin organizationId.
+  - Aplica resolveOdontogram → hallazgos vigentes (no supersedidos).
+  - Aplica groupByTooth → teeth[] con 32 piezas FDI 11-48.
+  - Incluye encounterId en findingsPanelItem para enlazar a consulta.
+  - Audita odontogram.viewed sin contenido sensible.
+
+getOdontogramEncounterView:
+  - Exige odontogram.view. Fail-closed.
+  - Anti-IDOR: valida encounterId pertenece al patientId.
+  - Usa TenantRunner / RLS (sin BYPASSRLS).
+  - SELECT explícito: sin note, sin recordedByUserId, sin organizationId.
+  - Aplica resolveOdontogram para filtrar supersesiones intra-consulta.
+  - NO mezcla con el estado vigente global del paciente.
+  - Audita odontogram.viewed sin contenido sensible.
+
+═══════════════════════════════════════════════════════════════
+CONFIRMACIONES
+═══════════════════════════════════════════════════════════════
+
+✓ SOLO LECTURA — no se registra, edita, ni supervisa ningún hallazgo.
+✓ SIN ESCRITURA — recordFinding y supersedeFinding no son invocados.
+✓ SIN ENDPOINTS REST — no existe src/app/api/odontogram.
+✓ SIN MIGRACIÓN — no existe migración 0016 ni cambio de schema.
+✓ SCHEMA sin tocar — Prisma schema no fue modificado.
+✓ RBAC sin tocar — permisos y roles no fueron modificados.
+✓ RLS sin tocar — políticas de Row Level Security no fueron modificadas.
+✓ odontogram.ts sin tocar — funciones de escritura intactas.
+✓ encounters.ts sin tocar.
+✓ note no expuesto — eliminado del SELECT y del DTO.
+✓ recordedByUserId no expuesto — eliminado del SELECT y del DTO.
+✓ organizationId no expuesto — no está en ningún DTO público.
+✓ Sin recordFinding/supersedeFinding en archivos UI-4.
+✓ Sin tests/phase7d.test.ts.
+✓ Sin GitHub / push / pull / remote.
+
+═══════════════════════════════════════════════════════════════
+ALCANCE
+═══════════════════════════════════════════════════════════════
+
+UI-4 cubre: odontograma dental solo lectura.
+
+NO avanza a:
+  - Registro/edición/supersesión de hallazgos.
+  - Plan de tratamiento.
+  - Presupuesto.
+  - Cobros.
+  - Follow / portal.
+  - Dashboard.
+  - Otras verticales.
+
+La siguiente fase (UI-5 o superior) requerirá aprobación explícita.
