@@ -1,0 +1,93 @@
+FASE UI-5 — Plan de tratamiento solo lectura
+Fecha: 2026-06-04
+
+═══════════════════════════════════════════════════════════════
+RESUMEN
+═══════════════════════════════════════════════════════════════
+
+Se implementó la vista de planes de tratamiento en modo solo lectura,
+conectada a la ficha del paciente. Muestra el plan activo destacado
+y el historial de planes con sus ítems.
+
+═══════════════════════════════════════════════════════════════
+PÁGINAS INTEGRADAS
+═══════════════════════════════════════════════════════════════
+
+1. /pacientes/[id]
+   - Sección "Planes de tratamiento" al pie de la ficha del paciente.
+   - Muestra el plan ACTIVE destacado (ring verde) con sus ítems.
+   - Muestra el resto de planes (DRAFT, COMPLETED, etc.) debajo.
+   - Usa getTreatmentPlansSafeView.
+   - Si el actor no tiene treatment.view: muestra TreatmentNoPermission.
+
+═══════════════════════════════════════════════════════════════
+ARCHIVOS CREADOS
+═══════════════════════════════════════════════════════════════
+
+Dominio / proyección:
+  src/server/domain/clinical/treatment-views.ts
+
+Componentes presentacionales:
+  src/components/treatment/TreatmentPlanStatusBadge.tsx
+  src/components/treatment/TreatmentItemRow.tsx
+  src/components/treatment/TreatmentPlanCard.tsx
+  src/components/treatment/TreatmentEmpty.tsx
+  src/components/treatment/TreatmentNoPermission.tsx
+  src/components/treatment/TreatmentPlansSection.tsx
+
+Páginas modificadas:
+  src/app/(app)/pacientes/[id]/page.tsx (agrega sección de tratamiento)
+
+Pruebas:
+  tests/phase-ui5.test.ts
+
+═══════════════════════════════════════════════════════════════
+PROYECCIÓN SEGURA
+═══════════════════════════════════════════════════════════════
+
+getTreatmentPlansSafeView:
+  - Exige treatment.view. Fail-closed.
+  - Usa TenantRunner / RLS (sin BYPASSRLS).
+  - SELECT explícito en treatment_plans: sin notes, sin createdBy, sin organizationId.
+  - SELECT explícito en treatment_plan_items: sin note, sin createdBy,
+    sin organizationId, sin linkedFindingId, sin professionalResourceId.
+  - Una sola consulta batch para ítems (ANY($1)) — sin N+1.
+  - Ordena planes: ACTIVE primero, luego PROPOSED, ACCEPTED, DRAFT, terminales.
+  - Calcula liveItemsCount (PROPOSED|ACCEPTED|IN_PROGRESS) e itemsCount.
+  - Expone activePlan como referencia directa al plan ACTIVE (o null).
+  - Audita treatment.viewed sin contenido clínico.
+
+═══════════════════════════════════════════════════════════════
+CONFIRMACIONES
+═══════════════════════════════════════════════════════════════
+
+✓ SOLO LECTURA — no se crea, edita ni cancela ningún plan ni ítem.
+✓ SIN ESCRITURA — createPlan, addItem, setPlanStatus, setItemStatus no invocados.
+✓ SIN ENDPOINTS REST — no existe src/app/api/treatment.
+✓ SIN MIGRACIÓN — no existe migración 0016 ni cambio de schema.
+✓ SCHEMA sin tocar — Prisma schema no fue modificado.
+✓ RBAC sin tocar — permisos y roles no fueron modificados.
+✓ RLS sin tocar — políticas de Row Level Security no fueron modificadas.
+✓ treatment.ts sin tocar — funciones de escritura intactas.
+✓ notes no expuesto — eliminado del SELECT y del DTO del plan.
+✓ note no expuesto — eliminado del SELECT y del DTO del ítem.
+✓ createdBy no expuesto — eliminado del SELECT y del DTO.
+✓ organizationId no expuesto — no está en ningún DTO público.
+✓ linkedFindingId no expuesto — no se selecciona ni propaga.
+✓ Sin tests/phase7d.test.ts.
+✓ Sin GitHub / push / pull / remote.
+
+═══════════════════════════════════════════════════════════════
+ALCANCE
+═══════════════════════════════════════════════════════════════
+
+UI-5 cubre: plan de tratamiento solo lectura.
+
+NO avanza a:
+  - Creación/edición/cancelación de planes o ítems.
+  - Presupuesto (quotes).
+  - Cobros (payments).
+  - Dashboard / Follow / portal.
+  - Otras verticales.
+
+La siguiente fase (UI-6 o superior) requerirá aprobación explícita.

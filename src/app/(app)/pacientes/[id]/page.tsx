@@ -5,9 +5,12 @@ import { makeTenantRunner } from "@/server/db/tenant";
 import { resolvePatientLiveRecord } from "@/server/domain/patient-record/resolver";
 import { listEncountersSafeForPatient } from "@/server/domain/clinical/encounter-views";
 import { getOdontogramMasterView } from "@/server/domain/clinical/odontogram-views";
+import { getTreatmentPlansSafeView } from "@/server/domain/clinical/treatment-views";
 import { PatientLiveRecordView } from "@/components/patients/PatientLiveRecordView";
 import { OdontogramMasterSection } from "@/components/odontogram/OdontogramMasterSection";
 import { OdontogramNoPermission } from "@/components/odontogram/OdontogramNoPermission";
+import { TreatmentPlansSection } from "@/components/treatment/TreatmentPlansSection";
+import { TreatmentNoPermission } from "@/components/treatment/TreatmentNoPermission";
 import type { EncounterListItem } from "@/server/domain/clinical/encounter-views";
 
 export default async function PacienteDetallePage({
@@ -62,6 +65,9 @@ export default async function PacienteDetallePage({
   // Odontograma vigente — UI-4 solo lectura.
   const odoResult = await getOdontogramMasterView(run, ctx, id);
 
+  // Planes de tratamiento — UI-5 solo lectura.
+  const treatmentResult = await getTreatmentPlansSafeView(run, ctx, id);
+
   return (
     <div>
       <PatientLiveRecordView record={result.value} encounters={encounters} patientId={id} />
@@ -70,6 +76,11 @@ export default async function PacienteDetallePage({
           <OdontogramMasterSection view={odoResult.value} patientId={id} />
         ) : odoResult.reason === "FORBIDDEN" ? (
           <OdontogramNoPermission />
+        ) : null}
+        {treatmentResult.ok ? (
+          <TreatmentPlansSection view={treatmentResult.value} />
+        ) : treatmentResult.reason === "FORBIDDEN" ? (
+          <TreatmentNoPermission />
         ) : null}
       </div>
     </div>
