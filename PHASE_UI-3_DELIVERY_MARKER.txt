@@ -1,0 +1,126 @@
+PHASE UI-3 DELIVERY MARKER
+Fase UI-3 — Consulta clínica dental solo lectura
+=================================================
+
+Fecha: 2026-06-03
+Tests finales: 366/366 verdes
+Typecheck: limpio (npx tsc --noEmit sin errores)
+Build: exitoso (npm run build)
+Commit: feat: implement UI-3 clinical read-only view
+
+─── Archivos creados ───────────────────────────────────────────────────────
+
+Proyección segura:
+  src/server/domain/clinical/encounter-views.ts
+    - getEncounterSafeView — detalle seguro de una consulta
+    - listEncountersSafeForPatient — lista segura de consultas de un paciente
+
+Página de detalle:
+  src/app/(app)/pacientes/[id]/consultas/[encounterId]/page.tsx
+
+Componentes presentacionales:
+  src/components/clinical/EncounterStatusBadge.tsx
+  src/components/clinical/EncountersEmpty.tsx
+  src/components/clinical/ClinicalNoPermission.tsx
+  src/components/clinical/ClinicalError.tsx
+  src/components/clinical/EncounterNotFound.tsx
+  src/components/clinical/ClinicalNotesSummary.tsx
+  src/components/clinical/EncounterRow.tsx
+  src/components/clinical/EncounterList.tsx
+  src/components/clinical/EncounterDetailView.tsx
+
+Pruebas:
+  tests/phase-ui3.test.ts (37 tests)
+
+─── Archivos modificados ───────────────────────────────────────────────────
+
+  src/app/(app)/pacientes/[id]/page.tsx
+    — Integra historial de consultas cuando clinical.view está disponible
+    — Llama a listEncountersSafeForPatient y pasa resultado a la vista
+
+  src/components/patients/PatientLiveRecordView.tsx
+    — Acepta props opcionales encounters / patientId
+    — Muestra EncounterList con enlaces a detalle cuando hay acceso clínico
+
+─── Confirmaciones de seguridad y privacidad ───────────────────────────────
+
+CONFIRMADO: clinical_notes.body NO visible para ningún rol.
+  - clinician: body no devuelto (probado)
+  - owner: body no devuelto (probado)
+  - front_desk: body no devuelto (probado)
+  - billing/accountant: sin clinical.view → FORBIDDEN antes de llegar a notas
+  - El campo "body" no aparece en ningún SELECT de encounter-views.ts
+  - Ningún componente en src/components/clinical/ renderiza body
+  - No existe ClinicalNoteBody.tsx
+
+CONFIRMADO: solo metadatos de notas clínicas:
+  - count, latestCreatedAt, items con id y createdAt
+  - authorName es null porque users (Better Auth) no es accesible por app_user
+
+CONFIRMADO: sin endpoints REST nuevos.
+  - src/app/api/encounters: no existe
+  - src/app/api/clinical: no existe
+  - src/app/api/clinical-notes: no existe
+  - UI usa Server Components que llaman directamente al dominio
+
+CONFIRMADO: sin escritura de ningún tipo.
+  - encounter-views.ts no invoca createEncounter, startEncounter,
+    updateEncounter, addClinicalNote, finalizeEncounter, cancelEncounter
+  - Página de detalle es Server Component, solo lectura
+
+CONFIRMADO: sin migración 0016.
+  - Solo existen migraciones 0001–0015
+
+CONFIRMADO: Prisma schema sin modificar.
+CONFIRMADO: RBAC sin modificar (sin permisos nuevos).
+CONFIRMADO: RLS sin modificar.
+CONFIRMADO: encounters.ts sin tocar (git diff vacío desde commit 134b11f).
+
+─── Garantías de seguridad de la proyección ────────────────────────────────
+
+getEncounterSafeView:
+  - Exige clinical.view — fail-closed sin permiso
+  - Fail-closed sin organizationId o userId
+  - Valida encounterId contra patientId (anti-IDOR)
+  - RLS de PostgreSQL filtra por tenant activo
+  - SELECT explícito (sin SELECT *)
+  - No devuelve: organizationId, finalizedByUserId, canceledByUserId, createdBy
+  - No devuelve: clinical_notes.body
+
+listEncountersSafeForPatient:
+  - Exige clinical.view — fail-closed sin permiso
+  - Fail-closed sin organizationId o userId
+  - RLS de PostgreSQL filtra por tenant activo
+  - No devuelve body de ninguna nota
+
+─── Historial de consultas ─────────────────────────────────────────────────
+
+Integrado en /pacientes/[id]:
+  - Lista de consultas con EncounterList
+  - Cada fila enlaza a /pacientes/[id]/consultas/[encounterId]
+  - Estado vacío con EncountersEmpty si no hay consultas
+  - Sin acceso clínico: sección no se muestra
+
+Detalle en /pacientes/[id]/consultas/[encounterId]:
+  - Server Component — sin endpoints
+  - Muestra: estado, profesional, motivo, diagnosis, observaciones, indicaciones
+  - Muestra: metadatos de notas (count, fecha) — NUNCA body
+  - Acceso denegado: ClinicalNoPermission seguro
+  - Consulta no encontrada: notFound() 404 seguro
+
+─── Límites de esta fase ───────────────────────────────────────────────────
+
+NO se avanzó a:
+  - Odontograma interactivo
+  - Follow / bandeja de conversaciones
+  - Cobros / presupuestos
+  - Portal de paciente
+  - GitHub / push / pull / remote
+
+─── Estado del proyecto ────────────────────────────────────────────────────
+
+UI-1 cerrada: /pacientes + /pacientes/[id] (commit fe02e4c)
+UI-2 cerrada: /agenda solo lectura (commit 134b11f)
+UI-3 cerrada: consulta clínica solo lectura (este commit)
+
+Siguiente: UI-4 (por definir — odontograma visual u otra pantalla de la cadena clínica)

@@ -3,7 +3,9 @@ import { requireOrganization, UnauthorizedError, NoOrganizationError } from "@/s
 import { getActorContext } from "@/server/auth/context";
 import { makeTenantRunner } from "@/server/db/tenant";
 import { resolvePatientLiveRecord } from "@/server/domain/patient-record/resolver";
+import { listEncountersSafeForPatient } from "@/server/domain/clinical/encounter-views";
 import { PatientLiveRecordView } from "@/components/patients/PatientLiveRecordView";
+import type { EncounterListItem } from "@/server/domain/clinical/encounter-views";
 
 export default async function PacienteDetallePage({
   params,
@@ -44,5 +46,15 @@ export default async function PacienteDetallePage({
     notFound();
   }
 
-  return <PatientLiveRecordView record={result.value} />;
+  // Cargar historial de consultas cuando el actor tiene clinical.view
+  // (resolver ya lo confirmó si la sección clínica está presente en el resultado).
+  let encounters: EncounterListItem[] = [];
+  if (result.value.clinical !== undefined) {
+    const encResult = await listEncountersSafeForPatient(run, ctx, id);
+    if (encResult.ok) {
+      encounters = encResult.value.items;
+    }
+  }
+
+  return <PatientLiveRecordView record={result.value} encounters={encounters} patientId={id} />;
 }

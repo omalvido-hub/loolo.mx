@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { PatientLiveRecord } from "@/server/domain/patient-record/schemas";
+import { EncounterList } from "@/components/clinical/EncounterList";
+import type { EncounterListItem } from "@/server/domain/clinical/encounter-views";
 
 const FMT_DATE = new Intl.DateTimeFormat("es-MX", {
   timeZone: "America/Mexico_City",
@@ -80,9 +82,11 @@ const TIMELINE_LABELS: Record<string, string> = {
 
 interface Props {
   record: PatientLiveRecord;
+  encounters?: EncounterListItem[];
+  patientId?: string;
 }
 
-export function PatientLiveRecordView({ record }: Props) {
+export function PatientLiveRecordView({ record, encounters, patientId }: Props) {
   const { identity, operative, clinical, odontogramSummary, treatment, financial, tasks, timeline, recommendedActions, _meta } = record;
 
   return (
@@ -156,14 +160,19 @@ export function PatientLiveRecordView({ record }: Props) {
         <Row label="Última actividad" value={fDate(operative.lastActivityAt)} />
       </SectionCard>
 
-      {/* Clínica */}
+      {/* Clínica — resumen + historial de consultas con enlaces */}
       {clinical && (
-        <SectionCard title="Clínica">
-          <Row label="Consultas registradas" value={clinical.encountersCount} />
+        <SectionCard title="Consultas clínicas">
+          <Row label="Total consultas" value={clinical.encountersCount} />
           <Row label="Última consulta" value={fDate(clinical.lastEncounterAt)} />
           <Row label="Estado última consulta" value={clinical.lastEncounterStatus} />
           <Row label="Notas clínicas" value={clinical.notesCount} />
           <Row label="Última nota" value={fDate(clinical.lastNoteAt)} />
+          {encounters !== undefined && patientId && (
+            <div className="pt-2">
+              <EncounterList items={encounters} patientId={patientId} />
+            </div>
+          )}
         </SectionCard>
       )}
 
