@@ -1,0 +1,9 @@
+FVO-1 — Ficha Viva Odontológica Completa base
+Fecha: 2026-06-04
+Estado: ENTREGADO
+
+Migración: 0016_fvo1_patient_extended_profile.sql
+Tablas creadas: 9 (patient_demographics, patient_address, patient_tax_profile,
+  patient_clinical_profile, patient_medical_alert, patient_guardian,
+  patient_emergency_contact, patient_commercial_origin, patient_data_consent)
+Permisos RBAC nuevos: patient.demographics.view, patient.clinical_profile.view, patient.tax.view

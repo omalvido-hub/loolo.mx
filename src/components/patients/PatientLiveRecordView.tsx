@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { PatientLiveRecord } from "@/server/domain/patient-record/schemas";
 import { EncounterList } from "@/components/clinical/EncounterList";
+import { PatientFVOSections } from "@/components/patients/PatientFVOSections";
 import type { EncounterListItem } from "@/server/domain/clinical/encounter-views";
 
 const FMT_DATE = new Intl.DateTimeFormat("es-MX", {
@@ -132,10 +133,15 @@ export function PatientLiveRecordView({ record, encounters, patientId }: Props) 
       {/* Identidad */}
       <SectionCard title="Identidad">
         <Row label="ID paciente" value={<span className="font-mono text-xs">{identity.patientId}</span>} />
+        <Row label="Teléfono" value={identity.phone} />
+        <Row label="Correo" value={identity.email} />
         <Row label="Fuente" value={identity.source} />
         <Row label="Alta" value={fDate(identity.createdAt)} />
         {identity.archivedAt && <Row label="Archivado" value={fDate(identity.archivedAt)} />}
       </SectionCard>
+
+      {/* Secciones extendidas FVO-1 */}
+      <PatientFVOSections record={record} />
 
       {/* Operativa */}
       <SectionCard title="Operativa">

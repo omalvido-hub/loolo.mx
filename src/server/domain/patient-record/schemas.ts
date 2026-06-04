@@ -1,6 +1,7 @@
-// LOOLO — Schemas Zod de salida para PatientLiveRecord (Fase 7B).
+// LOOLO — Schemas Zod de salida para PatientLiveRecord (Fase 7B + FVO-1).
 // Solo lectura. Agregado de metadatos; NUNCA contenido clínico libre ni body de notas.
 // Montos en centavos MXN (number integer). Fechas ISO 8601.
+// FVO-1: agrega secciones extendidas de perfil del paciente (datos demográficos, clínicos, fiscales, etc.).
 
 import { z } from "zod";
 
@@ -92,6 +93,90 @@ export const RecordMetaSchema = z.object({
   patientState: z.string(),
 });
 
+// ── FVO-1: secciones extendidas del perfil del paciente ──
+
+// Bandera de alerta médica: solo para roles sin patient.clinical_profile.view.
+// No expone tipo ni descripción: solo indica si existe y cuántas son de alto riesgo.
+export const MedicalAlertFlagSchema = z.object({
+  hasActiveAlerts: z.boolean(),
+  highSeverityCount: z.number().int().nonnegative(),
+});
+
+// Alerta médica completa: solo para roles con patient.clinical_profile.view.
+export const MedicalAlertDetailSchema = z.object({
+  id: z.string().uuid(),
+  alertType: z.string(),
+  severity: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
+  description: z.string(),
+  active: z.boolean(),
+  createdAt: z.string().datetime(),
+});
+
+export const PatientDemographicsSectionSchema = z.object({
+  dateOfBirth: z.string().nullable(),   // Formato YYYY-MM-DD
+  age: z.number().int().nonnegative().nullable(),
+  sex: z.string().nullable(),
+  bloodType: z.string().nullable(),
+  occupation: z.string().nullable(),
+  maritalStatus: z.string().nullable(),
+});
+
+export const PatientAddressSectionSchema = z.object({
+  street: z.string().nullable(),
+  extNumber: z.string().nullable(),
+  intNumber: z.string().nullable(),
+  neighborhood: z.string().nullable(),
+  municipality: z.string().nullable(),
+  state: z.string().nullable(),
+  postalCode: z.string().nullable(),
+  country: z.string().nullable(),
+});
+
+export const PatientTaxSectionSchema = z.object({
+  rfc: z.string().nullable(),
+  legalName: z.string().nullable(),
+  taxRegime: z.string().nullable(),
+  cfdiUse: z.string().nullable(),
+  taxPostalCode: z.string().nullable(),
+});
+
+// Perfil clínico completo: alergias, medicamentos, antecedentes, notas de seguridad y alertas detalladas.
+// Solo para roles con patient.clinical_profile.view.
+export const PatientClinicalProfileSectionSchema = z.object({
+  knownAllergies: z.array(z.string()),
+  currentMedications: z.array(z.string()),
+  relevantHistory: z.string().nullable(),
+  safetyNotes: z.string().nullable(),
+  medicalAlerts: z.array(MedicalAlertDetailSchema),
+});
+
+export const PatientGuardianSectionSchema = z.object({
+  name: z.string().nullable(),
+  relationship: z.string().nullable(),
+  phone: z.string().nullable(),
+  email: z.string().nullable(),
+});
+
+export const PatientEmergencyContactSectionSchema = z.object({
+  name: z.string().nullable(),
+  relationship: z.string().nullable(),
+  phone: z.string().nullable(),
+});
+
+export const PatientCommercialOriginSectionSchema = z.object({
+  channel: z.string().nullable(),
+  campaign: z.string().nullable(),
+  referredBy: z.string().nullable(),
+  initialReason: z.string().nullable(),
+});
+
+export const PatientConsentSectionSchema = z.object({
+  status: z.string().nullable(),
+  grantedAt: z.string().datetime().nullable(),
+  version: z.string().nullable(),
+  method: z.string().nullable(),
+});
+
 export const PatientLiveRecordSchema = z.object({
   identity: IdentitySectionSchema,
   operative: OperativeSectionSchema,
@@ -104,6 +189,17 @@ export const PatientLiveRecordSchema = z.object({
   timeline: z.array(TimelineEventSchema),
   recommendedActions: z.array(RecommendedActionSchema),
   _meta: RecordMetaSchema,
+  // FVO-1: secciones extendidas del perfil (opcionales por permiso)
+  demographics: PatientDemographicsSectionSchema.optional(),
+  address: PatientAddressSectionSchema.optional(),
+  guardian: PatientGuardianSectionSchema.optional(),
+  emergencyContact: PatientEmergencyContactSectionSchema.optional(),
+  commercialOrigin: PatientCommercialOriginSectionSchema.optional(),
+  consent: PatientConsentSectionSchema.optional(),
+  medicalAlertFlag: MedicalAlertFlagSchema.optional(),
+  clinicalProfile: PatientClinicalProfileSectionSchema.optional(),
+  tax: PatientTaxSectionSchema.optional(),
 });
 
 export type PatientLiveRecord = z.infer<typeof PatientLiveRecordSchema>;
+export type MedicalAlertDetail = z.infer<typeof MedicalAlertDetailSchema>;

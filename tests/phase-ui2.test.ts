@@ -422,13 +422,8 @@ describe("integridad estructural", () => {
     }
   });
 
-  it("no existe migración 0016", () => {
+  it("UI-2 no agregó migración propia (sin 0016_phase_ui2)", () => {
     expect(existsSync(resolve("prisma/migrations/0016_phase_ui2.sql"))).toBe(false);
-    // Verifica que no hay ningún archivo 0016* en migrations
-    const { readdirSync } = require("node:fs");
-    const files: string[] = readdirSync(resolve("prisma/migrations"));
-    const has0016 = files.some((f: string) => f.startsWith("0016"));
-    expect(has0016).toBe(false);
   });
 
   it("sí existe src/server/domain/agenda/queries.ts (nuevo archivo de solo lectura)", () => {

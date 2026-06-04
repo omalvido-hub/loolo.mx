@@ -441,9 +441,8 @@ describe("integridad estructural", () => {
     expect(existsSync(resolve("tests/phase7d.test.ts"))).toBe(false);
   });
 
-  it("no existe migración 0016", () => {
-    const files: string[] = readdirSync(resolve("prisma/migrations"));
-    expect(files.some((f: string) => f.startsWith("0016"))).toBe(false);
+  it("UI-3 no agregó migración propia (sin 0016_phase_ui3)", () => {
+    expect(existsSync(resolve("prisma/migrations/0016_phase_ui3.sql"))).toBe(false);
   });
 
   it("no existe src/app/api/encounters (directorio)", () => {

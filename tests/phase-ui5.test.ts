@@ -538,9 +538,8 @@ describe("getTreatmentPlansSafeView — lógica", () => {
 // ══════════════════════════════════════════════════════════════════════
 
 describe("integridad estructural", () => {
-  it("no existe migración 0016 ni superior", () => {
-    const files = readdirSync(resolve("prisma/migrations"));
-    expect(files.some((f: string) => f.startsWith("0016"))).toBe(false);
+  it("UI-5 no agregó migración propia (sin 0016_phase_ui5 ni superior de UI-5)", () => {
+    expect(existsSync(resolve("prisma/migrations/0016_phase_ui5.sql"))).toBe(false);
   });
 
   it("no existe src/app/api/treatment", () => {

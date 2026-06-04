@@ -11,6 +11,17 @@ import { ok, fail } from "../shared/status.js";
 import type { Result } from "../shared/status.js";
 import { PatientLiveRecordSchema } from "./schemas.js";
 import type { PatientLiveRecord } from "./schemas.js";
+import {
+  fetchDemographicsSection,
+  fetchAddressSection,
+  fetchGuardianSection,
+  fetchEmergencyContactSection,
+  fetchCommercialOriginSection,
+  fetchConsentSection,
+  fetchMedicalAlertFlag,
+  fetchClinicalProfileSection,
+  fetchTaxSection,
+} from "./fvo-sections.js";
 
 function toIso(d: Date | string | null | undefined): string | null {
   if (!d) return null;
@@ -390,6 +401,43 @@ export async function resolvePatientLiveRecord(
       visibleSections.push("tasks");
     }
 
+    // ── FVO-1: secciones extendidas del perfil del paciente ──
+
+    // Demográficos, domicilio, tutor, contacto emergencia, origen comercial, consentimiento
+    // y bandera de alerta médica → patient.demographics.view
+    let demographics: any = undefined;
+    let address: any = undefined;
+    let guardian: any = undefined;
+    let emergencyContact: any = undefined;
+    let commercialOrigin: any = undefined;
+    let consent: any = undefined;
+    let medicalAlertFlag: any = undefined;
+
+    if (can(ctx.permissions, "patient.demographics.view")) {
+      demographics = await fetchDemographicsSection(exec, patientId);
+      address = await fetchAddressSection(exec, patientId);
+      guardian = await fetchGuardianSection(exec, patientId);
+      emergencyContact = await fetchEmergencyContactSection(exec, patientId);
+      commercialOrigin = await fetchCommercialOriginSection(exec, patientId);
+      consent = await fetchConsentSection(exec, patientId);
+      medicalAlertFlag = await fetchMedicalAlertFlag(exec, patientId);
+      visibleSections.push("demographics");
+    }
+
+    // Perfil clínico completo + detalle de alertas → patient.clinical_profile.view
+    let clinicalProfile: any = undefined;
+    if (can(ctx.permissions, "patient.clinical_profile.view")) {
+      clinicalProfile = await fetchClinicalProfileSection(exec, patientId);
+      visibleSections.push("clinicalProfile");
+    }
+
+    // Datos fiscales del paciente → patient.tax.view
+    let tax: any = undefined;
+    if (can(ctx.permissions, "patient.tax.view")) {
+      tax = await fetchTaxSection(exec, patientId);
+      visibleSections.push("tax");
+    }
+
     // — timeline (solo eventos de negocio seguros de secciones visibles)
     const timeline = buildTimeline(timelineData, visibleSections);
 
@@ -434,6 +482,16 @@ export async function resolvePatientLiveRecord(
         visibleSections,
         patientState: patient.state,
       },
+      // FVO-1: secciones extendidas (undefined cuando no aplica el permiso)
+      demographics,
+      address: address ?? undefined,
+      guardian: guardian ?? undefined,
+      emergencyContact: emergencyContact ?? undefined,
+      commercialOrigin: commercialOrigin ?? undefined,
+      consent: consent ?? undefined,
+      medicalAlertFlag,
+      clinicalProfile,
+      tax: tax ?? undefined,
     });
 
     return ok(record);
