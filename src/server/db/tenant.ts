@@ -6,6 +6,7 @@
 
 import { PrismaClient, Prisma } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import type { TenantRunner, Exec } from "../domain/identity/authorize.js";
 
 const adapter = new PrismaPg({ connectionString: process.env.RUNTIME_DATABASE_URL });
 
@@ -44,4 +45,17 @@ export async function forTenantAsUser<T>(
     await tx.$executeRaw`SELECT set_config('app.current_user_id', ${userId}, true)`;
     return work(tx);
   });
+}
+
+/**
+ * Construye un TenantRunner compatible con el dominio a partir de forTenant.
+ * El Exec resultante ejecuta queries dentro de la transacción tenant-scoped (RLS activo).
+ * Patrón de puente: Prisma.TransactionClient → Exec (mismo que permissions.ts y audit.ts).
+ */
+export function makeTenantRunner(orgId: string): TenantRunner {
+  return <T>(work: (exec: Exec) => Promise<T>): Promise<T> =>
+    forTenant(orgId, async (tx) => {
+      const exec: Exec = (text, params) => tx.$queryRawUnsafe(text, ...params) as Promise<any[]>;
+      return work(exec);
+    });
 }
