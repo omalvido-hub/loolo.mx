@@ -1,0 +1,61 @@
+LOOLO — Fase UI-2 — Agenda solo lectura
+========================================
+Fecha: 2026-06-03
+Commit base: fe02e4c
+
+ARCHIVOS NUEVOS
+---------------
+  src/server/domain/agenda/queries.ts
+    - listAppointmentsByRange(run, ctx, opts?) → solo lectura, appointments.view, fail-closed, RLS
+    - listResources(run, ctx) → solo lectura, resources.view, fail-closed, RLS
+    - Rango acotado a 31 días. Default: hoy en America/Mexico_City.
+    - NO importa appointments.ts ni resources.ts. NO contiene escritura.
+
+  src/app/(app)/agenda/page.tsx
+    - Server Component. Usa requireOrganization, getActorContext, makeTenantRunner.
+    - Acepta query params from/to/resourceId (opcionales).
+    - Estados: sin permiso, sin citas, error seguro.
+    - Sin botones de escritura. Sin endpoints. Sin fetch HTTP propio.
+
+  src/components/agenda/AgendaView.tsx
+    - Presentacional. Sin queries. Sin permisos. Sin mutaciones.
+    - Tabla de citas: hora, paciente/contacto, estado, doctor/recurso, motivo.
+
+  src/components/agenda/AppointmentStatusBadge.tsx
+    - Presentacional. Badge de estado de cita (SCHEDULED, CONFIRMED, CANCELED, etc.).
+
+  tests/phase-ui2.test.ts
+    - 29 pruebas nuevas. Cubre: RBAC, RLS multi-tenant, rango acotado,
+      integridad estructural, no escritura, no endpoints, no migración 0016.
+
+NAVEGACIÓN
+----------
+  El sidebar (src/components/app-sidebar.tsx) ya incluía /agenda con appointments.view
+  y /pacientes con patients.view. No se requirió cambio de navegación.
+
+CONFIRMACIONES DE SOLO LECTURA
+-------------------------------
+  ✓ Solo lectura. Sin escritura de ningún tipo.
+  ✓ Sin endpoints REST nuevos (sin src/app/api/appointments, /agenda, /resources).
+  ✓ Sin migración. Sin 0016. Prisma schema sin tocar.
+  ✓ RBAC sin modificar. RLS sin modificar. Permisos sin modificar.
+  ✓ appointments.ts sin tocar. resources.ts sin tocar. resolver.ts sin tocar.
+  ✓ Ninguna función de escritura invocada desde UI-2.
+  ✓ Multi-tenant respetado vía RLS + TenantRunner (app_user).
+
+RESULTADOS FINALES
+------------------
+  Tests: 329/329 ✓
+  Typecheck (tsc --noEmit): limpio ✓
+  Build (npm run build): exitoso ✓
+  Working tree: limpio (solo archivos nuevos) ✓
+  git diff appointments.ts / resources.ts / resolver.ts: vacío ✓
+
+COMMIT
+------
+  feat: implement UI-2 agenda read-only view
+
+SIN AVANCE
+----------
+  No se avanzó a escritura de agenda, Follow, cobros, odontograma ni portal.
+  No se hizo push, pull ni operación remota de GitHub.
