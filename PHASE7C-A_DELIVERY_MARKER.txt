@@ -1,0 +1,86 @@
+LOOLO — Fase 7C-A: Capa segura dominio → request para PatientLiveRecord
+=======================================================================
+
+Fecha de cierre: 2026-06-03
+Commit 7C-A: 6042f68
+
+Objetivo
+--------
+Conectar la capa de dominio de 7B (resolvePatientLiveRecord) con el mundo HTTP
+de Next.js mediante tres piezas de pegamento: resolución de ActorContext desde
+sesión autenticada, adaptador TenantRunner sobre forTenant, y endpoint GET
+/api/patients/[id]/record que orquesta auth → contexto → runner → resolver → JSON.
+
+Estado
+------
+- Fase: 7C-A cerrada
+- Sin migración: NO existe 0016 (migraciones 0001–0015 intactas)
+- Pruebas: 275/275 verdes (258 previas + 17 nuevas de 7C-A)
+- Typecheck: limpio
+- Working tree: limpio antes de crear este marker
+
+Archivos modificados en commit 6042f68
+---------------------------------------
+A  src/app/api/patients/[id]/record/route.ts
+   GET /api/patients/[id]/record. Flujo lineal:
+   requireOrganization → getActorContext → makeTenantRunner →
+   resolvePatientLiveRecord → mapRecordResult → NextResponse.json.
+   Maneja 401 (sin sesión), 403 (sin org / sin permiso), 404 (no encontrado /
+   archivado), 200 (ok). Sin lógica de dominio propia.
+
+A  src/server/auth/context.ts
+   getActorContext(userId, orgId) → ActorContext.
+   Llama a resolvePermissionKeys (pre-existente). Sin membresía = permisos vacíos.
+   Fail-closed: el dominio rechaza la operación si no hay permiso.
+
+M  src/server/db/tenant.ts
+   makeTenantRunner(orgId) añadido al final del archivo (sin modificar forTenant
+   ni forTenantAsUser). Puente: Prisma.TransactionClient → Exec compatible con
+   el tipo TenantRunner del dominio. RLS activo dentro de la transacción.
+
+A  src/server/domain/patient-record/response.ts
+   mapRecordResult: función pura sin deps de Next.js.
+   Traduce Result<PatientLiveRecord> → { status, body }.
+   FORBIDDEN→403, NOT_FOUND/ARCHIVED→404, ok→200.
+
+A  tests/phase7c.test.ts
+   17 pruebas nuevas (319 líneas). Cubren:
+   - getActorContext: owner, clinician, sin membresía, org distinta (fail-closed)
+   - makeTenantRunner: RLS real (misma org OK, otra org vacío), orgId vacío lanza
+   - Integración end-to-end: owner con sección financial, clinician sin financial,
+     paciente otra org → NOT_FOUND, usuario sin patients.view → FORBIDDEN+auditado
+   - mapRecordResult: ok→200, FORBIDDEN→403, NOT_FOUND→404, ARCHIVED→404, INVALID→400
+
+Pruebas obligatorias cubiertas
+--------------------------------
+✓ getActorContext owner devuelve patients.view y todos sus permisos
+✓ getActorContext clinician tiene patients.view + clinical.view pero NO payment.view
+✓ Usuario sin membresía en la org → permisos vacíos (fail-closed)
+✓ Mismo userId en org distinta → permisos vacíos
+✓ makeTenantRunner ejecuta query tenant-scoped y devuelve paciente correcto
+✓ RLS: mismo patientId con runner de orgB → vacío (aislamiento multi-tenant)
+✓ makeTenantRunner con orgId vacío → lanza (fail-closed)
+✓ Integración: owner resolve devuelve ok con identity + operative
+✓ Integración: owner tiene sección financial (quote.view + payment.view)
+✓ Integración: clinician sin sección financial (no tiene payment.view)
+✓ Integración: paciente de otra org → NOT_FOUND (RLS)
+✓ Integración: usuario sin patients.view → FORBIDDEN + auditado
+✓ mapRecordResult ok → status 200
+✓ mapRecordResult FORBIDDEN → status 403
+✓ mapRecordResult NOT_FOUND → status 404
+✓ mapRecordResult ARCHIVED → status 404
+✓ mapRecordResult INVALID → status 400 con detail
+
+7D no implementado (confirmado)
+---------------------------------
+- NO existe src/app/(app)/pacientes
+- NO existe src/app/api/patients (endpoint de lista)
+- NO existe tests/phase7d.test.ts
+- El único endpoint bajo api/patients es [id]/record/route.ts (7C-A)
+
+Restricciones respetadas
+--------------------------
+- Sin 0016. Sin GitHub. Sin push. Sin pull. Sin remote.
+- .env fuera del commit.
+- No se programó fuera de 7C-A (sin 7D, sin UI /pacientes, sin lista de pacientes).
+- No se modificaron migraciones, schema Prisma, RBAC, ni RLS.
