@@ -14,7 +14,7 @@ import {
   setQuoteStatus,
   updateLine,
 } from "@/server/domain/billing/quotes";
-import { recordPayment } from "@/server/domain/billing/payments";
+import { recordPayment, reversePayment } from "@/server/domain/billing/payments";
 
 type ActionResult<T = undefined> =
   | { ok: true; data: T }
@@ -86,6 +86,26 @@ export async function updateLinePriceAction(
   }
 }
 
+// ─── Actualizar descuento de línea (solo DRAFT) ──────────────────────────────
+
+export async function updateLineDiscountAction(
+  patientId: string,
+  lineId: string,
+  discountCents: number,
+): Promise<ActionResult> {
+  try {
+    const { ctx, run } = await getCtx();
+    await run((exec) => updateLine(exec, ctx, { lineId, discountCents }));
+    revalidatePath(`/pacientes/${patientId}`);
+    return { ok: true, data: undefined };
+  } catch (e: any) {
+    if (e instanceof UnauthorizedError || e instanceof NoOrganizationError) {
+      return { ok: false, error: "Sesión expirada. Recarga la página." };
+    }
+    return { ok: false, error: e?.message ?? "Error al actualizar descuento." };
+  }
+}
+
 // ─── Cambiar estado del presupuesto ─────────────────────────────────────────
 
 export async function setQuoteStatusAction(
@@ -129,5 +149,30 @@ export async function recordPaymentAction(
       return { ok: false, error: "Sesión expirada. Recarga la página." };
     }
     return { ok: false, error: e?.message ?? "Error al registrar pago." };
+  }
+}
+
+// ─── Revertir pago ────────────────────────────────────────────────────────────
+
+export async function reversePaymentAction(
+  patientId: string,
+  paymentId: string,
+  reference?: string,
+): Promise<ActionResult<{ paymentId: string; balanceAfterCents: number }>> {
+  try {
+    const { ctx, run } = await getCtx();
+    const result = await run((exec) =>
+      reversePayment(exec, ctx, { paymentId, reference }),
+    );
+    revalidatePath(`/pacientes/${patientId}`);
+    return {
+      ok: true,
+      data: { paymentId: result.paymentId, balanceAfterCents: result.balanceAfterCents },
+    };
+  } catch (e: any) {
+    if (e instanceof UnauthorizedError || e instanceof NoOrganizationError) {
+      return { ok: false, error: "Sesión expirada. Recarga la página." };
+    }
+    return { ok: false, error: e?.message ?? "Error al revertir pago." };
   }
 }

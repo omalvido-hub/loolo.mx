@@ -108,8 +108,10 @@ export default async function PacienteDetallePage({
             canEdit={can(ctx.permissions, "quote.edit")}
             canPropose={can(ctx.permissions, "quote.propose")}
             canAccept={can(ctx.permissions, "quote.accept")}
+            canCancel={can(ctx.permissions, "quote.cancel")}
             canRecordPayment={can(ctx.permissions, "payment.record")}
             canViewPayments={can(ctx.permissions, "payment.view")}
+            canReverse={can(ctx.permissions, "payment.reverse")}
           />
         ) : quotesResult.reason === "FORBIDDEN" ? (
           <BillingNoPermission />

@@ -1,8 +1,8 @@
 "use client";
 
-// LOOLO — Sección interactiva de Presupuestos y Cobros (UI-6).
-// Gestiona: crear presupuesto desde plan activo, editar precios en DRAFT,
-// transiciones de estado, registro de pagos e historial de cobros.
+// LOOLO — Sección interactiva de Presupuestos y Cobros (UI-6 / UI-6A).
+// Gestiona: crear presupuesto desde plan activo, editar precios y descuentos en DRAFT,
+// transiciones de estado, cancelar borradores, registro de pagos, reverso de cobros.
 // Todo fluye por Server Actions → revalidatePath → re-render del servidor.
 
 import { useState, useTransition } from "react";
@@ -15,13 +15,20 @@ import { Input } from "@/components/ui/input";
 import {
   createQuoteFromPlanAction,
   updateLinePriceAction,
+  updateLineDiscountAction,
   setQuoteStatusAction,
   recordPaymentAction,
+  reversePaymentAction,
 } from "@/server/actions/billing";
 
-// ─── Utilidades ───────────────────────────────────────────────────────────
+// ─── Utilidades ────────────────────────────────────────────────────────────
 
-const FMT_CURRENCY = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" });
+const FMT_CURRENCY = new Intl.NumberFormat("es-MX", {
+  style: "currency",
+  currency: "MXN",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
 const FMT_DATE = new Intl.DateTimeFormat("es-MX", {
   timeZone: "America/Mexico_City",
   dateStyle: "medium",
@@ -56,7 +63,7 @@ const METHOD_LABELS: Record<string, string> = {
   OTHER: "Otro",
 };
 
-// ─── Props ────────────────────────────────────────────────────────────────
+// ─── Props ─────────────────────────────────────────────────────────────────
 
 interface QuotesSectionClientProps {
   view: PatientQuotesView;
@@ -66,11 +73,13 @@ interface QuotesSectionClientProps {
   canEdit: boolean;
   canPropose: boolean;
   canAccept: boolean;
+  canCancel: boolean;
   canRecordPayment: boolean;
   canViewPayments: boolean;
+  canReverse: boolean;
 }
 
-// ─── Subcomponente: Formulario para crear presupuesto ─────────────────────
+// ─── Subcomponente: Formulario para crear presupuesto ──────────────────────
 
 interface CreateQuoteFormProps {
   patientId: string;
@@ -170,7 +179,7 @@ function CreateQuoteForm({ patientId, activePlan, onCancel, onDone }: CreateQuot
   );
 }
 
-// ─── Subcomponente: Editar precio de línea ────────────────────────────────
+// ─── Subcomponente: Editar precio de línea ─────────────────────────────────
 
 interface EditLinePriceProps {
   patientId: string;
@@ -223,7 +232,66 @@ function EditLinePrice({ patientId, lineId, currentCents, onDone, onCancel }: Ed
   );
 }
 
-// ─── Subcomponente: Formulario de pago ────────────────────────────────────
+// ─── Subcomponente: Editar descuento de línea ──────────────────────────────
+
+interface EditLineDiscountProps {
+  patientId: string;
+  lineId: string;
+  currentCents: number;
+  subtotalCents: number;
+  onDone: () => void;
+  onCancel: () => void;
+}
+
+function EditLineDiscount({ patientId, lineId, currentCents, subtotalCents, onDone, onCancel }: EditLineDiscountProps) {
+  const [value, setValue] = useState(String(currentCents / 100));
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  function handleSave() {
+    setError(null);
+    const pesos = parseFloat(value.replace(",", "."));
+    if (isNaN(pesos) || pesos < 0) {
+      setError("Descuento inválido.");
+      return;
+    }
+    const cents = Math.round(pesos * 100);
+    if (cents > subtotalCents) {
+      setError(`No puede superar ${fCents(subtotalCents)}.`);
+      return;
+    }
+    startTransition(async () => {
+      const result = await updateLineDiscountAction(patientId, lineId, cents);
+      if (!result.ok) setError(result.error);
+      else onDone();
+    });
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1">
+      <Input
+        type="number"
+        min="0"
+        step="0.01"
+        max={String(subtotalCents / 100)}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        className="w-24 h-6 text-right text-xs"
+        disabled={isPending}
+        autoFocus
+        onKeyDown={(e) => {
+          if (e.key === "Enter") handleSave();
+          if (e.key === "Escape") onCancel();
+        }}
+      />
+      <Button size="icon-xs" onClick={handleSave} disabled={isPending}>✓</Button>
+      <Button size="icon-xs" variant="outline" onClick={onCancel} disabled={isPending}>✕</Button>
+      {error && <span className="text-xs text-destructive ml-1">{error}</span>}
+    </span>
+  );
+}
+
+// ─── Subcomponente: Formulario de pago ─────────────────────────────────────
 
 interface RecordPaymentFormProps {
   patientId: string;
@@ -302,7 +370,59 @@ function RecordPaymentForm({ patientId, quoteId, balanceCents, onDone, onCancel 
   );
 }
 
-// ─── Subcomponente: Tarjeta de presupuesto ────────────────────────────────
+// ─── Subcomponente: Formulario de reverso de pago ──────────────────────────
+
+interface ReversePaymentFormProps {
+  patientId: string;
+  paymentId: string;
+  amountCents: number;
+  onDone: () => void;
+  onCancel: () => void;
+}
+
+function ReversePaymentForm({ patientId, paymentId, amountCents, onDone, onCancel }: ReversePaymentFormProps) {
+  const [motivo, setMotivo] = useState("");
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  function handleSubmit() {
+    setError(null);
+    startTransition(async () => {
+      const reference = motivo.trim() || undefined;
+      const result = await reversePaymentAction(patientId, paymentId, reference);
+      if (!result.ok) setError(result.error);
+      else onDone();
+    });
+  }
+
+  return (
+    <div className="mt-2 p-2 rounded-lg border border-destructive/40 bg-destructive/5 space-y-2">
+      <p className="text-xs font-medium text-destructive">
+        Se revertirá {fCents(amountCents)}. Esta acción no se puede deshacer.
+      </p>
+      <div className="flex items-center gap-2 flex-wrap">
+        <Input
+          type="text"
+          maxLength={60}
+          placeholder="Motivo (opcional, máx. 60 caracteres)"
+          value={motivo}
+          onChange={(e) => setMotivo(e.target.value)}
+          className="flex-1 min-w-0 h-7 text-sm"
+          disabled={isPending}
+        />
+        <Button size="sm" variant="destructive" onClick={handleSubmit} disabled={isPending}>
+          {isPending ? "Revirtiendo…" : "Confirmar reverso"}
+        </Button>
+        <Button size="sm" variant="outline" onClick={onCancel} disabled={isPending}>
+          Cancelar
+        </Button>
+      </div>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  );
+}
+
+// ─── Subcomponente: Tarjeta de presupuesto ─────────────────────────────────
 
 interface QuoteCardProps {
   quote: QuoteView;
@@ -310,8 +430,10 @@ interface QuoteCardProps {
   canEdit: boolean;
   canPropose: boolean;
   canAccept: boolean;
+  canCancel: boolean;
   canRecordPayment: boolean;
   canViewPayments: boolean;
+  canReverse: boolean;
 }
 
 function QuoteCard({
@@ -320,17 +442,23 @@ function QuoteCard({
   canEdit,
   canPropose,
   canAccept,
+  canCancel,
   canRecordPayment,
   canViewPayments,
+  canReverse,
 }: QuoteCardProps) {
   const [editingLineId, setEditingLineId] = useState<string | null>(null);
+  const [editingDiscountId, setEditingDiscountId] = useState<string | null>(null);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const [reversingPaymentId, setReversingPaymentId] = useState<string | null>(null);
   const [statusPending, startStatusTransition] = useTransition();
   const [statusError, setStatusError] = useState<string | null>(null);
   const router = useRouter();
 
   function handleStatusChange(to: string) {
     setStatusError(null);
+    setConfirmingCancel(false);
     startStatusTransition(async () => {
       const result = await setQuoteStatusAction(patientId, quote.id, to);
       if (!result.ok) setStatusError(result.error);
@@ -342,6 +470,13 @@ function QuoteCard({
   const isProposed = quote.status === "PROPOSED";
   const isAccepted = quote.status === "ACCEPTED";
   const isTerminal = ["REJECTED", "CANCELED", "EXPIRED"].includes(quote.status);
+
+  // IDs de pagos que ya tienen un reverso
+  const reversedPaymentIds = new Set(
+    quote.payments
+      .filter((p) => p.entryKind === "REVERSAL" && p.reversesPaymentId)
+      .map((p) => p.reversesPaymentId!),
+  );
 
   const dateLabel = quote.acceptedAt
     ? `Aceptado el ${fDate(quote.acceptedAt)}`
@@ -400,53 +535,98 @@ function QuoteCard({
               <span className="w-24 shrink-0 text-right">Total</span>
             </div>
             {quote.lines.map((line) => (
-              <div key={line.id} className="flex items-center gap-2 py-1 text-sm rounded hover:bg-muted/30">
-                <div className="flex-1 min-w-0">
-                  <span className="truncate block">{line.description}</span>
-                  {line.discountCents > 0 && (
-                    <span className="text-xs text-muted-foreground">
-                      Descuento: {fCents(line.discountCents)}
-                    </span>
-                  )}
+              <div key={line.id} className="py-1 text-sm rounded hover:bg-muted/30">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 min-w-0">
+                    <span className="truncate block">{line.description}</span>
+                  </div>
+                  {/* Precio editable en DRAFT */}
+                  <div className="w-28 shrink-0 text-right">
+                    {isDraft && canEdit && editingLineId === line.id ? (
+                      <EditLinePrice
+                        patientId={patientId}
+                        lineId={line.id}
+                        currentCents={line.unitPriceCents}
+                        onDone={() => { setEditingLineId(null); router.refresh(); }}
+                        onCancel={() => setEditingLineId(null)}
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (isDraft && canEdit) {
+                            setEditingDiscountId(null);
+                            setEditingLineId(line.id);
+                          }
+                        }}
+                        className={`font-medium ${isDraft && canEdit ? "hover:text-primary cursor-pointer underline-offset-2 hover:underline" : "cursor-default"}`}
+                        disabled={!isDraft || !canEdit}
+                        title={isDraft && canEdit ? "Haz clic para editar el precio" : undefined}
+                      >
+                        {fCents(line.unitPriceCents)}
+                      </button>
+                    )}
+                  </div>
+                  <div className="w-24 shrink-0 text-right font-medium">
+                    {fCents(line.totalCents)}
+                  </div>
                 </div>
-                <div className="w-28 shrink-0 text-right">
-                  {isDraft && canEdit && editingLineId === line.id ? (
-                    <EditLinePrice
-                      patientId={patientId}
-                      lineId={line.id}
-                      currentCents={line.unitPriceCents}
-                      onDone={() => { setEditingLineId(null); router.refresh(); }}
-                      onCancel={() => setEditingLineId(null)}
-                    />
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => isDraft && canEdit ? setEditingLineId(line.id) : undefined}
-                      className={`font-medium ${isDraft && canEdit ? "hover:text-primary cursor-pointer underline-offset-2 hover:underline" : "cursor-default"}`}
-                      disabled={!isDraft || !canEdit}
-                      title={isDraft && canEdit ? "Haz clic para editar el precio" : undefined}
-                    >
-                      {fCents(line.unitPriceCents)}
-                    </button>
-                  )}
-                </div>
-                <div className="w-24 shrink-0 text-right font-medium">
-                  {fCents(line.totalCents)}
-                </div>
+                {/* Descuento editable en DRAFT */}
+                {isDraft && canEdit && (
+                  <div className="pl-0 mt-0.5 text-xs text-muted-foreground flex items-center gap-1">
+                    <span>Desc:</span>
+                    {editingDiscountId === line.id ? (
+                      <EditLineDiscount
+                        patientId={patientId}
+                        lineId={line.id}
+                        currentCents={line.discountCents}
+                        subtotalCents={line.subtotalCents}
+                        onDone={() => { setEditingDiscountId(null); router.refresh(); }}
+                        onCancel={() => setEditingDiscountId(null)}
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingLineId(null);
+                          setEditingDiscountId(line.id);
+                        }}
+                        className="hover:text-primary cursor-pointer underline-offset-2 hover:underline"
+                        title="Haz clic para editar el descuento"
+                      >
+                        {fCents(line.discountCents)}
+                      </button>
+                    )}
+                  </div>
+                )}
+                {/* Descuento informativo fuera de DRAFT */}
+                {!isDraft && line.discountCents > 0 && (
+                  <div className="pl-0 mt-0.5 text-xs text-muted-foreground">
+                    Descuento: {fCents(line.discountCents)}
+                  </div>
+                )}
               </div>
             ))}
             {/* Totales */}
             <div className="border-t mt-2 pt-2 flex flex-col items-end gap-0.5 text-sm">
-              {quote.taxTotalCents > 0 && (
+              {(quote.taxTotalCents > 0 || quote.discountTotalCents > 0) && (
                 <>
                   <div className="flex gap-8 text-muted-foreground">
                     <span>Subtotal</span>
                     <span>{fCents(quote.subtotalCents)}</span>
                   </div>
-                  <div className="flex gap-8 text-muted-foreground">
-                    <span>IVA</span>
-                    <span>{fCents(quote.taxTotalCents)}</span>
-                  </div>
+                  {quote.discountTotalCents > 0 && (
+                    <div className="flex gap-8 text-muted-foreground">
+                      <span>Descuento</span>
+                      <span>−{fCents(quote.discountTotalCents)}</span>
+                    </div>
+                  )}
+                  {quote.taxTotalCents > 0 && (
+                    <div className="flex gap-8 text-muted-foreground">
+                      <span>IVA</span>
+                      <span>{fCents(quote.taxTotalCents)}</span>
+                    </div>
+                  )}
                 </>
               )}
               <div className="flex gap-8 font-semibold">
@@ -473,7 +653,7 @@ function QuoteCard({
       {/* Acciones de estado */}
       {(isDraft || isProposed) && (
         <div className="px-4 py-3 border-t bg-muted/10 flex items-center gap-2 flex-wrap">
-          {isDraft && canPropose && (
+          {isDraft && canPropose && !confirmingCancel && (
             <Button
               size="sm"
               onClick={() => handleStatusChange("PROPOSED")}
@@ -482,7 +662,7 @@ function QuoteCard({
               {statusPending ? "Procesando…" : "Proponer"}
             </Button>
           )}
-          {isProposed && canAccept && (
+          {isProposed && canAccept && !confirmingCancel && (
             <>
               <Button
                 size="sm"
@@ -501,8 +681,43 @@ function QuoteCard({
               </Button>
             </>
           )}
+          {/* Cancelar borrador (DRAFT o PROPOSED) */}
+          {canCancel && !confirmingCancel && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-muted-foreground hover:text-destructive"
+              onClick={() => setConfirmingCancel(true)}
+              disabled={statusPending}
+            >
+              Cancelar borrador
+            </Button>
+          )}
+          {confirmingCancel && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-destructive font-medium">
+                ¿Cancelar este presupuesto?
+              </span>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => handleStatusChange("CANCELED")}
+                disabled={statusPending}
+              >
+                {statusPending ? "Cancelando…" : "Sí, cancelar"}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setConfirmingCancel(false)}
+                disabled={statusPending}
+              >
+                Atrás
+              </Button>
+            </div>
+          )}
           {statusError && (
-            <p className="text-xs text-destructive">{statusError}</p>
+            <p className="text-xs text-destructive w-full">{statusError}</p>
           )}
         </div>
       )}
@@ -517,23 +732,48 @@ function QuoteCard({
               </p>
               <div className="space-y-1">
                 {quote.payments.map((p) => (
-                  <div key={p.id} className="flex items-center gap-2 text-sm">
-                    <span
-                      className={`inline-block w-2 h-2 rounded-full shrink-0 ${
-                        p.entryKind === "REVERSAL" ? "bg-red-400" : "bg-green-400"
-                      }`}
-                    />
-                    <span className={p.entryKind === "REVERSAL" ? "line-through text-muted-foreground" : ""}>
-                      {fCents(p.amountCents)}
-                    </span>
-                    <span className="text-muted-foreground text-xs">
-                      {METHOD_LABELS[p.method] ?? p.method}
-                    </span>
-                    {p.paidAt && (
-                      <span className="text-muted-foreground text-xs">{fDate(p.paidAt)}</span>
-                    )}
-                    {p.entryKind === "REVERSAL" && (
-                      <span className="text-xs text-destructive">Revertido</span>
+                  <div key={p.id}>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span
+                        className={`inline-block w-2 h-2 rounded-full shrink-0 ${
+                          p.entryKind === "REVERSAL" ? "bg-red-400" : "bg-green-400"
+                        }`}
+                      />
+                      <span className={p.entryKind === "REVERSAL" ? "line-through text-muted-foreground" : ""}>
+                        {fCents(p.amountCents)}
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        {METHOD_LABELS[p.method] ?? p.method}
+                      </span>
+                      {p.paidAt && (
+                        <span className="text-muted-foreground text-xs">{fDate(p.paidAt)}</span>
+                      )}
+                      {p.entryKind === "REVERSAL" && (
+                        <span className="text-xs text-destructive">Revertido</span>
+                      )}
+                      {/* Botón reverso: solo en PAYMENT no revertido, si el usuario puede */}
+                      {p.entryKind === "PAYMENT" &&
+                        !reversedPaymentIds.has(p.id) &&
+                        canReverse &&
+                        reversingPaymentId !== p.id && (
+                          <button
+                            type="button"
+                            onClick={() => setReversingPaymentId(p.id)}
+                            className="ml-auto text-xs text-muted-foreground hover:text-destructive underline-offset-2 hover:underline"
+                          >
+                            Revertir
+                          </button>
+                        )}
+                    </div>
+                    {/* Formulario de reverso inline */}
+                    {reversingPaymentId === p.id && (
+                      <ReversePaymentForm
+                        patientId={patientId}
+                        paymentId={p.id}
+                        amountCents={p.amountCents}
+                        onDone={() => { setReversingPaymentId(null); router.refresh(); }}
+                        onCancel={() => setReversingPaymentId(null)}
+                      />
                     )}
                   </div>
                 ))}
@@ -568,7 +808,7 @@ function QuoteCard({
   );
 }
 
-// ─── Componente principal ────────────────────────────────────────────────
+// ─── Componente principal ───────────────────────────────────────────────────
 
 export function QuotesSectionClient({
   view,
@@ -578,15 +818,16 @@ export function QuotesSectionClient({
   canEdit,
   canPropose,
   canAccept,
+  canCancel,
   canRecordPayment,
   canViewPayments,
+  canReverse,
 }: QuotesSectionClientProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const router = useRouter();
 
   const { quotes, totalQuotes } = view;
 
-  // Resumen financiero
   const totalProposedCents = quotes
     .filter((q) => ["PROPOSED", "ACCEPTED"].includes(q.status))
     .reduce((sum, q) => sum + q.totalCents, 0);
@@ -598,7 +839,6 @@ export function QuotesSectionClient({
     .reduce((sum, q) => sum + q.paidCents, 0);
   const balanceCents = totalAcceptedCents - paidCents;
 
-  // Mostrar "Crear presupuesto" si hay plan activo con ítems y el usuario puede crear
   const canShowCreate =
     canCreate &&
     activePlan !== null &&
@@ -688,8 +928,10 @@ export function QuotesSectionClient({
           canEdit={canEdit}
           canPropose={canPropose}
           canAccept={canAccept}
+          canCancel={canCancel}
           canRecordPayment={canRecordPayment}
           canViewPayments={canViewPayments}
+          canReverse={canReverse}
         />
       ))}
     </div>
