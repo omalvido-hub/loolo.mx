@@ -6,11 +6,15 @@ import { resolvePatientLiveRecord } from "@/server/domain/patient-record/resolve
 import { listEncountersSafeForPatient } from "@/server/domain/clinical/encounter-views";
 import { getOdontogramMasterView } from "@/server/domain/clinical/odontogram-views";
 import { getTreatmentPlansSafeView } from "@/server/domain/clinical/treatment-views";
+import { getQuotesSafeView } from "@/server/domain/billing/billing-views";
+import { can } from "@/server/domain/identity/permissions";
 import { PatientLiveRecordView } from "@/components/patients/PatientLiveRecordView";
 import { OdontogramMasterSection } from "@/components/odontogram/OdontogramMasterSection";
 import { OdontogramNoPermission } from "@/components/odontogram/OdontogramNoPermission";
 import { TreatmentPlansSection } from "@/components/treatment/TreatmentPlansSection";
 import { TreatmentNoPermission } from "@/components/treatment/TreatmentNoPermission";
+import { QuotesSectionClient } from "@/components/billing/QuotesSectionClient";
+import { BillingNoPermission } from "@/components/billing/BillingNoPermission";
 import type { EncounterListItem } from "@/server/domain/clinical/encounter-views";
 
 export default async function PacienteDetallePage({
@@ -68,6 +72,19 @@ export default async function PacienteDetallePage({
   // Planes de tratamiento — UI-5 solo lectura.
   const treatmentResult = await getTreatmentPlansSafeView(run, ctx, id);
 
+  // Presupuestos y cobros — UI-6.
+  const quotesResult = await getQuotesSafeView(run, ctx, id);
+
+  // Plan activo + sus ítems (para crear presupuesto desde él).
+  const activePlanForBilling =
+    treatmentResult.ok && treatmentResult.value.activePlan
+      ? {
+          id: treatmentResult.value.activePlan.id,
+          title: treatmentResult.value.activePlan.title,
+          items: treatmentResult.value.activePlan.items,
+        }
+      : null;
+
   return (
     <div>
       <PatientLiveRecordView record={result.value} encounters={encounters} patientId={id} />
@@ -81,6 +98,21 @@ export default async function PacienteDetallePage({
           <TreatmentPlansSection view={treatmentResult.value} />
         ) : treatmentResult.reason === "FORBIDDEN" ? (
           <TreatmentNoPermission />
+        ) : null}
+        {quotesResult.ok ? (
+          <QuotesSectionClient
+            view={quotesResult.value}
+            patientId={id}
+            activePlan={activePlanForBilling}
+            canCreate={can(ctx.permissions, "quote.create")}
+            canEdit={can(ctx.permissions, "quote.edit")}
+            canPropose={can(ctx.permissions, "quote.propose")}
+            canAccept={can(ctx.permissions, "quote.accept")}
+            canRecordPayment={can(ctx.permissions, "payment.record")}
+            canViewPayments={can(ctx.permissions, "payment.view")}
+          />
+        ) : quotesResult.reason === "FORBIDDEN" ? (
+          <BillingNoPermission />
         ) : null}
       </div>
     </div>
