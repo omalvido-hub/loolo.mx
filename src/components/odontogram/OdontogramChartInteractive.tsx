@@ -26,6 +26,8 @@ interface Props {
   selectedFdi?: number | null;
   /** Callback de selección. Cuando se provee, suprime el panel de detalle interno. */
   onToothClick?: (fdi: number | null) => void;
+  /** ID de la consulta activa (DRAFT/IN_PROGRESS) del paciente, si existe. Solo modo autónomo. */
+  activeEncounterId?: string | null;
 }
 
 function Arch({
@@ -68,6 +70,7 @@ export function OdontogramChartInteractive({
   patientId,
   selectedFdi: externalFdi,
   onToothClick,
+  activeEncounterId,
 }: Props) {
   const isControlled = onToothClick !== undefined;
   const [internalFdi, setInternalFdi] = useState<number | null>(null);
@@ -134,6 +137,7 @@ export function OdontogramChartInteractive({
           status={selectedTooth?.status ?? "PRESENT"}
           findings={selectedTooth?.findings ?? []}
           patientId={patientId}
+          activeEncounterId={activeEncounterId}
           onClose={() => setInternalFdi(null)}
         />
       )}

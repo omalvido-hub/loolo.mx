@@ -73,6 +73,10 @@ interface Props {
   encounterId: string;
   encounterStatus: string;
   canRecord: boolean;
+  /** FDI de pieza a preseleccionar al abrir (viene de ?toothFdi= en la URL). */
+  initialToothFdi?: number;
+  /** Si true y hay consulta activa, abre el formulario de hallazgo al montar. */
+  autoOpenForm?: boolean;
 }
 
 // ─── Formulario de hallazgo ──────────────────────────────────────────────────
@@ -101,15 +105,25 @@ export function EncounterFindings({
   encounterId,
   encounterStatus,
   canRecord,
+  initialToothFdi,
+  autoOpenForm,
 }: Props) {
   const { findingsPanel, summary, teeth } = view;
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
-  const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-  const [selectedFdi, setSelectedFdi] = useState<number | null>(null);
 
   const canAdd = canRecord && OPEN_STATUSES.has(encounterStatus);
+
+  const [showForm, setShowForm] = useState(
+    () => canAdd && autoOpenForm === true && initialToothFdi != null,
+  );
+  const [form, setForm] = useState<FormState>(() => ({
+    ...EMPTY_FORM,
+    toothFdi: initialToothFdi != null ? String(initialToothFdi) : "",
+  }));
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const [selectedFdi, setSelectedFdi] = useState<number | null>(
+    () => initialToothFdi ?? null,
+  );
   const mode = form.findingType ? surfaceMode(form.findingType) : null;
 
   // Datos de la pieza actualmente seleccionada en el diagrama.

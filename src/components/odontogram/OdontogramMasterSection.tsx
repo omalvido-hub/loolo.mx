@@ -22,9 +22,10 @@ function SectionCard({ title, children }: { title: string; children: React.React
 interface Props {
   view: OdontogramMasterView;
   patientId: string;
+  activeEncounterId?: string | null;
 }
 
-export function OdontogramMasterSection({ view, patientId }: Props) {
+export function OdontogramMasterSection({ view, patientId, activeEncounterId }: Props) {
   const { teeth, findingsPanel, summary } = view;
 
   return (
@@ -44,7 +45,11 @@ export function OdontogramMasterSection({ view, patientId }: Props) {
       <SectionCard title="Diagrama dental">
         <div className="overflow-x-auto pb-2">
           <div className="w-max mx-auto">
-            <OdontogramChartInteractive teeth={teeth} patientId={patientId} />
+            <OdontogramChartInteractive
+              teeth={teeth}
+              patientId={patientId}
+              activeEncounterId={activeEncounterId}
+            />
           </div>
         </div>
       </SectionCard>

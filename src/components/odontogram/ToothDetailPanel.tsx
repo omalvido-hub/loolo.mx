@@ -1,9 +1,10 @@
 "use client";
 
 // Panel de detalle de una pieza dental seleccionada.
-// Solo lectura. Muestra FDI, nombre completo, estado y hallazgos vigentes.
-// No guarda, no escribe, no server action.
+// Muestra FDI, nombre, estado, hallazgos y link a consulta activa si existe.
+// No guarda directamente — redirige a la consulta activa para registrar hallazgos.
 
+import Link from "next/link";
 import type { FindingPanelItem } from "@/server/domain/clinical/odontogram-views";
 import { getToothName } from "./tooth-names";
 import { ToothDiagram } from "./ToothDiagram";
@@ -77,10 +78,11 @@ interface Props {
   status: string;
   findings: FindingPanelItem[];
   patientId?: string;
+  activeEncounterId?: string | null;
   onClose: () => void;
 }
 
-export function ToothDetailPanel({ fdi, status, findings, onClose }: Props) {
+export function ToothDetailPanel({ fdi, status, findings, patientId, activeEncounterId, onClose }: Props) {
   const name = getToothName(fdi);
   const statusLabel = TOOTH_STATUS_LABEL[status] ?? status;
   const statusColorClass = TOOTH_STATUS_COLOR[status] ?? "bg-gray-100 text-gray-600 border-gray-200";
@@ -90,7 +92,12 @@ export function ToothDetailPanel({ fdi, status, findings, onClose }: Props) {
       {/* Cabecera */}
       <div className="px-4 py-3 bg-blue-50/60 border-b border-blue-100 flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
-          <ToothDiagram fdi={fdi} status={status} findings={findings} size={64} />
+          <div className="flex flex-col items-center shrink-0">
+            <ToothDiagram fdi={fdi} status={status} findings={findings} size={64} />
+            <p className="text-[8px] text-muted-foreground/50 mt-0.5 text-center leading-tight">
+              Superficies
+            </p>
+          </div>
           <div className="min-w-0">
             <p className="text-[10px] font-semibold text-blue-600 uppercase tracking-wider mb-1">
               Pieza seleccionada
@@ -157,18 +164,20 @@ export function ToothDetailPanel({ fdi, status, findings, onClose }: Props) {
         )}
       </div>
 
-      {/* Botón deshabilitado — disponible en consulta activa */}
+      {/* Acción — navegar a consulta activa con pieza preseleccionada */}
       <div className="px-3 pb-3">
-        <button
-          disabled
-          title="Disponible en consulta activa"
-          className="w-full text-xs py-1.5 px-3 rounded border border-dashed border-muted-foreground/30 text-muted-foreground/50 cursor-not-allowed"
-        >
-          + Agregar hallazgo
-        </button>
-        <p className="text-[10px] text-muted-foreground/50 text-center mt-1">
-          Disponible en consulta activa
-        </p>
+        {activeEncounterId && patientId ? (
+          <Link
+            href={`/pacientes/${patientId}/consultas/${activeEncounterId}?toothFdi=${fdi}&openFinding=1`}
+            className="flex items-center justify-center w-full text-xs py-1.5 px-3 rounded border border-blue-200 bg-blue-50/60 text-blue-700 hover:bg-blue-100 transition-colors font-medium"
+          >
+            + Agregar hallazgo en consulta activa
+          </Link>
+        ) : (
+          <p className="text-[10px] text-muted-foreground/60 text-center py-1.5">
+            Para agregar hallazgos, inicia o continúa una consulta activa.
+          </p>
+        )}
       </div>
     </div>
   );

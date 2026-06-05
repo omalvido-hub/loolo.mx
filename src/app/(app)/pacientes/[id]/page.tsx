@@ -93,8 +93,16 @@ export default async function PacienteDetallePage({
         }
       : null;
 
+  const activeEncounterId =
+    encounters.find((e) => e.status === "IN_PROGRESS" || e.status === "DRAFT")
+      ?.encounterId ?? null;
+
   const odontogramSection = odoResult.ok ? (
-    <OdontogramMasterSection view={odoResult.value} patientId={id} />
+    <OdontogramMasterSection
+      view={odoResult.value}
+      patientId={id}
+      activeEncounterId={activeEncounterId}
+    />
   ) : odoResult.reason === "FORBIDDEN" ? (
     <OdontogramNoPermission />
   ) : null;

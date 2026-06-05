@@ -95,12 +95,8 @@ describe("UI-7B-A — ToothDetailPanel: panel de detalle", () => {
     expect(content).toContain("Sin hallazgos en esta pieza");
   });
 
-  it("tiene botón Agregar hallazgo deshabilitado", () => {
-    expect(content).toContain("disabled");
+  it("menciona 'Agregar hallazgo' y 'consulta activa'", () => {
     expect(content).toContain("Agregar hallazgo");
-  });
-
-  it("menciona 'consulta activa' en el aviso del botón", () => {
     expect(content).toContain("consulta activa");
   });
 

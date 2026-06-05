@@ -38,6 +38,7 @@ export async function recordFindingAction(
       recordFinding(exec, ctx, { patientId, encounterId, ...data }),
     );
     revalidatePath(`/pacientes/${patientId}/consultas/${encounterId}`);
+    revalidatePath(`/pacientes/${patientId}`);
     return { ok: true, data: result };
   } catch (e: any) {
     if (e instanceof UnauthorizedError || e instanceof NoOrganizationError) {

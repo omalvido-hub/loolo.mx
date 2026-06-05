@@ -12,10 +12,15 @@ import { OdontogramNoPermission } from "@/components/odontogram/OdontogramNoPerm
 
 export default async function ConsultaDetallePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string; encounterId: string }>;
+  searchParams: Promise<{ toothFdi?: string; openFinding?: string }>;
 }) {
   const { id, encounterId } = await params;
+  const sp = await searchParams;
+  const initialToothFdi = sp.toothFdi ? parseInt(sp.toothFdi, 10) : undefined;
+  const autoOpenForm = sp.openFinding === "1";
 
   let organizationId: string;
   let userId: string;
@@ -69,6 +74,8 @@ export default async function ConsultaDetallePage({
                 encounterId={encounterId}
                 encounterStatus={encounterStatus}
                 canRecord={canRecord}
+                initialToothFdi={initialToothFdi}
+                autoOpenForm={autoOpenForm}
               />
             ) : odoResult.reason === "FORBIDDEN" ? (
               <OdontogramNoPermission />
