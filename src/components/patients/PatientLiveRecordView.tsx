@@ -120,9 +120,10 @@ interface Props {
   encounters?: EncounterListItem[];
   patientId?: string;
   fvoPermissions?: FVOPermissions;
+  odontogramSection?: React.ReactNode;
 }
 
-export function PatientLiveRecordView({ record, encounters, patientId, fvoPermissions }: Props) {
+export function PatientLiveRecordView({ record, encounters, patientId, fvoPermissions, odontogramSection }: Props) {
   const { identity, operative, clinical, odontogramSummary, treatment, financial, tasks, timeline, recommendedActions, _meta } = record;
 
   return (
@@ -170,15 +171,8 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
       {/* Perfil clínico — alertas médicas, alergias, medicamentos, antecedentes */}
       <PatientClinicalProfileSection record={record} />
 
-      {/* Odontograma vigente */}
-      {odontogramSummary && (
-        <SectionCard title="Odontograma vigente">
-          <Row label="Total hallazgos" value={odontogramSummary.totalFindings} />
-          {Object.entries(odontogramSummary.findingsByStatus).map(([status, count]) => (
-            <Row key={status} label={TOOTH_STATUS_LABELS[status] ?? status} value={count} />
-          ))}
-        </SectionCard>
-      )}
+      {/* Odontograma vigente completo */}
+      {odontogramSection}
 
       {/* Historial clínico — resumen + consultas con enlaces */}
       {clinical && (

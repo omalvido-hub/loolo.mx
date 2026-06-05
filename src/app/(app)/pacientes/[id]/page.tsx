@@ -93,15 +93,22 @@ export default async function PacienteDetallePage({
         }
       : null;
 
+  const odontogramSection = odoResult.ok ? (
+    <OdontogramMasterSection view={odoResult.value} patientId={id} />
+  ) : odoResult.reason === "FORBIDDEN" ? (
+    <OdontogramNoPermission />
+  ) : null;
+
   return (
     <div>
-      <PatientLiveRecordView record={result.value} encounters={encounters} patientId={id} fvoPermissions={fvoPermissions} />
+      <PatientLiveRecordView
+        record={result.value}
+        encounters={encounters}
+        patientId={id}
+        fvoPermissions={fvoPermissions}
+        odontogramSection={odontogramSection}
+      />
       <div className="px-8 pb-10 max-w-4xl mx-auto space-y-6">
-        {odoResult.ok ? (
-          <OdontogramMasterSection view={odoResult.value} patientId={id} />
-        ) : odoResult.reason === "FORBIDDEN" ? (
-          <OdontogramNoPermission />
-        ) : null}
         {treatmentResult.ok ? (
           <TreatmentPlansSection view={treatmentResult.value} />
         ) : treatmentResult.reason === "FORBIDDEN" ? (
