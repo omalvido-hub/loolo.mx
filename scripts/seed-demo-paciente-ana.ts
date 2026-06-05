@@ -1,4 +1,4 @@
-// LOOLO — Seed demo: Ana García López en cualquier entorno.
+// LOOLO — Seed demo: Ana González Medina en cualquier entorno.
 // Seguro, idempotente, transaccional. Sin UUIDs hardcodeados de local.
 // Uso: npx tsx scripts/seed-demo-paciente-ana.ts
 //
@@ -100,12 +100,12 @@ async function main() {
     console.log(`   membresía confirmada`);
 
     // ── 4. Contacto de Ana (lookup o crear) ────────────────────────
-    console.log("4. Contacto Ana García López...");
+    console.log("4. Contacto Ana González Medina...");
     const existingContact = await row<{ id: string }>(
       client,
       `SELECT id FROM contacts
        WHERE "organizationId" = $1
-         AND "fullName" = 'Ana García López'
+         AND "fullName" = 'Ana González Medina'
          AND "deletedAt" IS NULL
        LIMIT 1`,
       [orgId],
@@ -119,7 +119,7 @@ async function main() {
       const created = await row<{ id: string }>(
         client,
         `INSERT INTO contacts ("organizationId", "fullName", "phone", "state")
-         VALUES ($1, 'Ana García López', '+5215599887766', 'OK')
+         VALUES ($1, 'Ana González Medina', '+5215599887766', 'OK')
          RETURNING id`,
         [orgId],
       );
