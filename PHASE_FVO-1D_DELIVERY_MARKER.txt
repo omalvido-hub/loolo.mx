@@ -1,0 +1,4 @@
+FVO-1D DELIVERY MARKER
+Server actions FVO — wrappers 1:1 sobre fvo-write.ts.
+Archivos: src/server/actions/fvo.ts, tests/phase-fvo1d.test.ts
+11 actions. Sin migración. Sin UI. Sin cambios al dominio.
