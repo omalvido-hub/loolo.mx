@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { requireOrganization, UnauthorizedError, NoOrganizationError } from "@/server/auth/session";
 import { getActorContext } from "@/server/auth/context";
 import { makeTenantRunner } from "@/server/db/tenant";
+import { can } from "@/server/domain/identity/permissions";
 import { getEncounterSafeView } from "@/server/domain/clinical/encounter-views";
 import { getOdontogramEncounterView } from "@/server/domain/clinical/odontogram-views";
 import { EncounterDetailView } from "@/components/clinical/EncounterDetailView";
@@ -47,8 +48,10 @@ export default async function ConsultaDetallePage({
     notFound();
   }
 
-  // Hallazgos de esta consulta — UI-4 solo lectura.
+  // Hallazgos de esta consulta — UI-4 solo lectura / UI-7B-B escritura si activa.
   const odoResult = await getOdontogramEncounterView(run, ctx, id, encounterId);
+  const canRecord = can(ctx.permissions, "odontogram.record");
+  const encounterStatus = result.value.status;
 
   return (
     <div>
@@ -60,7 +63,13 @@ export default async function ConsultaDetallePage({
           </div>
           <div className="px-4 py-4">
             {odoResult.ok ? (
-              <EncounterFindings view={odoResult.value} patientId={id} />
+              <EncounterFindings
+                view={odoResult.value}
+                patientId={id}
+                encounterId={encounterId}
+                encounterStatus={encounterStatus}
+                canRecord={canRecord}
+              />
             ) : odoResult.reason === "FORBIDDEN" ? (
               <OdontogramNoPermission />
             ) : null}
