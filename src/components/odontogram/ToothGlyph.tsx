@@ -1,6 +1,7 @@
-// Presentacional puro. Representa una pieza dental FDI como diagrama de 5 zonas.
+// Presentacional. Representa una pieza dental FDI como diagrama de 5 zonas.
 // Zonas: V (vestibular/top), M (mesial/left), O/I (oclusal-incisal/center), D (distal/right), L (lingual/bottom).
 // No recibe ni renderiza note ni recordedByUserId.
+// Acepta props opcionales de interacción: onClick, isSelected, overflowCount.
 
 import type { FindingPanelItem } from "@/server/domain/clinical/odontogram-views";
 import { ToothSurfaceZone } from "./ToothSurfaceZone";
@@ -27,9 +28,12 @@ interface Props {
   fdi: number;
   status: string;
   findings: FindingPanelItem[];
+  onClick?: () => void;
+  isSelected?: boolean;
+  overflowCount?: number;
 }
 
-export function ToothGlyph({ fdi, status, findings }: Props) {
+export function ToothGlyph({ fdi, status, findings, onClick, isSelected, overflowCount }: Props) {
   const style = TOOTH_STATUS_STYLE[status] ?? TOOTH_STATUS_STYLE.PRESENT;
   const isGone = status === "EXTRACTED" || status === "MISSING";
 
@@ -50,25 +54,32 @@ export function ToothGlyph({ fdi, status, findings }: Props) {
 
   const hasFindings = findings.length > 0;
 
+  const extraCount = overflowCount ?? 0;
+
   return (
-    <div className="flex flex-col items-center" title={`${fdi}${findings.length > 0 ? ` · ${findings.length} hallazgo${findings.length > 1 ? 's' : ''}` : ''}`}>
-      <svg
-        width={W}
-        height={H}
-        viewBox={`0 0 ${W} ${H}`}
-        className="overflow-visible"
-      >
-        {/* Fondo de la pieza */}
-        <rect
-          x={0.5}
-          y={0.5}
-          width={W - 1}
-          height={H - 1}
-          rx={3}
-          fill={style.fill}
-          stroke={hasFindings ? "#94a3b8" : style.stroke}
-          strokeWidth={hasFindings ? 1.5 : 1}
-        />
+    <div
+      className={`flex flex-col items-center${onClick ? " cursor-pointer select-none" : ""}`}
+      title={`${fdi}${findings.length > 0 ? ` · ${findings.length} hallazgo${findings.length > 1 ? 's' : ''}` : ''}`}
+      onClick={onClick}
+    >
+      <div className="relative">
+        <svg
+          width={W}
+          height={H}
+          viewBox={`0 0 ${W} ${H}`}
+          className="overflow-visible"
+        >
+          {/* Fondo de la pieza */}
+          <rect
+            x={0.5}
+            y={0.5}
+            width={W - 1}
+            height={H - 1}
+            rx={3}
+            fill={style.fill}
+            stroke={isSelected ? "#3b82f6" : (hasFindings ? "#94a3b8" : style.stroke)}
+            strokeWidth={isSelected ? 2.5 : (hasFindings ? 1.5 : 1)}
+          />
 
         {/* Zonas de superficie (solo si la pieza no está extraída/ausente) */}
         {!isGone && (
@@ -130,10 +141,18 @@ export function ToothGlyph({ fdi, status, findings }: Props) {
             <line x1={W - 5} y1={5} x2={5} y2={H - 5} stroke="#9ca3af" strokeWidth={2} strokeLinecap="round" />
           </>
         )}
-      </svg>
+        </svg>
+
+        {/* Badge de overflow: "+N" cuando hay más hallazgos de los que caben visualmente */}
+        {extraCount > 0 && (
+          <span className="absolute -top-1 -right-1 text-[7px] font-bold bg-blue-500 text-white rounded-full w-3.5 h-3.5 flex items-center justify-center leading-none z-10 pointer-events-none">
+            +{extraCount}
+          </span>
+        )}
+      </div>
 
       {/* Etiqueta FDI */}
-      <span className="text-[9px] leading-none mt-0.5 text-muted-foreground font-mono">
+      <span className={`text-[9px] leading-none mt-0.5 font-mono${isSelected ? " text-blue-500 font-bold" : " text-muted-foreground"}`}>
         {fdi}
       </span>
     </div>

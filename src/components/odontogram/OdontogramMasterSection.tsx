@@ -3,7 +3,7 @@
 // Solo lectura. No muta, no registra, no supervisa.
 
 import type { OdontogramMasterView } from "@/server/domain/clinical/odontogram-views";
-import { OdontogramChart } from "./OdontogramChart";
+import { OdontogramChartInteractive } from "./OdontogramChartInteractive";
 import { OdontogramLegend } from "./OdontogramLegend";
 import { FindingsPanel } from "./FindingsPanel";
 import { OdontogramEmpty } from "./OdontogramEmpty";
@@ -40,10 +40,10 @@ export function OdontogramMasterSection({ view, patientId }: Props) {
         </p>
       </div>
 
-      {/* Diagrama dental */}
+      {/* Diagrama dental interactivo */}
       <SectionCard title="Diagrama dental">
         <div className="overflow-x-auto">
-          <OdontogramChart teeth={teeth} />
+          <OdontogramChartInteractive teeth={teeth} patientId={patientId} />
         </div>
       </SectionCard>
 
