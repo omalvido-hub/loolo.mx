@@ -1,0 +1,4 @@
+FVO-1C DELIVERY MARKER
+Capa de escritura del dominio patient-record.
+Archivos: fvo-write.ts, fvo-write-schemas.ts, tests/phase-fvo1c.test.ts
+Sin migración. Sin UI. Sin server actions.
