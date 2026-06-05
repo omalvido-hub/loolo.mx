@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { PatientLiveRecord } from "@/server/domain/patient-record/schemas";
 import { EncounterList } from "@/components/clinical/EncounterList";
-import { PatientFVOSectionsClient } from "@/components/patients/PatientFVOSectionsClient";
+import { PatientFVOSectionsClient, PatientClinicalProfileSection } from "@/components/patients/PatientFVOSectionsClient";
 import type { EncounterListItem } from "@/server/domain/clinical/encounter-views";
 
 interface FVOPermissions {
@@ -165,52 +165,24 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         </div>
       )}
 
-      {/* Identidad */}
-      <SectionCard title="Identidad">
-        <Row label="ID paciente" value={<span className="font-mono text-xs">{identity.patientId}</span>} />
-        <Row label="Teléfono" value={identity.phone} />
-        <Row label="Correo" value={identity.email} />
-        <Row label="Fuente" value={identity.source} />
-        <Row label="Alta" value={fDate(identity.createdAt)} />
-        {identity.archivedAt && <Row label="Archivado" value={fDate(identity.archivedAt)} />}
-      </SectionCard>
+      {/* ── Bloque clínico ─────────────────────────────────────────────────── */}
 
-      {/* Secciones extendidas FVO — con formularios administrativos (UI-7A) */}
-      <PatientFVOSectionsClient
-        record={record}
-        patientId={patientId ?? ""}
-        canEditDemographics={fvoPermissions?.canEditDemographics ?? false}
-        canAddGuardian={fvoPermissions?.canAddGuardian ?? false}
-        canAddEmergencyContact={fvoPermissions?.canAddEmergencyContact ?? false}
-        canManageConsent={fvoPermissions?.canManageConsent ?? false}
-      />
+      {/* Perfil clínico — alertas médicas, alergias, medicamentos, antecedentes */}
+      <PatientClinicalProfileSection record={record} />
 
-      {/* Operativa */}
-      <SectionCard title="Operativa">
-        <Row
-          label="Próxima cita"
-          value={
-            operative.nextAppointment
-              ? `${fDatetime(operative.nextAppointment.startAt)} — ${APPT_STATUS_LABELS[operative.nextAppointment.status] ?? operative.nextAppointment.status}`
-              : "Sin cita próxima"
-          }
-        />
-        <Row
-          label="Última cita"
-          value={
-            operative.lastAppointment
-              ? `${fDate(operative.lastAppointment.startAt)} — ${APPT_STATUS_LABELS[operative.lastAppointment.status] ?? operative.lastAppointment.status}`
-              : "Sin historial"
-          }
-        />
-        <Row label="Conversaciones abiertas" value={operative.openConversationsCount} />
-        <Row label="Tareas abiertas" value={operative.openTasksCount} />
-        <Row label="Última actividad" value={fDate(operative.lastActivityAt)} />
-      </SectionCard>
+      {/* Odontograma vigente */}
+      {odontogramSummary && (
+        <SectionCard title="Odontograma vigente">
+          <Row label="Total hallazgos" value={odontogramSummary.totalFindings} />
+          {Object.entries(odontogramSummary.findingsByStatus).map(([status, count]) => (
+            <Row key={status} label={TOOTH_STATUS_LABELS[status] ?? status} value={count} />
+          ))}
+        </SectionCard>
+      )}
 
-      {/* Clínica — resumen + historial de consultas con enlaces */}
+      {/* Historial clínico — resumen + consultas con enlaces */}
       {clinical && (
-        <SectionCard title="Consultas clínicas">
+        <SectionCard title="Historial clínico">
           <Row label="Total consultas" value={clinical.encountersCount} />
           <Row label="Última consulta" value={fDate(clinical.lastEncounterAt)} />
           <Row label="Estado última consulta" value={clinical.lastEncounterStatus ? (ENCOUNTER_STATUS_LABELS[clinical.lastEncounterStatus] ?? clinical.lastEncounterStatus) : "—"} />
@@ -221,16 +193,6 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
               <EncounterList items={encounters} patientId={patientId} />
             </div>
           )}
-        </SectionCard>
-      )}
-
-      {/* Odontograma */}
-      {odontogramSummary && (
-        <SectionCard title="Odontograma">
-          <Row label="Total hallazgos" value={odontogramSummary.totalFindings} />
-          {Object.entries(odontogramSummary.findingsByStatus).map(([status, count]) => (
-            <Row key={status} label={TOOTH_STATUS_LABELS[status] ?? status} value={count} />
-          ))}
         </SectionCard>
       )}
 
@@ -266,6 +228,31 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         </SectionCard>
       )}
 
+      {/* ── Bloque operativo ───────────────────────────────────────────────── */}
+
+      {/* Agenda */}
+      <SectionCard title="Agenda">
+        <Row
+          label="Próxima cita"
+          value={
+            operative.nextAppointment
+              ? `${fDatetime(operative.nextAppointment.startAt)} — ${APPT_STATUS_LABELS[operative.nextAppointment.status] ?? operative.nextAppointment.status}`
+              : "Sin cita próxima"
+          }
+        />
+        <Row
+          label="Última cita"
+          value={
+            operative.lastAppointment
+              ? `${fDate(operative.lastAppointment.startAt)} — ${APPT_STATUS_LABELS[operative.lastAppointment.status] ?? operative.lastAppointment.status}`
+              : "Sin historial"
+          }
+        />
+        <Row label="Conversaciones abiertas" value={operative.openConversationsCount} />
+        <Row label="Tareas abiertas" value={operative.openTasksCount} />
+        <Row label="Última actividad" value={fDate(operative.lastActivityAt)} />
+      </SectionCard>
+
       {/* Tareas abiertas */}
       {tasks && tasks.length > 0 && (
         <SectionCard title="Tareas abiertas">
@@ -285,7 +272,31 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         </SectionCard>
       )}
 
-      {/* Timeline */}
+      {/* ── Bloque administrativo ──────────────────────────────────────────── */}
+
+      {/* Identidad */}
+      <SectionCard title="Identidad">
+        <Row label="ID paciente" value={<span className="font-mono text-xs">{identity.patientId}</span>} />
+        <Row label="Teléfono" value={identity.phone} />
+        <Row label="Correo" value={identity.email} />
+        <Row label="Fuente" value={identity.source} />
+        <Row label="Alta" value={fDate(identity.createdAt)} />
+        {identity.archivedAt && <Row label="Archivado" value={fDate(identity.archivedAt)} />}
+      </SectionCard>
+
+      {/* Secciones extendidas FVO — datos personales, domicilio, tutor, contacto, fiscal, comercial, consentimiento */}
+      <PatientFVOSectionsClient
+        record={record}
+        patientId={patientId ?? ""}
+        canEditDemographics={fvoPermissions?.canEditDemographics ?? false}
+        canAddGuardian={fvoPermissions?.canAddGuardian ?? false}
+        canAddEmergencyContact={fvoPermissions?.canAddEmergencyContact ?? false}
+        canManageConsent={fvoPermissions?.canManageConsent ?? false}
+      />
+
+      {/* ── Actividad ─────────────────────────────────────────────────────── */}
+
+      {/* Historial de actividad */}
       {timeline.length > 0 && (
         <SectionCard title="Historial de actividad">
           <ul className="space-y-2">

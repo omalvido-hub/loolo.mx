@@ -175,6 +175,123 @@ function FormActions({
   );
 }
 
+// ── Perfil clínico (exportado para composición en PatientLiveRecordView) ──────
+
+export function PatientClinicalProfileSection({ record }: { record: PatientLiveRecord }) {
+  const { clinicalProfile, medicalAlertFlag } = record;
+
+  if (!medicalAlertFlag && !clinicalProfile) return null;
+
+  return (
+    <>
+      {medicalAlertFlag && !clinicalProfile && medicalAlertFlag.hasActiveAlerts && (
+        <div className="rounded-lg border border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950/20 px-4 py-3">
+          <p className="text-sm font-semibold text-red-800 dark:text-red-300">Alerta médica activa</p>
+          {medicalAlertFlag.highSeverityCount > 0 && (
+            <p className="text-xs text-red-700 dark:text-red-400 mt-1">
+              {medicalAlertFlag.highSeverityCount} alerta(s) de severidad alta o crítica. Consulta con el clínico antes de la atención.
+            </p>
+          )}
+        </div>
+      )}
+
+      {clinicalProfile && (
+        <SectionCard
+          title="Perfil clínico"
+          accent={
+            clinicalProfile.medicalAlerts.some(
+              (a) => a.active && (a.severity === "HIGH" || a.severity === "CRITICAL"),
+            )
+              ? "red"
+              : "default"
+          }
+        >
+          {clinicalProfile.medicalAlerts.length > 0 && (
+            <div className="pb-2 space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Alertas médicas
+              </p>
+              {clinicalProfile.medicalAlerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className={`rounded-lg px-3 py-2 flex items-start gap-2 ${alert.active ? "" : "opacity-50"}`}
+                >
+                  <span
+                    className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                      SEVERITY_COLORS[alert.severity] ?? "bg-muted text-foreground"
+                    }`}
+                  >
+                    {SEVERITY_LABELS[alert.severity] ?? alert.severity}
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium">{ALERT_TYPE_LABELS[alert.alertType] ?? alert.alertType}</p>
+                    <p className="text-xs text-muted-foreground">{alert.description}</p>
+                    {!alert.active && (
+                      <p className="text-xs text-muted-foreground italic">Inactiva</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <Row
+            label="Alergias conocidas"
+            value={
+              clinicalProfile.knownAllergies.length > 0 ? (
+                <div className="flex flex-wrap gap-1">
+                  {clinicalProfile.knownAllergies.map((a, i) => (
+                    <span
+                      key={i}
+                      className="inline-flex items-center rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 px-2 py-0.5 text-xs font-medium"
+                    >
+                      {a}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                "Ninguna registrada"
+              )
+            }
+          />
+          <Row
+            label="Medicamentos actuales"
+            value={
+              clinicalProfile.currentMedications.length > 0 ? (
+                <div className="flex flex-wrap gap-1">
+                  {clinicalProfile.currentMedications.map((m, i) => (
+                    <span
+                      key={i}
+                      className="inline-flex items-center rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-0.5 text-xs font-medium"
+                    >
+                      {m}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                "Ninguno registrado"
+              )
+            }
+          />
+          {clinicalProfile.relevantHistory && (
+            <div className="flex gap-2">
+              <span className="w-44 shrink-0 text-muted-foreground">Antecedentes</span>
+              <p className="font-medium text-sm leading-relaxed">{clinicalProfile.relevantHistory}</p>
+            </div>
+          )}
+          {clinicalProfile.safetyNotes && (
+            <div className="flex gap-2">
+              <span className="w-44 shrink-0 text-muted-foreground">Notas de seguridad</span>
+              <p className="font-medium text-sm leading-relaxed text-orange-700 dark:text-orange-400">
+                {clinicalProfile.safetyNotes}
+              </p>
+            </div>
+          )}
+        </SectionCard>
+      )}
+    </>
+  );
+}
+
 // ── Props ──────────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -256,7 +373,6 @@ export function PatientFVOSectionsClient({
   // ── Guardia: sin secciones FVO para este actor ────────────────────────────────
   const hasFVO =
     demographics !== undefined ||
-    clinicalProfile !== undefined ||
     tax !== undefined ||
     canEditDemographics ||
     canAddGuardian ||
@@ -671,113 +787,6 @@ export function PatientFVOSectionsClient({
             </>
           ) : (
             <p className="text-sm text-muted-foreground">Sin datos de domicilio registrados.</p>
-          )}
-        </SectionCard>
-      )}
-
-      {/* Bandera de alerta médica — visible para front_desk (sin patient.clinical_profile.view) */}
-      {medicalAlertFlag && !clinicalProfile && medicalAlertFlag.hasActiveAlerts && (
-        <div className="rounded-lg border border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950/20 px-4 py-3">
-          <p className="text-sm font-semibold text-red-800 dark:text-red-300">Alerta médica activa</p>
-          {medicalAlertFlag.highSeverityCount > 0 && (
-            <p className="text-xs text-red-700 dark:text-red-400 mt-1">
-              {medicalAlertFlag.highSeverityCount} alerta(s) de severidad alta o crítica. Consulta con el clínico antes de la atención.
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Perfil clínico completo — solo lectura hasta UI-7B */}
-      {clinicalProfile && (
-        <SectionCard
-          title="Perfil clínico"
-          accent={
-            clinicalProfile.medicalAlerts.some(
-              (a) => a.active && (a.severity === "HIGH" || a.severity === "CRITICAL"),
-            )
-              ? "red"
-              : "default"
-          }
-        >
-          {clinicalProfile.medicalAlerts.length > 0 && (
-            <div className="pb-2 space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Alertas médicas
-              </p>
-              {clinicalProfile.medicalAlerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className={`rounded-lg px-3 py-2 flex items-start gap-2 ${alert.active ? "" : "opacity-50"}`}
-                >
-                  <span
-                    className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                      SEVERITY_COLORS[alert.severity] ?? "bg-muted text-foreground"
-                    }`}
-                  >
-                    {SEVERITY_LABELS[alert.severity] ?? alert.severity}
-                  </span>
-                  <div>
-                    <p className="text-sm font-medium">{ALERT_TYPE_LABELS[alert.alertType] ?? alert.alertType}</p>
-                    <p className="text-xs text-muted-foreground">{alert.description}</p>
-                    {!alert.active && (
-                      <p className="text-xs text-muted-foreground italic">Inactiva</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          <Row
-            label="Alergias conocidas"
-            value={
-              clinicalProfile.knownAllergies.length > 0 ? (
-                <div className="flex flex-wrap gap-1">
-                  {clinicalProfile.knownAllergies.map((a, i) => (
-                    <span
-                      key={i}
-                      className="inline-flex items-center rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 px-2 py-0.5 text-xs font-medium"
-                    >
-                      {a}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                "Ninguna registrada"
-              )
-            }
-          />
-          <Row
-            label="Medicamentos actuales"
-            value={
-              clinicalProfile.currentMedications.length > 0 ? (
-                <div className="flex flex-wrap gap-1">
-                  {clinicalProfile.currentMedications.map((m, i) => (
-                    <span
-                      key={i}
-                      className="inline-flex items-center rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-0.5 text-xs font-medium"
-                    >
-                      {m}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                "Ninguno registrado"
-              )
-            }
-          />
-          {clinicalProfile.relevantHistory && (
-            <div className="flex gap-2">
-              <span className="w-44 shrink-0 text-muted-foreground">Antecedentes</span>
-              <p className="font-medium text-sm leading-relaxed">{clinicalProfile.relevantHistory}</p>
-            </div>
-          )}
-          {clinicalProfile.safetyNotes && (
-            <div className="flex gap-2">
-              <span className="w-44 shrink-0 text-muted-foreground">Notas de seguridad</span>
-              <p className="font-medium text-sm leading-relaxed text-orange-700 dark:text-orange-400">
-                {clinicalProfile.safetyNotes}
-              </p>
-            </div>
           )}
         </SectionCard>
       )}
