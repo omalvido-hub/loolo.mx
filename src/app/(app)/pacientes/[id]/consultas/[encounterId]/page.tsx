@@ -5,6 +5,7 @@ import { makeTenantRunner } from "@/server/db/tenant";
 import { can } from "@/server/domain/identity/permissions";
 import { getEncounterSafeView } from "@/server/domain/clinical/encounter-views";
 import { getOdontogramEncounterView } from "@/server/domain/clinical/odontogram-views";
+import { EncounterHeader } from "@/components/clinical/EncounterHeader";
 import { EncounterDetailView } from "@/components/clinical/EncounterDetailView";
 import { ClinicalNoPermission } from "@/components/clinical/ClinicalNoPermission";
 import { EncounterFindings } from "@/components/odontogram/EncounterFindings";
@@ -44,36 +45,40 @@ export default async function ConsultaDetallePage({
         </div>
       );
     }
-    // NOT_FOUND o cualquier otro fallo → 404 seguro
     notFound();
   }
 
-  // Hallazgos de esta consulta — UI-4 solo lectura / UI-7B-B escritura si activa.
   const odoResult = await getOdontogramEncounterView(run, ctx, id, encounterId);
   const canRecord = can(ctx.permissions, "odontogram.record");
   const encounterStatus = result.value.status;
 
   return (
     <div>
-      <EncounterDetailView view={result.value} patientId={id} />
-      <div className="px-8 pb-10 max-w-3xl mx-auto mt-8">
-        <div className="rounded-xl border bg-card ring-1 ring-foreground/10 overflow-hidden">
-          <div className="px-4 py-3 border-b bg-muted/30">
-            <h2 className="font-medium text-base">Odontograma</h2>
+      <EncounterHeader view={result.value} patientId={id} />
+      <div className="px-8 py-6 pb-10 max-w-5xl mx-auto">
+        <div className="grid lg:grid-cols-[3fr_2fr] gap-6 items-start">
+          {/* Columna izquierda: odontograma */}
+          <div className="rounded-xl border bg-card ring-1 ring-foreground/10 overflow-hidden">
+            <div className="px-4 py-3 border-b bg-muted/30">
+              <h2 className="font-medium text-base">Odontograma</h2>
+            </div>
+            <div className="px-4 py-4">
+              {odoResult.ok ? (
+                <EncounterFindings
+                  view={odoResult.value}
+                  patientId={id}
+                  encounterId={encounterId}
+                  encounterStatus={encounterStatus}
+                  canRecord={canRecord}
+                />
+              ) : odoResult.reason === "FORBIDDEN" ? (
+                <OdontogramNoPermission />
+              ) : null}
+            </div>
           </div>
-          <div className="px-4 py-4">
-            {odoResult.ok ? (
-              <EncounterFindings
-                view={odoResult.value}
-                patientId={id}
-                encounterId={encounterId}
-                encounterStatus={encounterStatus}
-                canRecord={canRecord}
-              />
-            ) : odoResult.reason === "FORBIDDEN" ? (
-              <OdontogramNoPermission />
-            ) : null}
-          </div>
+
+          {/* Columna derecha: contenido clínico */}
+          <EncounterDetailView view={result.value} />
         </div>
       </div>
     </div>

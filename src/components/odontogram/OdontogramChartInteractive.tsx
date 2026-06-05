@@ -8,6 +8,7 @@ import { useState } from "react";
 import type { ToothView } from "@/server/domain/clinical/odontogram-views";
 import { ToothGlyph } from "./ToothGlyph";
 import { ToothDetailPanel } from "./ToothDetailPanel";
+import { getToothName } from "./tooth-names";
 
 // Orden de visualización estándar (igual que OdontogramChart):
 //   Arco superior: Q1 de 18→11 | Q2 de 21→28
@@ -121,7 +122,7 @@ export function OdontogramChartInteractive({
           </p>
         ) : isControlled ? (
           <p className="text-[11px] text-blue-600 text-center mt-2.5 font-medium">
-            Pieza {selectedFdi} seleccionada
+            {selectedFdi} — {getToothName(selectedFdi).full}
           </p>
         ) : null}
       </div>

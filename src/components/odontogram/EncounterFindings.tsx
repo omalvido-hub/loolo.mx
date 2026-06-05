@@ -11,6 +11,7 @@ import { OdontogramEmpty } from "./OdontogramEmpty";
 import { OdontogramChartInteractive } from "./OdontogramChartInteractive";
 import { Button } from "@/components/ui/button";
 import { recordFindingAction } from "@/server/actions/odontogram";
+import { getToothName } from "./tooth-names";
 
 // ─── Catálogos FDI ──────────────────────────────────────────────────────────
 
@@ -216,7 +217,7 @@ export function EncounterFindings({
                 <option value="">Seleccionar…</option>
                 {FDI_LIST.map((fdi) => (
                   <option key={fdi} value={fdi}>
-                    {fdi}
+                    {fdi} — {getToothName(fdi).full}
                   </option>
                 ))}
               </select>
