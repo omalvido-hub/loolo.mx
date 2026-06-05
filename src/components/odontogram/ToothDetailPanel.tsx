@@ -6,6 +6,7 @@
 
 import type { FindingPanelItem } from "@/server/domain/clinical/odontogram-views";
 import { getToothName } from "./tooth-names";
+import { ToothDiagram } from "./ToothDiagram";
 
 const FINDING_TYPE_LABEL: Record<string, string> = {
   CARIES:      "Caries",
@@ -87,22 +88,25 @@ export function ToothDetailPanel({ fdi, status, findings, onClose }: Props) {
   return (
     <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
       {/* Cabecera */}
-      <div className="px-4 py-3 bg-blue-50/60 border-b border-blue-100 flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="text-[10px] font-semibold text-blue-600 uppercase tracking-wider mb-1">
-            Pieza seleccionada
-          </p>
-          <div className="flex items-baseline gap-2 flex-wrap">
-            <span className="text-xl font-bold text-foreground leading-tight">
-              Pieza {fdi}
-            </span>
-            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${statusColorClass}`}>
-              {statusLabel}
-            </span>
+      <div className="px-4 py-3 bg-blue-50/60 border-b border-blue-100 flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3 min-w-0">
+          <ToothDiagram fdi={fdi} status={status} findings={findings} size={64} />
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold text-blue-600 uppercase tracking-wider mb-1">
+              Pieza seleccionada
+            </p>
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-xl font-bold text-foreground leading-tight">
+                Pieza {fdi}
+              </span>
+              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${statusColorClass}`}>
+                {statusLabel}
+              </span>
+            </div>
+            <p className="text-[12px] text-muted-foreground mt-1 leading-tight font-medium">
+              {name.full}
+            </p>
           </div>
-          <p className="text-[12px] text-muted-foreground mt-1 leading-tight font-medium">
-            {name.full}
-          </p>
         </div>
         <button
           onClick={onClose}
