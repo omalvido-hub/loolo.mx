@@ -207,3 +207,32 @@ describe("UI-7A — page.tsx permisos FVO", () => {
     expect(canCalls.length).toBeGreaterThanOrEqual(4);
   });
 });
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 5. Manejo date-only de dateOfBirth (bug timezone UTC-6)
+// ══════════════════════════════════════════════════════════════════════════════
+
+describe("UI-7A — fDate no desplaza fechas date-only por timezone", () => {
+  let clientContent: string;
+  let staticContent: string;
+
+  beforeAll(() => {
+    clientContent = readFileSync(CLIENT_PATH, "utf-8");
+    staticContent = readFileSync(STATIC_PATH, "utf-8");
+  });
+
+  it("PatientFVOSectionsClient.tsx parchea strings YYYY-MM-DD con T12:00:00Z antes de new Date()", () => {
+    // Garantiza que fDate no convierte fechas civiles a UTC midnight (día -1 con UTC-6)
+    expect(clientContent).toContain("T12:00:00Z");
+  });
+
+  it("PatientFVOSections.tsx parchea strings YYYY-MM-DD con T12:00:00Z antes de new Date()", () => {
+    expect(staticContent).toContain("T12:00:00Z");
+  });
+
+  it("ambos archivos usan regex para detectar el patrón YYYY-MM-DD (guard date-only)", () => {
+    // La fuente contiene literalmente \d{4}-\d{2}-\d{2} dentro de la regex de detección
+    expect(clientContent).toContain("\\d{4}-\\d{2}-\\d{2}");
+    expect(staticContent).toContain("\\d{4}-\\d{2}-\\d{2}");
+  });
+});

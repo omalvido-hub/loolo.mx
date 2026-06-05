@@ -32,7 +32,13 @@ const FMT_DATE = new Intl.DateTimeFormat("es-MX", {
 
 function fDate(iso: string | null | undefined): string {
   if (!iso) return "—";
-  try { return FMT_DATE.format(new Date(iso)); } catch { return "—"; }
+  try {
+    // Date-only strings (YYYY-MM-DD) are parsed by `new Date()` as UTC midnight,
+    // which shifts the day back by 6h with America/Mexico_City (UTC-6).
+    // Pinning to noon UTC keeps the correct civil date for any MX timezone offset.
+    const s = /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso + "T12:00:00Z" : iso;
+    return FMT_DATE.format(new Date(s));
+  } catch { return "—"; }
 }
 
 // ── Catálogos de etiquetas ─────────────────────────────────────────────────────
