@@ -68,7 +68,8 @@ export async function fetchAddressSection(exec: Exec, patientId: string) {
 export async function fetchGuardianSection(exec: Exec, patientId: string) {
   const rows = await exec(
     `SELECT "name", "relationship", "phone", "email"
-     FROM "patient_guardian" WHERE "patientId"=$1`,
+     FROM "patient_guardian" WHERE "patientId"=$1
+     ORDER BY "createdAt" DESC LIMIT 1`,
     [patientId],
   );
   const row = rows[0] ?? null;
@@ -84,7 +85,8 @@ export async function fetchGuardianSection(exec: Exec, patientId: string) {
 export async function fetchEmergencyContactSection(exec: Exec, patientId: string) {
   const rows = await exec(
     `SELECT "name", "relationship", "phone"
-     FROM "patient_emergency_contact" WHERE "patientId"=$1`,
+     FROM "patient_emergency_contact" WHERE "patientId"=$1
+     ORDER BY "createdAt" DESC LIMIT 1`,
     [patientId],
   );
   const row = rows[0] ?? null;

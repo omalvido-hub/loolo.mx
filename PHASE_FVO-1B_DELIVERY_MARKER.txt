@@ -1,0 +1,25 @@
+PHASE FVO-1B DELIVERY MARKER
+============================
+Fase    : FVO-1b — Estabilización: seed idempotente + lecturas deterministas
+Commit  : fix: stabilize FVO-1B seed and deterministic reads
+Fecha   : 2026-06-04
+
+Cambios
+-------
+1. scripts/seed-fvo1-ana.ts
+   - Eliminados ON CONFLICT ("patientId") rotos en patient_guardian y patient_emergency_contact
+   - Reemplazados por patrón DELETE + INSERT (idempotente, compatible con tablas 1:N post-0017)
+
+2. src/server/domain/patient-record/fvo-sections.ts
+   - fetchGuardianSection: ORDER BY "createdAt" DESC LIMIT 1 (lectura determinista)
+   - fetchEmergencyContactSection: ORDER BY "createdAt" DESC LIMIT 1 (lectura determinista)
+
+3. tests/phase-fvo1b.test.ts (nuevo)
+   - 9 pruebas nuevas: seed compatible, idempotencia, determinismo con 2 filas, null cuando vacío
+
+Invariantes mantenidas
+----------------------
+- Sin migración nueva (0017 es la última; 0018 no existe)
+- Sin cambio al shape público de guardian/emergencyContact (siguen siendo objeto único o null)
+- resolver.ts, schemas.ts, PatientFVOSections.tsx sin tocar
+- 599 pruebas previas + 9 nuevas = 608 pruebas totales

@@ -107,26 +107,31 @@ async function main() {
   }
 
   // 6. Tutor / Responsable (no aplica para adulto — insertar vacío para demostrar la estructura)
-  // Ana es mayor de edad, no tiene tutor, pero registramos al esposo como contacto de referencia
+  // Ana es mayor de edad, no tiene tutor. patient_guardian es 1:N (UNIQUE eliminado en 0017):
+  // usamos DELETE + INSERT para idempotencia.
+  await adminPool.query(
+    `DELETE FROM "patient_guardian" WHERE "patientId"=$1`,
+    [PATIENT_ID],
+  );
   await adminPool.query(
     `INSERT INTO "patient_guardian"
        ("organizationId","patientId","name","relationship","phone","email","createdBy")
-     VALUES ($1,$2,NULL,NULL,NULL,NULL,$3)
-     ON CONFLICT ("patientId") DO NOTHING`,
+     VALUES ($1,$2,NULL,NULL,NULL,NULL,$3)`,
     [ORG_ID, PATIENT_ID, OWNER_ID],
   );
   // Si no hay tutor, no se muestra la sección en la UI (null row)
 
   // 7. Contacto de emergencia
+  // patient_emergency_contact es 1:N (UNIQUE eliminado en 0017):
+  // usamos DELETE + INSERT para idempotencia.
+  await adminPool.query(
+    `DELETE FROM "patient_emergency_contact" WHERE "patientId"=$1`,
+    [PATIENT_ID],
+  );
   await adminPool.query(
     `INSERT INTO "patient_emergency_contact"
        ("organizationId","patientId","name","relationship","phone","createdBy")
-     VALUES ($1,$2,'Roberto García Sánchez','Esposo','+5215512345678',$3)
-     ON CONFLICT ("patientId") DO UPDATE SET
-       "name"=EXCLUDED."name",
-       "relationship"=EXCLUDED."relationship",
-       "phone"=EXCLUDED."phone",
-       "updatedAt"=now()`,
+     VALUES ($1,$2,'Roberto García Sánchez','Esposo','+5215512345678',$3)`,
     [ORG_ID, PATIENT_ID, OWNER_ID],
   );
   console.log("  ✓ Contacto de emergencia");
