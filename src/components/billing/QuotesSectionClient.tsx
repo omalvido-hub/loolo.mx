@@ -23,18 +23,16 @@ import {
 
 // ─── Utilidades ────────────────────────────────────────────────────────────
 
-const FMT_CURRENCY = new Intl.NumberFormat("es-MX", {
-  style: "currency",
-  currency: "MXN",
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 2,
-});
 const FMT_DATE = new Intl.DateTimeFormat("es-MX", {
   timeZone: "America/Mexico_City",
   dateStyle: "medium",
 });
 
-const fCents = (c: number) => FMT_CURRENCY.format(c / 100);
+// en-US guarantees comma-thousands + period-decimal in all browsers/Node.
+// es-MX ICU can vary across Safari/Chrome/Node versions.
+const _FMT_NUM = new Intl.NumberFormat("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+const _FMT_NUM2 = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fCents = (c: number) => "$" + (c % 100 !== 0 ? _FMT_NUM2 : _FMT_NUM).format(c / 100);
 const fDate = (iso: string | null | undefined) => {
   if (!iso) return "—";
   try { return FMT_DATE.format(new Date(iso)); } catch { return "—"; }
@@ -531,8 +529,8 @@ function QuoteCard({
             {/* Cabecera de columnas */}
             <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wide pb-1">
               <span className="flex-1">Descripción</span>
-              <span className="w-28 shrink-0 text-right">Precio</span>
-              <span className="w-24 shrink-0 text-right">Total</span>
+              <span className="w-28 shrink-0 text-right whitespace-nowrap">Precio</span>
+              <span className="w-24 shrink-0 text-right whitespace-nowrap">Total</span>
             </div>
             {quote.lines.map((line) => (
               <div key={line.id} className="py-1 text-sm rounded hover:bg-muted/30">
@@ -541,7 +539,7 @@ function QuoteCard({
                     <span className="truncate block">{line.description}</span>
                   </div>
                   {/* Precio editable en DRAFT */}
-                  <div className="w-28 shrink-0 text-right">
+                  <div className="w-28 shrink-0 text-right whitespace-nowrap">
                     {isDraft && canEdit && editingLineId === line.id ? (
                       <EditLinePrice
                         patientId={patientId}
@@ -567,7 +565,7 @@ function QuoteCard({
                       </button>
                     )}
                   </div>
-                  <div className="w-24 shrink-0 text-right font-medium">
+                  <div className="w-24 shrink-0 text-right font-medium whitespace-nowrap">
                     {fCents(line.totalCents)}
                   </div>
                 </div>
