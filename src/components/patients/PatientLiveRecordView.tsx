@@ -74,6 +74,31 @@ const APPT_STATUS_LABELS: Record<string, string> = {
   NO_SHOW: "No presentó",
 };
 
+const ENCOUNTER_STATUS_LABELS: Record<string, string> = {
+  DRAFT: "Borrador",
+  IN_PROGRESS: "En progreso",
+  FINALIZED: "Finalizada",
+  CANCELED: "Cancelada",
+};
+
+const TOOTH_STATUS_LABELS: Record<string, string> = {
+  PRESENT: "Presente",
+  ABSENT: "Ausente",
+  EXTRACTED: "Extraído",
+  IMPACTED: "Impactado",
+  UNERUPTED: "Sin erupcionar",
+  ROOT_ONLY: "Solo raíz",
+};
+
+const TREATMENT_ITEM_STATUS_LABELS: Record<string, string> = {
+  PROPOSED: "propuestos",
+  ACCEPTED: "aceptados",
+  IN_PROGRESS: "en progreso",
+  COMPLETED: "completados",
+  REJECTED: "rechazados",
+  CANCELED: "cancelados",
+};
+
 const TIMELINE_LABELS: Record<string, string> = {
   "appointment.scheduled": "Cita agendada",
   "appointment.completed": "Cita completada",
@@ -186,7 +211,7 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         <SectionCard title="Consultas clínicas">
           <Row label="Total consultas" value={clinical.encountersCount} />
           <Row label="Última consulta" value={fDate(clinical.lastEncounterAt)} />
-          <Row label="Estado última consulta" value={clinical.lastEncounterStatus} />
+          <Row label="Estado última consulta" value={clinical.lastEncounterStatus ? (ENCOUNTER_STATUS_LABELS[clinical.lastEncounterStatus] ?? clinical.lastEncounterStatus) : "—"} />
           <Row label="Notas clínicas" value={clinical.notesCount} />
           <Row label="Última nota" value={fDate(clinical.lastNoteAt)} />
           {encounters !== undefined && patientId && (
@@ -202,7 +227,7 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         <SectionCard title="Odontograma">
           <Row label="Total hallazgos" value={odontogramSummary.totalFindings} />
           {Object.entries(odontogramSummary.findingsByStatus).map(([status, count]) => (
-            <Row key={status} label={status} value={count} />
+            <Row key={status} label={TOOTH_STATUS_LABELS[status] ?? status} value={count} />
           ))}
         </SectionCard>
       )}
@@ -213,7 +238,7 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
           <Row label="Planes registrados" value={treatment.plansCount} />
           <Row label="Plan activo" value={treatment.activePlanId ? "Sí" : "No"} />
           {Object.entries(treatment.itemsByStatus).map(([status, count]) => (
-            <Row key={status} label={`Ítems ${status.toLowerCase()}`} value={count} />
+            <Row key={status} label={`Ítems ${TREATMENT_ITEM_STATUS_LABELS[status] ?? status.toLowerCase()}`} value={count} />
           ))}
         </SectionCard>
       )}

@@ -72,6 +72,9 @@ const CONSENT_STATUS_LABELS: Record<string, string> = {
 const METHOD_LABELS: Record<string, string> = {
   SIGNATURE: "Firma física", VERBAL: "Verbal", DIGITAL: "Digital", IMPLICIT: "Implícito",
 };
+const ALERT_TYPE_LABELS: Record<string, string> = {
+  ALLERGY: "Alergia", MEDICATION: "Medicamento", CONDITION: "Condición", OTHER: "Otro",
+};
 
 // ── Componentes auxiliares ─────────────────────────────────────────────────────
 
@@ -714,7 +717,7 @@ export function PatientFVOSectionsClient({
                     {SEVERITY_LABELS[alert.severity] ?? alert.severity}
                   </span>
                   <div>
-                    <p className="text-sm font-medium">{alert.alertType}</p>
+                    <p className="text-sm font-medium">{ALERT_TYPE_LABELS[alert.alertType] ?? alert.alertType}</p>
                     <p className="text-xs text-muted-foreground">{alert.description}</p>
                     {!alert.active && (
                       <p className="text-xs text-muted-foreground italic">Inactiva</p>
