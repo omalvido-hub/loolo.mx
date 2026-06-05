@@ -42,8 +42,10 @@ export function OdontogramMasterSection({ view, patientId }: Props) {
 
       {/* Diagrama dental interactivo */}
       <SectionCard title="Diagrama dental">
-        <div className="overflow-x-auto">
-          <OdontogramChartInteractive teeth={teeth} patientId={patientId} />
+        <div className="overflow-x-auto pb-2">
+          <div className="w-max mx-auto">
+            <OdontogramChartInteractive teeth={teeth} patientId={patientId} />
+          </div>
         </div>
       </SectionCard>
 

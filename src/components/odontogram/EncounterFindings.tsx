@@ -163,12 +163,16 @@ export function EncounterFindings({
       {/* Mini odontograma interactivo — solo en consulta activa */}
       {canAdd && (
         <div className="rounded-lg border p-3 bg-muted/10">
-          <OdontogramChartInteractive
-            teeth={teeth}
-            patientId={patientId}
-            selectedFdi={selectedFdi}
-            onToothClick={handleOdontogramClick}
-          />
+          <div className="overflow-x-auto pb-2">
+            <div className="w-max mx-auto">
+              <OdontogramChartInteractive
+                teeth={teeth}
+                patientId={patientId}
+                selectedFdi={selectedFdi}
+                onToothClick={handleOdontogramClick}
+              />
+            </div>
+          </div>
         </div>
       )}
 
