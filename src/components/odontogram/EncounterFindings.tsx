@@ -11,6 +11,7 @@ import { OdontogramEmpty } from "./OdontogramEmpty";
 import { OdontogramChartInteractive } from "./OdontogramChartInteractive";
 import { Button } from "@/components/ui/button";
 import { recordFindingAction } from "@/server/actions/odontogram";
+import { getToothName } from "./tooth-names";
 
 // ─── Catálogos FDI ──────────────────────────────────────────────────────────
 
@@ -110,6 +111,14 @@ export function EncounterFindings({
   const canAdd = canRecord && OPEN_STATUSES.has(encounterStatus);
   const mode = form.findingType ? surfaceMode(form.findingType) : null;
 
+  // Datos de la pieza actualmente seleccionada en el diagrama.
+  const selectedTooth = selectedFdi !== null
+    ? (teeth.find((t) => t.fdi === selectedFdi) ?? null)
+    : null;
+  const selectedToothFindings = selectedFdi !== null
+    ? findingsPanel.filter((f) => f.toothFdi === selectedFdi)
+    : [];
+
   function handleOdontogramClick(fdi: number | null) {
     setSelectedFdi(fdi);
     if (fdi !== null) {
@@ -173,6 +182,43 @@ export function EncounterFindings({
               />
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Pieza seleccionada — nombre clínico, estado y hallazgos de esta consulta */}
+      {canAdd && selectedFdi !== null && (
+        <div className="rounded-lg border border-blue-100 bg-blue-50/40 px-3 py-2.5 space-y-1.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-sm text-foreground">
+              Pieza {selectedFdi}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              {getToothName(selectedFdi).full}
+            </span>
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border border-muted-foreground/30 text-muted-foreground">
+              {TOOTH_STATUSES.find((s) => s.value === (selectedTooth?.status ?? "PRESENT"))?.label
+                ?? (selectedTooth?.status ?? "Presente")}
+            </span>
+          </div>
+          {selectedToothFindings.length > 0 ? (
+            <div className="space-y-0.5">
+              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+                Hallazgos en esta consulta
+              </p>
+              {selectedToothFindings.map((f, i) => (
+                <p key={i} className="text-xs text-foreground">
+                  {FINDING_TYPES.find((ft) => ft.value === f.findingType)?.label ?? f.findingType}
+                  {f.surface
+                    ? ` · ${SURFACES.find((s) => s.value === f.surface)?.label ?? f.surface}`
+                    : ""}
+                </p>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Sin hallazgos registrados en esta pieza.
+            </p>
+          )}
         </div>
       )}
 
