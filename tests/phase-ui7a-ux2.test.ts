@@ -41,8 +41,11 @@ describe("UI-7A-UX2 — PatientLiveRecordView.tsx labels traducidos", () => {
     expect(content).toContain('EXTRACTED: "Extraído"');
   });
 
-  it("usa TOOTH_STATUS_LABELS en odontogramSummary (no muestra status crudo como label)", () => {
-    expect(content).toContain("TOOTH_STATUS_LABELS[status]");
+  it("renderiza odontogramSection como prop, no mini-tarjeta inline con TOOTH_STATUS_LABELS[status]", () => {
+    // UI-7C-A-UX1: la mini tarjeta de odontogramaSummary fue eliminada;
+    // ahora el odontograma completo se pasa como prop odontogramSection.
+    expect(content).toContain("odontogramSection");
+    expect(content).not.toContain("TOOTH_STATUS_LABELS[status]");
     expect(content).not.toMatch(/label=\{status\}/);
   });
 
