@@ -496,12 +496,29 @@ export function PatientFVOSectionsClient({
                 </SelectNative>
               </FormRow>
               <FormRow label="Ocupación">
-                <Input
-                  value={demoForm.occupation}
-                  onChange={(e) => setDemoForm((f) => ({ ...f, occupation: e.target.value }))}
-                  disabled={demoPending}
-                  placeholder="Ej. Enfermera, Contador"
-                />
+                <>
+                  <Input
+                    list="occupation-options"
+                    value={demoForm.occupation}
+                    onChange={(e) => setDemoForm((f) => ({ ...f, occupation: e.target.value }))}
+                    disabled={demoPending}
+                    placeholder="Selecciona o escribe"
+                  />
+                  <datalist id="occupation-options">
+                    <option value="Contadora" />
+                    <option value="Contadora pública" />
+                    <option value="Abogada" />
+                    <option value="Médico" />
+                    <option value="Dentista" />
+                    <option value="Comerciante" />
+                    <option value="Empresaria" />
+                    <option value="Empleada" />
+                    <option value="Estudiante" />
+                    <option value="Ama de casa" />
+                    <option value="Jubilada" />
+                    <option value="Otro" />
+                  </datalist>
+                </>
               </FormRow>
               <FormRow label="Estado civil">
                 <SelectNative

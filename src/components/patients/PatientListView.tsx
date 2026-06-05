@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { PatientListResult } from "@/server/domain/patient-record/list";
 
 const FMT_DATE = new Intl.DateTimeFormat("es-MX", {
@@ -25,6 +28,7 @@ interface Props {
 }
 
 export function PatientListView({ data }: Props) {
+  const router = useRouter();
   const { items, total, limit, offset } = data;
 
   return (
@@ -59,11 +63,16 @@ export function PatientListView({ data }: Props) {
               </thead>
               <tbody className="divide-y">
                 {items.map((p) => (
-                  <tr key={p.id} className="hover:bg-muted/30 transition-colors">
+                  <tr
+                    key={p.id}
+                    className="hover:bg-muted/30 transition-colors cursor-pointer"
+                    onClick={() => router.push(`/pacientes/${p.id}`)}
+                  >
                     <td className="px-4 py-3">
                       <Link
                         href={`/pacientes/${p.id}`}
                         className="font-medium text-foreground hover:underline"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         {p.fullName ?? <span className="text-muted-foreground italic">Sin nombre</span>}
                       </Link>

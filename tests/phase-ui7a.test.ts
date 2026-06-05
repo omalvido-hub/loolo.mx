@@ -10,6 +10,7 @@ const CLIENT_PATH  = resolve("src/components/patients/PatientFVOSectionsClient.t
 const PLR_PATH     = resolve("src/components/patients/PatientLiveRecordView.tsx");
 const PAGE_PATH    = resolve("src/app/(app)/pacientes/[id]/page.tsx");
 const STATIC_PATH  = resolve("src/components/patients/PatientFVOSections.tsx");
+const LIST_PATH    = resolve("src/components/patients/PatientListView.tsx");
 
 const REQUIRED_ACTIONS = [
   "upsertDemographicsAction",
@@ -209,7 +210,50 @@ describe("UI-7A — page.tsx permisos FVO", () => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
-// 5. Manejo date-only de dateOfBirth (bug timezone UTC-6)
+// 5. Campo Ocupación — datalist con sugerencias + texto libre
+// ══════════════════════════════════════════════════════════════════════════════
+
+describe("UI-7A-UX1 — campo Ocupación con datalist", () => {
+  let content: string;
+
+  beforeAll(() => {
+    content = readFileSync(CLIENT_PATH, "utf-8");
+  });
+
+  it("el campo Ocupación usa atributo list para conectar con datalist", () => {
+    expect(content).toContain('list="occupation-options"');
+  });
+
+  it("existe un datalist con id occupation-options", () => {
+    expect(content).toContain('<datalist id="occupation-options">');
+  });
+
+  it("el datalist incluye ocupaciones frecuentes (Contadora, Estudiante, Dentista)", () => {
+    expect(content).toContain('value="Contadora"');
+    expect(content).toContain('value="Estudiante"');
+    expect(content).toContain('value="Dentista"');
+  });
+
+  it("el datalist incluye la opción Otro para valores personalizados", () => {
+    expect(content).toContain('value="Otro"');
+  });
+
+  it("el campo Ocupación NO es un select (permite texto libre)", () => {
+    // Verifica que el bloque FormRow de Ocupación no contenga <SelectNative
+    const ocupacionBlock = content.slice(
+      content.indexOf('"occupation-options"'),
+      content.indexOf("</datalist>") + 11,
+    );
+    expect(ocupacionBlock).not.toContain("SelectNative");
+  });
+
+  it("el campo occupation sigue escribiendo en demoForm.occupation (no cambia el campo destino)", () => {
+    expect(content).toContain("occupation: e.target.value");
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 6. Manejo date-only de dateOfBirth (bug timezone UTC-6)
 // ══════════════════════════════════════════════════════════════════════════════
 
 describe("UI-7A — fDate no desplaza fechas date-only por timezone", () => {
@@ -234,5 +278,38 @@ describe("UI-7A — fDate no desplaza fechas date-only por timezone", () => {
     // La fuente contiene literalmente \d{4}-\d{2}-\d{2} dentro de la regex de detección
     expect(clientContent).toContain("\\d{4}-\\d{2}-\\d{2}");
     expect(staticContent).toContain("\\d{4}-\\d{2}-\\d{2}");
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 7. PatientListView — fila completa clickeable (UX navegación)
+// ══════════════════════════════════════════════════════════════════════════════
+
+describe("UI-7A-UX1 — PatientListView fila clickeable", () => {
+  let content: string;
+
+  beforeAll(() => {
+    content = readFileSync(LIST_PATH, "utf-8");
+  });
+
+  it("es un componente cliente (usa useRouter)", () => {
+    expect(content.split("\n")[0].trim()).toBe('"use client";');
+    expect(content).toContain("useRouter");
+  });
+
+  it("la fila <tr> tiene onClick que navega a /pacientes/[id]", () => {
+    expect(content).toContain("router.push(`/pacientes/${p.id}`)");
+  });
+
+  it("la fila <tr> tiene cursor-pointer para indicar que es clickeable", () => {
+    expect(content).toContain("cursor-pointer");
+  });
+
+  it("el Link del nombre tiene stopPropagation para no duplicar navegación", () => {
+    expect(content).toContain("e.stopPropagation()");
+  });
+
+  it("el Link del nombre sigue apuntando a /pacientes/[id] (accesible y derecho-clic)", () => {
+    expect(content).toContain("href={`/pacientes/${p.id}`}");
   });
 });
