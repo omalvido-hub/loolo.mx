@@ -266,7 +266,7 @@ export function EncounterFindings({
                 <option value="">Seleccionar…</option>
                 {FDI_LIST.map((fdi) => (
                   <option key={fdi} value={fdi}>
-                    {fdi}
+                    {fdi} — {getToothName(fdi).short}
                   </option>
                 ))}
               </select>
