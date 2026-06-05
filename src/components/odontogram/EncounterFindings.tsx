@@ -8,6 +8,7 @@ import { useState, useTransition } from "react";
 import type { OdontogramEncounterView } from "@/server/domain/clinical/odontogram-views";
 import { FindingsPanel } from "./FindingsPanel";
 import { OdontogramEmpty } from "./OdontogramEmpty";
+import { OdontogramChartInteractive } from "./OdontogramChartInteractive";
 import { Button } from "@/components/ui/button";
 import { recordFindingAction } from "@/server/actions/odontogram";
 
@@ -99,14 +100,24 @@ export function EncounterFindings({
   encounterStatus,
   canRecord,
 }: Props) {
-  const { findingsPanel, summary } = view;
+  const { findingsPanel, summary, teeth } = view;
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [selectedFdi, setSelectedFdi] = useState<number | null>(null);
 
   const canAdd = canRecord && OPEN_STATUSES.has(encounterStatus);
   const mode = form.findingType ? surfaceMode(form.findingType) : null;
+
+  function handleOdontogramClick(fdi: number | null) {
+    setSelectedFdi(fdi);
+    if (fdi !== null) {
+      if (showForm) {
+        setForm((prev) => ({ ...prev, toothFdi: String(fdi) }));
+      }
+    }
+  }
 
   function handleChange(field: keyof FormState, value: string) {
     setForm((prev) => {
@@ -149,6 +160,18 @@ export function EncounterFindings({
 
   return (
     <div className="space-y-3">
+      {/* Mini odontograma interactivo — solo en consulta activa */}
+      {canAdd && (
+        <div className="rounded-lg border p-3 bg-muted/10">
+          <OdontogramChartInteractive
+            teeth={teeth}
+            patientId={patientId}
+            selectedFdi={selectedFdi}
+            onToothClick={handleOdontogramClick}
+          />
+        </div>
+      )}
+
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <h3 className="text-sm font-semibold">Hallazgos de esta consulta</h3>
@@ -162,7 +185,14 @@ export function EncounterFindings({
           )}
         </div>
         {canAdd && !showForm && (
-          <Button size="sm" variant="outline" onClick={() => setShowForm(true)}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              setForm({ ...EMPTY_FORM, toothFdi: selectedFdi !== null ? String(selectedFdi) : "" });
+              setShowForm(true);
+            }}
+          >
             + Agregar hallazgo
           </Button>
         )}

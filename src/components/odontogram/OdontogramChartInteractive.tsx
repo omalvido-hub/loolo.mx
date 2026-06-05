@@ -21,6 +21,10 @@ const MAX_VISIBLE_FINDINGS = 5;
 interface Props {
   teeth: ToothView[];
   patientId: string;
+  /** Cuando se provee junto con onToothClick, el componente opera en modo controlado (sin ToothDetailPanel). */
+  selectedFdi?: number | null;
+  /** Callback de selección. Cuando se provee, suprime el panel de detalle interno. */
+  onToothClick?: (fdi: number | null) => void;
 }
 
 function Arch({
@@ -58,15 +62,26 @@ function Arch({
   );
 }
 
-export function OdontogramChartInteractive({ teeth, patientId }: Props) {
-  const [selectedFdi, setSelectedFdi] = useState<number | null>(null);
+export function OdontogramChartInteractive({
+  teeth,
+  patientId,
+  selectedFdi: externalFdi,
+  onToothClick,
+}: Props) {
+  const isControlled = onToothClick !== undefined;
+  const [internalFdi, setInternalFdi] = useState<number | null>(null);
+  const selectedFdi = isControlled ? (externalFdi ?? null) : internalFdi;
 
   const byFdi: Record<number, ToothView> = Object.fromEntries(
     teeth.map((t) => [t.fdi, t]),
   );
 
   const handleToothClick = (fdi: number) => {
-    setSelectedFdi((prev) => (prev === fdi ? null : fdi));
+    if (isControlled) {
+      onToothClick(selectedFdi === fdi ? null : fdi);
+    } else {
+      setInternalFdi((prev) => (prev === fdi ? null : fdi));
+    }
   };
 
   const selectedTooth = selectedFdi !== null ? byFdi[selectedFdi] : null;
@@ -100,21 +115,25 @@ export function OdontogramChartInteractive({ teeth, patientId }: Props) {
           </div>
         </div>
 
-        {selectedFdi === null && (
+        {selectedFdi === null ? (
           <p className="text-[11px] text-muted-foreground/60 text-center mt-2.5">
-            Toca una pieza para ver sus hallazgos
+            {isControlled ? "Toca una pieza para seleccionarla" : "Toca una pieza para ver sus hallazgos"}
           </p>
-        )}
+        ) : isControlled ? (
+          <p className="text-[11px] text-blue-600 text-center mt-2.5 font-medium">
+            Pieza {selectedFdi} seleccionada
+          </p>
+        ) : null}
       </div>
 
-      {/* Panel de detalle — debajo del odontograma, nunca encima */}
-      {selectedFdi !== null && (
+      {/* Panel de detalle — solo en modo autónomo (no controlado) */}
+      {!isControlled && selectedFdi !== null && (
         <ToothDetailPanel
           fdi={selectedFdi}
           status={selectedTooth?.status ?? "PRESENT"}
           findings={selectedTooth?.findings ?? []}
           patientId={patientId}
-          onClose={() => setSelectedFdi(null)}
+          onClose={() => setInternalFdi(null)}
         />
       )}
     </div>
