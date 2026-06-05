@@ -25,6 +25,8 @@ const FMT_DATETIME = new Intl.DateTimeFormat("es-MX", {
 const FMT_CURRENCY = new Intl.NumberFormat("es-MX", {
   style: "currency",
   currency: "MXN",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
 });
 
 function fDate(iso: string | null | undefined): string {

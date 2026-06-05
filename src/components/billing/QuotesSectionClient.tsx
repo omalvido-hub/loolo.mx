@@ -26,7 +26,7 @@ import {
 const FMT_CURRENCY = new Intl.NumberFormat("es-MX", {
   style: "currency",
   currency: "MXN",
-  minimumFractionDigits: 2,
+  minimumFractionDigits: 0,
   maximumFractionDigits: 2,
 });
 const FMT_DATE = new Intl.DateTimeFormat("es-MX", {
