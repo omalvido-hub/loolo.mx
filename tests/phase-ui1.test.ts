@@ -166,12 +166,10 @@ describe("listPatientsForOrg — permisos", () => {
     expect(result.ok).toBe(true);
   });
 
-  it("front_desk sin patients.view recibe FORBIDDEN", async () => {
+  it("front_desk con patients.view recibe OK", async () => {
     const run = runFor(orgA);
     const result = await listPatientsForOrg(run, frontDeskA);
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.reason).toBe("FORBIDDEN");
+    expect(result.ok).toBe(true);
   });
 
   it("billing sin patients.view recibe FORBIDDEN", async () => {
@@ -409,12 +407,10 @@ describe("Ficha Viva — secciones por rol", () => {
     expect(financial).toBeUndefined();
   });
 
-  it("front_desk sin patients.view recibe FORBIDDEN en Ficha Viva", async () => {
+  it("front_desk con patients.view puede ver Ficha Viva", async () => {
     const run = makeTenantRunner(orgA);
     const result = await resolvePatientLiveRecord(run, frontDeskA, patientActiveId);
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.reason).toBe("FORBIDDEN");
+    expect(result.ok).toBe(true);
   });
 
   it("secciones opcionales ausentes cuando no hay permiso no son null sino undefined", async () => {

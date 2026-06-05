@@ -298,13 +298,11 @@ describe("resolvePatientLiveRecord — secciones FVO por permiso", () => {
     expect(result.value.medicalAlertFlag?.highSeverityCount).toBeGreaterThanOrEqual(1);
   });
 
-  // front_desk y billing no tienen patients.view → FORBIDDEN (consistente con phase-ui1)
-  it("front_desk sin patients.view → FORBIDDEN en resolvePatientLiveRecord", async () => {
+  // front_desk ahora tiene patients.view; billing sigue sin él → FORBIDDEN
+  it("front_desk con patients.view → OK en resolvePatientLiveRecord", async () => {
     const run = makeTenantRunner(orgA);
     const result = await resolvePatientLiveRecord(run, frontDeskA, patientAId);
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.reason).toBe("FORBIDDEN");
+    expect(result.ok).toBe(true);
   });
 
   it("billing sin patients.view → FORBIDDEN en resolvePatientLiveRecord", async () => {

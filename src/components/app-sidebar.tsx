@@ -24,7 +24,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Inicio",            href: "/dashboard",      icon: LayoutDashboard, permission: "dashboard.view" },
-  { label: "Pacientes",         href: "/pacientes",      icon: UserCircle,      permission: "contacts.view" },
+  { label: "Pacientes",         href: "/pacientes",      icon: UserCircle,      permission: "patients.view" },
   { label: "Agenda",            href: "/agenda",         icon: CalendarDays,    permission: "appointments.view" },
   { label: "Consultas",         href: "/consultas",      icon: Stethoscope,     permission: "clinical.view" },
   { label: "Plan de tratamiento", href: "/tratamiento",  icon: ClipboardList,   permission: "treatment.view" },

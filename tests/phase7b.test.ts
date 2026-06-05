@@ -356,8 +356,13 @@ describe("filtrado por permisos rol a rol", () => {
     expect(_meta.visibleSections).toContain("tasks");
   });
 
-  it("front_desk (sin patients.view) → FORBIDDEN y auditado", async () => {
+  it("front_desk con patients.view → OK", async () => {
     const result = await resolvePatientLiveRecord(runA, frontDeskA, patientAId);
+    expect(result.ok).toBe(true);
+  });
+
+  it("billing (sin patients.view) → FORBIDDEN y auditado", async () => {
+    const result = await resolvePatientLiveRecord(runA, billingA, patientAId);
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.reason).toBe("FORBIDDEN");
@@ -367,7 +372,7 @@ describe("filtrado por permisos rol a rol", () => {
         `SELECT "action","metadata" FROM "audit_logs"
          WHERE "organizationId"=$1 AND "action"='permission.denied'
            AND "actorUserId"=$2 ORDER BY "createdAt" DESC LIMIT 1`,
-        [orgA, frontDeskA.userId],
+        [orgA, billingA.userId],
       )
     ).rows;
     expect(audit.length).toBeGreaterThanOrEqual(1);
