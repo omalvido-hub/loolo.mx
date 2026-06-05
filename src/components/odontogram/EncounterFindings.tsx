@@ -193,7 +193,7 @@ export function EncounterFindings({
               Pieza {selectedFdi}
             </span>
             <span className="text-sm text-muted-foreground">
-              {getToothName(selectedFdi).full}
+              {getToothName(selectedFdi).short} {getToothName(selectedFdi).quadrant.toLowerCase()}
             </span>
             <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border border-muted-foreground/30 text-muted-foreground">
               {TOOTH_STATUSES.find((s) => s.value === (selectedTooth?.status ?? "PRESENT"))?.label
