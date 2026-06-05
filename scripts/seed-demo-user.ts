@@ -107,10 +107,17 @@ async function main() {
 
   // ── Rol fino LOOLO ────────────────────────────────────────────────────
   console.log("5. Rol LOOLO owner...");
+  // DELETE + INSERT garantiza idempotencia aunque los roleId cambien por reseed de tests
+  // (phase2a hace DELETE FROM "roles" CASCADE que borra membership_roles;
+  //  al re-insertar roles los UUIDs son distintos — ON CONFLICT DO NOTHING
+  //  no bastaría si quedara una fila stale con UUID viejo).
+  await adminPool.query(
+    `DELETE FROM membership_roles WHERE "memberId"=$1`,
+    [memberId],
+  );
   await adminPool.query(
     `INSERT INTO membership_roles("memberId","roleId")
-     SELECT $1, id FROM roles WHERE key='owner'
-     ON CONFLICT DO NOTHING`,
+     SELECT $1, id FROM roles WHERE key='owner'`,
     [memberId],
   );
 
