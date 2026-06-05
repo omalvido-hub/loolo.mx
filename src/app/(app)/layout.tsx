@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getSessionWithMemberships } from "@/lib/session";
+import { selectOrganization } from "@/server/auth/organization";
 import { AppSidebar } from "@/components/app-sidebar";
 import { UserMenu } from "@/components/user-menu";
 import { ROLES } from "@/server/domain/identity/rbac";
@@ -17,6 +18,16 @@ export default async function AppLayout({
   // Usa la primera membresía activa del usuario.
   const membership = memberships[0];
   if (!membership) redirect("/login");
+
+  // Si la sesión no tiene organización activa y el usuario tiene exactamente una membresía,
+  // auto-seleccionarla. Esto actualiza el registro de sesión en BD antes de que los
+  // componentes hijo (páginas) llamen a requireOrganization().
+  const activeOrgId =
+    (session.session as { activeOrganizationId?: string | null })
+      ?.activeOrganizationId ?? null;
+  if (!activeOrgId && memberships.length === 1) {
+    await selectOrganization(session.user.id, membership.organizationId);
+  }
 
   const roleKey = membership.membershipRoles[0]?.role?.key ?? "front_desk";
   const roleDef = ROLES.find((r) => r.key === roleKey);
