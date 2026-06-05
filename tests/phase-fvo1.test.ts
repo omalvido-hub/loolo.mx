@@ -140,8 +140,7 @@ async function seedFVOData(orgId: string, patientId: string, ownerId: string) {
   await adminPool.query(
     `INSERT INTO "patient_emergency_contact"
        ("organizationId","patientId","name","relationship","phone","createdBy")
-     VALUES ($1,$2,'Carlos López','Hermano','+5215599887766',$3)
-     ON CONFLICT ("patientId") DO NOTHING`,
+     VALUES ($1,$2,'Carlos López','Hermano','+5215599887766',$3)`,
     [orgId, patientId, ownerId],
   );
   await adminPool.query(
@@ -194,9 +193,9 @@ describe("integridad estructural FVO-1", () => {
     expect(files.some((f: string) => f.startsWith("0016"))).toBe(true);
   });
 
-  it("no existe migración 0017 ni superior (FVO-1 no creó más)", () => {
+  it("no existe migración 0018 ni superior (FVO-1 no creó más de 0016)", () => {
     const files = readdirSync(resolve("prisma/migrations"));
-    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 17)).toBe(false);
+    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 18)).toBe(false);
   });
 
   it("las 9 tablas FVO-1 existen en la BD", async () => {

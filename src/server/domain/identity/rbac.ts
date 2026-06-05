@@ -109,6 +109,13 @@ export const PERMISSIONS: { key: string; description: string }[] = [
   { key: "patient.demographics.view", description: "Ver datos demográficos del paciente: fecha nac., sexo, domicilio, tutor, contacto de emergencia, origen comercial, consentimiento" },
   { key: "patient.clinical_profile.view", description: "Ver perfil clínico del paciente: alergias, medicamentos, antecedentes, alertas médicas detalle (datos de salud, acceso estrecho)" },
   { key: "patient.tax.view", description: "Ver datos fiscales del paciente: RFC, régimen fiscal, uso CFDI" },
+  // FVO-1a: Escritura de datos del paciente
+  { key: "patient.demographics.edit", description: "Editar datos demográficos, domicilio y origen comercial del paciente" },
+  { key: "patient.clinical_profile.edit", description: "Editar perfil clínico y alertas médicas del paciente (datos de salud, acceso estrecho)" },
+  { key: "patient.tax.edit", description: "Editar datos fiscales del paciente (sensible)" },
+  { key: "patient.guardian.edit", description: "Crear/editar tutores o responsables legales del paciente" },
+  { key: "patient.emergency_contact.edit", description: "Crear/editar contactos de emergencia del paciente" },
+  { key: "patient.consent.manage", description: "Registrar y revocar consentimientos de tratamiento de datos (LFPDPPP)" },
 ];
 
 export interface RoleDef {
@@ -138,6 +145,8 @@ export const ROLES: RoleDef[] = [
       "contacts.view", "contacts.manage", "contacts.merge", "conversations.view", "conversations.manage", "prospects.view", "prospects.manage", "patients.view", "patients.manage", "opportunities.view", "opportunities.manage", "conversations.assign", "conversations.classify", "conversations.close", "tasks.view", "tasks.manage", "suggested_actions.execute", "appointments.view", "appointments.create", "appointments.reschedule", "appointments.cancel", "appointments.confirm", "appointments.mark_no_show", "appointments.complete", "resources.view", "resources.manage", "availability.manage", "schedule.block", "clinical.view", "clinical.create", "clinical.edit", "clinical.finalize", "clinical.cancel", "clinical_notes.add", "odontogram.view", "odontogram.record", "treatment.view", "treatment.create", "treatment.edit", "treatment.propose", "treatment.accept", "treatment.complete", "treatment.cancel", "quote.view", "quote.create", "quote.edit", "quote.propose", "quote.accept", "quote.cancel", "payment.view", "payment.record", "payment.reverse",
       "config.view", "config.manage", "catalog.manage", "pricing.manage", "import.run", "tax_profile.view", "tax_profile.manage",
       "patient.demographics.view", "patient.clinical_profile.view", "patient.tax.view",
+      "patient.demographics.edit", "patient.clinical_profile.edit", "patient.tax.edit",
+      "patient.guardian.edit", "patient.emergency_contact.edit", "patient.consent.manage",
     ],
   },
   {
@@ -157,6 +166,8 @@ export const ROLES: RoleDef[] = [
       "contacts.view", "contacts.manage", "contacts.merge", "conversations.view", "conversations.manage", "prospects.view", "prospects.manage", "patients.view", "patients.manage", "opportunities.view", "opportunities.manage", "conversations.assign", "conversations.classify", "conversations.close", "tasks.view", "tasks.manage", "suggested_actions.execute", "appointments.view", "appointments.create", "appointments.reschedule", "appointments.cancel", "appointments.confirm", "appointments.mark_no_show", "appointments.complete", "resources.view", "resources.manage", "availability.manage", "schedule.block", "clinical.view", "clinical.create", "clinical.edit", "clinical.finalize", "clinical.cancel", "clinical_notes.add", "odontogram.view", "odontogram.record", "treatment.view", "treatment.create", "treatment.edit", "treatment.propose", "treatment.accept", "treatment.complete", "treatment.cancel", "quote.view", "quote.create", "quote.edit", "quote.propose", "quote.accept", "quote.cancel", "payment.view", "payment.record", "payment.reverse",
       "config.view", "config.manage", "catalog.manage", "pricing.manage", "import.run", "tax_profile.view", "tax_profile.manage",
       "patient.demographics.view", "patient.clinical_profile.view", "patient.tax.view",
+      "patient.demographics.edit", "patient.clinical_profile.edit", "patient.tax.edit",
+      "patient.guardian.edit", "patient.emergency_contact.edit", "patient.consent.manage",
     ],
   },
   {
@@ -167,6 +178,7 @@ export const ROLES: RoleDef[] = [
     permissions: ["app_shell.view", "organization.view", "organization.members.view", "modules.view", "templates.view", "dashboard.view", "dashboard.configure_own", "user_preferences.view", "user_preferences.update", "contacts.view", "contacts.manage", "conversations.view", "conversations.manage", "prospects.view", "opportunities.view", "conversations.assign", "conversations.classify", "conversations.close", "tasks.view", "tasks.manage", "suggested_actions.execute", "appointments.view", "appointments.create", "appointments.reschedule", "appointments.cancel", "appointments.confirm", "appointments.mark_no_show", "appointments.complete", "resources.view", "schedule.block", "quote.view", "quote.create", "quote.edit", "quote.propose", "payment.view", "payment.record",
       "config.view",
       "patient.demographics.view",
+      "patient.demographics.edit", "patient.guardian.edit", "patient.emergency_contact.edit", "patient.consent.manage",
     ]
   },
   {
@@ -177,6 +189,7 @@ export const ROLES: RoleDef[] = [
     permissions: ["app_shell.view", "organization.view", "modules.view", "templates.view", "dashboard.view", "dashboard.configure_own", "user_preferences.view", "user_preferences.update", "contacts.view", "patients.view", "patients.manage", "conversations.view", "tasks.view", "tasks.manage", "suggested_actions.execute", "appointments.view", "appointments.confirm", "appointments.mark_no_show", "appointments.complete", "resources.view", "clinical.view", "clinical.create", "clinical.edit", "clinical.finalize", "clinical.cancel", "clinical_notes.add", "odontogram.view", "odontogram.record", "treatment.view", "treatment.create", "treatment.edit", "treatment.propose", "treatment.accept", "treatment.complete", "treatment.cancel", "quote.view",
       "config.view",
       "patient.demographics.view", "patient.clinical_profile.view",
+      "patient.clinical_profile.edit",
     ]
   },
   {
@@ -187,6 +200,7 @@ export const ROLES: RoleDef[] = [
     permissions: ["app_shell.view", "organization.view", "modules.view", "templates.view", "dashboard.view", "dashboard.configure_own", "user_preferences.view", "user_preferences.update", "contacts.view", "opportunities.view", "conversations.view", "appointments.view", "resources.view", "quote.view", "quote.create", "quote.edit", "quote.propose", "quote.accept", "quote.cancel", "payment.view", "payment.record", "payment.reverse",
       "config.view", "tax_profile.view",
       "patient.demographics.view", "patient.tax.view",
+      "patient.tax.edit",
     ]
   },
   {
@@ -197,6 +211,7 @@ export const ROLES: RoleDef[] = [
     permissions: ["app_shell.view", "organization.view", "audit.view", "events.view", "modules.view", "templates.view", "dashboard.view", "dashboard.configure_own", "user_preferences.view", "user_preferences.update", "contacts.view", "opportunities.view", "conversations.view", "appointments.view", "resources.view", "quote.view", "payment.view",
       "config.view", "tax_profile.view", "tax_profile.manage",
       "patient.tax.view",
+      "patient.tax.edit",
     ]
   },
   {

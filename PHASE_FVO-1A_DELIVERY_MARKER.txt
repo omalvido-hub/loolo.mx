@@ -1,0 +1,3 @@
+FVO-1A delivery marker
+Fase: FVO-1a (correcciones al modelo de datos FVO-1)
+Migración: 0017_fvo1a_schema_corrections.sql
