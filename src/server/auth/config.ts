@@ -9,9 +9,14 @@ import { organization } from "better-auth/plugins";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { adminDb } from "../db/admin.js";
 
+const extraOrigins = process.env.BETTER_AUTH_TRUSTED_ORIGINS
+  ? process.env.BETTER_AUTH_TRUSTED_ORIGINS.split(",").map((s) => s.trim())
+  : [];
+
 export const auth = betterAuth({
   database: prismaAdapter(adminDb, { provider: "postgresql" }),
   emailAndPassword: { enabled: true },
+  trustedOrigins: extraOrigins,
   plugins: [
     organization({
       // Un usuario puede pertenecer a varias organizaciones (regla 3).
