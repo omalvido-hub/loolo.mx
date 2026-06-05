@@ -1,0 +1,7 @@
+UI-7A DELIVERY MARKER
+Formularios administrativos FVO — primera interfaz editable de la Ficha Viva Odontológica.
+Archivos: src/components/patients/PatientFVOSectionsClient.tsx,
+          src/components/patients/PatientLiveRecordView.tsx (modificado),
+          src/app/(app)/pacientes/[id]/page.tsx (modificado)
+6 secciones editables: datos personales, domicilio, origen comercial, tutor (add), contacto emergencia (add), consentimiento.
+Sin migración. Sin paquetes nuevos. Dominio y server actions sin cambios.

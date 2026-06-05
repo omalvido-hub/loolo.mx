@@ -1,8 +1,15 @@
 import Link from "next/link";
 import type { PatientLiveRecord } from "@/server/domain/patient-record/schemas";
 import { EncounterList } from "@/components/clinical/EncounterList";
-import { PatientFVOSections } from "@/components/patients/PatientFVOSections";
+import { PatientFVOSectionsClient } from "@/components/patients/PatientFVOSectionsClient";
 import type { EncounterListItem } from "@/server/domain/clinical/encounter-views";
+
+interface FVOPermissions {
+  canEditDemographics: boolean;
+  canAddGuardian: boolean;
+  canAddEmergencyContact: boolean;
+  canManageConsent: boolean;
+}
 
 const FMT_DATE = new Intl.DateTimeFormat("es-MX", {
   timeZone: "America/Mexico_City",
@@ -85,9 +92,10 @@ interface Props {
   record: PatientLiveRecord;
   encounters?: EncounterListItem[];
   patientId?: string;
+  fvoPermissions?: FVOPermissions;
 }
 
-export function PatientLiveRecordView({ record, encounters, patientId }: Props) {
+export function PatientLiveRecordView({ record, encounters, patientId, fvoPermissions }: Props) {
   const { identity, operative, clinical, odontogramSummary, treatment, financial, tasks, timeline, recommendedActions, _meta } = record;
 
   return (
@@ -140,8 +148,15 @@ export function PatientLiveRecordView({ record, encounters, patientId }: Props) 
         {identity.archivedAt && <Row label="Archivado" value={fDate(identity.archivedAt)} />}
       </SectionCard>
 
-      {/* Secciones extendidas FVO-1 */}
-      <PatientFVOSections record={record} />
+      {/* Secciones extendidas FVO — con formularios administrativos (UI-7A) */}
+      <PatientFVOSectionsClient
+        record={record}
+        patientId={patientId ?? ""}
+        canEditDemographics={fvoPermissions?.canEditDemographics ?? false}
+        canAddGuardian={fvoPermissions?.canAddGuardian ?? false}
+        canAddEmergencyContact={fvoPermissions?.canAddEmergencyContact ?? false}
+        canManageConsent={fvoPermissions?.canManageConsent ?? false}
+      />
 
       {/* Operativa */}
       <SectionCard title="Operativa">

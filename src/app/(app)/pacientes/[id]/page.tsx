@@ -56,6 +56,14 @@ export default async function PacienteDetallePage({
     notFound();
   }
 
+  // Permisos FVO para formularios administrativos (UI-7A)
+  const fvoPermissions = {
+    canEditDemographics: can(ctx.permissions, "patient.demographics.edit"),
+    canAddGuardian: can(ctx.permissions, "patient.guardian.edit"),
+    canAddEmergencyContact: can(ctx.permissions, "patient.emergency_contact.edit"),
+    canManageConsent: can(ctx.permissions, "patient.consent.manage"),
+  };
+
   // Cargar historial de consultas cuando el actor tiene clinical.view
   // (resolver ya lo confirmó si la sección clínica está presente en el resultado).
   let encounters: EncounterListItem[] = [];
@@ -87,7 +95,7 @@ export default async function PacienteDetallePage({
 
   return (
     <div>
-      <PatientLiveRecordView record={result.value} encounters={encounters} patientId={id} />
+      <PatientLiveRecordView record={result.value} encounters={encounters} patientId={id} fvoPermissions={fvoPermissions} />
       <div className="px-8 pb-10 max-w-4xl mx-auto space-y-6">
         {odoResult.ok ? (
           <OdontogramMasterSection view={odoResult.value} patientId={id} />
