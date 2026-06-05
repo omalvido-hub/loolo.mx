@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { PatientLiveRecord } from "@/server/domain/patient-record/schemas";
 import { EncounterList } from "@/components/clinical/EncounterList";
 import { PatientFVOSectionsClient, PatientClinicalProfileSection } from "@/components/patients/PatientFVOSectionsClient";
+import { PatientStatusBar } from "@/components/patients/PatientStatusBar";
 import type { EncounterListItem } from "@/server/domain/clinical/encounter-views";
 
 interface FVOPermissions {
@@ -151,6 +152,13 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
           {identity.patientStatus}
         </span>
       </div>
+
+      {/* Estado actual del paciente */}
+      <PatientStatusBar
+        record={record}
+        encounters={encounters}
+        patientId={patientId ?? ""}
+      />
 
       {/* Acciones recomendadas */}
       {recommendedActions.length > 0 && (
