@@ -87,19 +87,26 @@ export function ToothDetailPanel({ fdi, status, findings, onClose }: Props) {
   return (
     <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
       {/* Cabecera */}
-      <div className="px-3 py-2.5 bg-muted/40 border-b flex items-start justify-between gap-2">
+      <div className="px-4 py-3 bg-blue-50/60 border-b border-blue-100 flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="flex items-baseline gap-1.5">
-            <span className="font-mono text-base font-bold text-foreground">{fdi}</span>
+          <p className="text-[10px] font-semibold text-blue-600 uppercase tracking-wider mb-1">
+            Pieza seleccionada
+          </p>
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <span className="text-xl font-bold text-foreground leading-tight">
+              Pieza {fdi}
+            </span>
             <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${statusColorClass}`}>
               {statusLabel}
             </span>
           </div>
-          <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{name.full}</p>
+          <p className="text-[12px] text-muted-foreground mt-1 leading-tight font-medium">
+            {name.full}
+          </p>
         </div>
         <button
           onClick={onClose}
-          className="text-muted-foreground hover:text-foreground transition-colors text-lg leading-none mt-0.5 flex-shrink-0"
+          className="text-muted-foreground hover:text-foreground transition-colors text-xl leading-none mt-0.5 flex-shrink-0"
           aria-label="Cerrar panel"
         >
           ×

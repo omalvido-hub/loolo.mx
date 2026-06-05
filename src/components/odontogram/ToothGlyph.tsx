@@ -58,7 +58,11 @@ export function ToothGlyph({ fdi, status, findings, onClick, isSelected, overflo
 
   return (
     <div
-      className={`flex flex-col items-center${onClick ? " cursor-pointer select-none" : ""}`}
+      className={[
+        "flex flex-col items-center rounded-lg px-0.5 pt-0.5",
+        onClick ? "cursor-pointer select-none" : "",
+        isSelected ? "bg-blue-50 ring-2 ring-blue-400 ring-offset-1" : "",
+      ].filter(Boolean).join(" ")}
       title={`${fdi}${findings.length > 0 ? ` · ${findings.length} hallazgo${findings.length > 1 ? 's' : ''}` : ''}`}
       onClick={onClick}
     >
@@ -152,7 +156,7 @@ export function ToothGlyph({ fdi, status, findings, onClick, isSelected, overflo
       </div>
 
       {/* Etiqueta FDI */}
-      <span className={`text-[9px] leading-none mt-0.5 font-mono${isSelected ? " text-blue-500 font-bold" : " text-muted-foreground"}`}>
+      <span className={`leading-none mt-0.5 font-mono${isSelected ? " text-[10px] text-blue-600 font-bold" : " text-[9px] text-muted-foreground"}`}>
         {fdi}
       </span>
     </div>

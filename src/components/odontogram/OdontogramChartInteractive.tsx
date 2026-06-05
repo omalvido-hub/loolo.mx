@@ -72,9 +72,9 @@ export function OdontogramChartInteractive({ teeth, patientId }: Props) {
   const selectedTooth = selectedFdi !== null ? byFdi[selectedFdi] : null;
 
   return (
-    <div className="flex gap-4 items-start">
-      {/* Diagrama dental */}
-      <div className="flex-1 min-w-0">
+    <div className="space-y-4">
+      {/* Diagrama dental — siempre completo, nunca comprimido */}
+      <div>
         <div className="space-y-0">
           {/* Arco superior */}
           <div className="flex justify-center">
@@ -107,17 +107,15 @@ export function OdontogramChartInteractive({ teeth, patientId }: Props) {
         )}
       </div>
 
-      {/* Panel de detalle — visible cuando hay selección */}
+      {/* Panel de detalle — debajo del odontograma, nunca encima */}
       {selectedFdi !== null && (
-        <div className="w-60 shrink-0">
-          <ToothDetailPanel
-            fdi={selectedFdi}
-            status={selectedTooth?.status ?? "PRESENT"}
-            findings={selectedTooth?.findings ?? []}
-            patientId={patientId}
-            onClose={() => setSelectedFdi(null)}
-          />
-        </div>
+        <ToothDetailPanel
+          fdi={selectedFdi}
+          status={selectedTooth?.status ?? "PRESENT"}
+          findings={selectedTooth?.findings ?? []}
+          patientId={patientId}
+          onClose={() => setSelectedFdi(null)}
+        />
       )}
     </div>
   );

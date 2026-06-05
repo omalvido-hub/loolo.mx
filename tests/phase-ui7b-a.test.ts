@@ -12,6 +12,7 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { existsSync } from "node:fs";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { getToothName } from "../src/components/odontogram/tooth-names";
 
 // ══════════════════════════════════════════════════════════════════════
 // 1. ToothGlyph — props interactivos
@@ -288,5 +289,137 @@ describe("UI-7B-A — integridad: sin escritura, dominio clínico intacto", () =
       expect(c, `${f} no debe exponer .note`).not.toContain(".note");
       expect(c, `${f} no debe exponer .recordedByUserId`).not.toContain(".recordedByUserId");
     }
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════
+// 7. UX1: ToothDetailPanel — encabezado con "Pieza N"
+// ══════════════════════════════════════════════════════════════════════
+
+describe("UI-7B-A-UX1 — ToothDetailPanel: encabezado claro con 'Pieza'", () => {
+  let content: string;
+
+  beforeAll(() => {
+    content = readFileSync(resolve("src/components/odontogram/ToothDetailPanel.tsx"), "utf-8");
+  });
+
+  it("muestra 'Pieza {fdi}' como título prominente del panel", () => {
+    expect(content).toContain("Pieza {fdi}");
+  });
+
+  it("muestra 'Pieza seleccionada' como etiqueta de contexto", () => {
+    expect(content).toContain("Pieza seleccionada");
+  });
+
+  it("usa tamaño de fuente grande para el número de pieza (text-xl o mayor)", () => {
+    expect(content).toMatch(/text-xl|text-2xl|text-3xl/);
+  });
+
+  it("muestra el nombre completo del diente en la cabecera", () => {
+    expect(content).toContain("name.full");
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════
+// 8. UX1: ToothGlyph — selección visualmente marcada con ring/halo
+// ══════════════════════════════════════════════════════════════════════
+
+describe("UI-7B-A-UX1 — ToothGlyph: selección con ring y fondo azul", () => {
+  let content: string;
+
+  beforeAll(() => {
+    content = readFileSync(resolve("src/components/odontogram/ToothGlyph.tsx"), "utf-8");
+  });
+
+  it("aplica ring-2 al wrapper cuando isSelected", () => {
+    expect(content).toContain("ring-2");
+  });
+
+  it("aplica ring-blue al wrapper cuando isSelected", () => {
+    expect(content).toMatch(/ring-blue/);
+  });
+
+  it("aplica fondo azul sutil (bg-blue-50) al wrapper cuando isSelected", () => {
+    expect(content).toContain("bg-blue-50");
+  });
+
+  it("usa array de clases con filter(Boolean).join para el className", () => {
+    expect(content).toContain("filter(Boolean)");
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════
+// 9. UX1: OdontogramChartInteractive — layout vertical, sin absolute
+// ══════════════════════════════════════════════════════════════════════
+
+describe("UI-7B-A-UX1 — OdontogramChartInteractive: panel debajo, sin posición absoluta", () => {
+  let content: string;
+
+  beforeAll(() => {
+    content = readFileSync(
+      resolve("src/components/odontogram/OdontogramChartInteractive.tsx"),
+      "utf-8",
+    );
+  });
+
+  it("usa layout vertical space-y en el contenedor raíz", () => {
+    expect(content).toContain("space-y-");
+  });
+
+  it("el panel ToothDetailPanel no está envuelto en div con clase absolute o fixed", () => {
+    // Verifica que no haya `absolute` ni `fixed` en las líneas cercanas al panel
+    const lines = content.split("\n");
+    const panelLine = lines.findIndex((l) => l.includes("ToothDetailPanel"));
+    expect(panelLine).toBeGreaterThan(-1);
+    // Las 3 líneas anteriores al panel no deben contener absolute ni fixed
+    const surrounding = lines.slice(Math.max(0, panelLine - 3), panelLine).join(" ");
+    expect(surrounding).not.toMatch(/\babsolute\b|\bfixed\b/);
+  });
+
+  it("no usa flex-row con gap para colocar el panel al lado (no comprime el chart)", () => {
+    // No debe haber un div raíz con flex gap-X items-start (layout lateral que comprime)
+    expect(content).not.toMatch(/className="flex gap-\d+ items-start"/);
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════
+// 10. UX1: tooth-names — nombres FDI correctos (verificación de runtime)
+// ══════════════════════════════════════════════════════════════════════
+
+describe("UI-7B-A-UX1 — tooth-names: nombres correctos por FDI", () => {
+  it("FDI 16 = Primer molar, Superior derecho", () => {
+    const t = getToothName(16);
+    expect(t.short).toBe("Primer molar");
+    expect(t.quadrant).toBe("Superior derecho");
+  });
+
+  it("FDI 21 = Incisivo central, Superior izquierdo", () => {
+    const t = getToothName(21);
+    expect(t.short).toBe("Incisivo central");
+    expect(t.quadrant).toBe("Superior izquierdo");
+  });
+
+  it("FDI 36 = Primer molar, Inferior izquierdo", () => {
+    const t = getToothName(36);
+    expect(t.short).toBe("Primer molar");
+    expect(t.quadrant).toBe("Inferior izquierdo");
+  });
+
+  it("FDI 11 = Incisivo central, Superior derecho", () => {
+    const t = getToothName(11);
+    expect(t.short).toBe("Incisivo central");
+    expect(t.quadrant).toBe("Superior derecho");
+  });
+
+  it("FDI 48 = Tercer molar, Inferior derecho", () => {
+    const t = getToothName(48);
+    expect(t.short).toBe("Tercer molar");
+    expect(t.quadrant).toBe("Inferior derecho");
+  });
+
+  it("FDI 16 full contiene 'Primer molar' y 'Superior derecho'", () => {
+    const t = getToothName(16);
+    expect(t.full).toContain("Primer molar");
+    expect(t.full).toContain("Superior derecho");
   });
 });
