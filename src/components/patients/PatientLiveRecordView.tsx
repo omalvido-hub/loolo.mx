@@ -160,17 +160,19 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         patientId={patientId ?? ""}
       />
 
-      {/* Acciones recomendadas */}
-      {recommendedActions.length > 0 && (
+      {/* Acciones recomendadas — se omite "schedule_appointment" porque la barra ya lo muestra */}
+      {recommendedActions.filter(a => a.code !== "schedule_appointment").length > 0 && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900/40 dark:bg-amber-950/20 px-4 py-3 space-y-1">
           <p className="text-xs font-medium text-amber-800 dark:text-amber-300 uppercase tracking-wide">
             Sugerencias
           </p>
-          {recommendedActions.map((a) => (
-            <p key={a.code} className="text-sm text-amber-700 dark:text-amber-400">
-              {a.reason}
-            </p>
-          ))}
+          {recommendedActions
+            .filter(a => a.code !== "schedule_appointment")
+            .map((a) => (
+              <p key={a.code} className="text-sm text-amber-700 dark:text-amber-400">
+                {a.reason}
+              </p>
+            ))}
         </div>
       )}
 

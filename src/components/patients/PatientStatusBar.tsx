@@ -57,13 +57,25 @@ function StatusCard({
           ? "bg-green-50 dark:bg-green-950/20"
           : "bg-muted/20";
 
+  const dotClass =
+    variant === "active"
+      ? "bg-blue-400"
+      : variant === "warn"
+        ? "bg-amber-400"
+        : variant === "ok"
+          ? "bg-green-400"
+          : "bg-muted-foreground/30";
+
   return (
     <div
-      className={`rounded-lg border ${borderClass} ${bgClass} px-3 py-3 flex flex-col gap-1.5 min-w-0`}
+      className={`rounded-xl border ${borderClass} ${bgClass} px-4 py-3.5 flex flex-col gap-1.5 min-w-0`}
     >
-      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide leading-none">
-        {label}
-      </span>
+      <div className="flex items-center gap-1.5">
+        <span className={`size-1.5 rounded-full shrink-0 ${dotClass}`} />
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider leading-none">
+          {label}
+        </span>
+      </div>
       <div className="flex flex-col gap-1">{children}</div>
     </div>
   );
@@ -105,6 +117,15 @@ export function PatientStatusBar({ record, encounters, patientId }: Props) {
     balance === null ? "default" : balance > 0 ? "warn" : "ok";
 
   return (
+    <section className="space-y-3">
+      <div>
+        <h2 className="text-sm font-semibold text-foreground tracking-tight">
+          Estado actual del paciente
+        </h2>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Resumen operativo para saber qué sigue.
+        </p>
+      </div>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
       {/* Próxima cita */}
       <StatusCard label="Próxima cita" variant={apptVariant}>
@@ -181,7 +202,6 @@ export function PatientStatusBar({ record, encounters, patientId }: Props) {
             {fCents(balance)} pendiente
           </span>
         ) : balance < 0 ? (
-          // Saldo negativo = saldo a favor del paciente (reversiones)
           <span className="text-sm font-medium text-green-700 dark:text-green-400">
             Saldo a favor
           </span>
@@ -192,5 +212,6 @@ export function PatientStatusBar({ record, encounters, patientId }: Props) {
         )}
       </StatusCard>
     </div>
+    </section>
   );
 }
