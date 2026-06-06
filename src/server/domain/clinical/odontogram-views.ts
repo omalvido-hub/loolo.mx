@@ -37,6 +37,7 @@ const STATUS_PRIORITY: Record<string, number> = {
 // ─── DTOs públicos ─────────────────────────────────────────────────────────
 
 export interface FindingPanelItem {
+  findingId: string;
   toothFdi: number;
   surface: string | null;
   findingType: string;
@@ -99,6 +100,7 @@ function buildTeethGrid(activeFindings: RawFinding[]): ToothView[] {
     const raw: RawFinding[] = (byTooth[fdi] ?? []) as any;
 
     const findings: FindingPanelItem[] = raw.map((f) => ({
+      findingId: (f as any).id,
       toothFdi: f.toothFdi,
       surface: f.surface ?? null,
       findingType: f.findingType,
@@ -183,6 +185,7 @@ export async function getOdontogramMasterView(
 
     const findingsPanel: FindingPanelItem[] = active
       .map((f: any) => ({
+        findingId: f.id,
         toothFdi: f.toothFdi,
         surface: f.surface ?? null,
         findingType: f.findingType,
@@ -274,6 +277,7 @@ export async function getOdontogramEncounterView(
 
     const findingsPanel: FindingPanelItem[] = active
       .map((f: any) => ({
+        findingId: f.id,
         toothFdi: f.toothFdi,
         surface: f.surface ?? null,
         findingType: f.findingType,

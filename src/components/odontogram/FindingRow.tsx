@@ -26,6 +26,15 @@ const TOOTH_STATUS_LABEL: Record<string, string> = {
   ROOT_ONLY: "Solo raíz",
 };
 
+const LIFECYCLE_CHIP: Record<string, { label: string; cls: string }> = {
+  ACTIVE:      { label: "Activo",      cls: "bg-blue-50 text-blue-700 border-blue-200" },
+  OBSERVATION: { label: "Observación", cls: "bg-yellow-50 text-yellow-700 border-yellow-200" },
+  TREATED:     { label: "Tratado",     cls: "bg-green-50 text-green-700 border-green-200" },
+  RESOLVED:    { label: "Resuelto",    cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  CONTROLLED:  { label: "Controlado",  cls: "bg-teal-50 text-teal-700 border-teal-200" },
+  VOIDED:      { label: "Anulado",     cls: "bg-gray-100 text-gray-500 border-gray-200" },
+};
+
 const SURFACE_LABEL: Record<string, string> = {
   MESIAL:     "Mesial",
   DISTAL:     "Distal",
@@ -64,6 +73,8 @@ interface Props {
 
 export function FindingRow({ finding, patientId }: Props) {
   const color = FINDING_TYPE_COLOR[finding.findingType] ?? "#9ca3af";
+  const chip = LIFECYCLE_CHIP[finding.lifecycleStatus] ?? LIFECYCLE_CHIP.ACTIVE;
+  const isNonActive = finding.lifecycleStatus && finding.lifecycleStatus !== "ACTIVE";
 
   return (
     <div className="flex items-start gap-3 py-2 text-sm border-b last:border-0">
@@ -83,6 +94,11 @@ export function FindingRow({ finding, patientId }: Props) {
           {finding.surface && (
             <span className="text-xs text-muted-foreground">
               · {SURFACE_LABEL[finding.surface] ?? finding.surface}
+            </span>
+          )}
+          {isNonActive && (
+            <span className={`text-[9px] font-medium px-1 py-px rounded border ${chip.cls}`}>
+              {chip.label}
             </span>
           )}
         </div>

@@ -1,13 +1,20 @@
 "use client";
 
 // Panel de detalle de una pieza dental seleccionada.
-// Muestra FDI, nombre, estado, hallazgos y link a consulta activa si existe.
-// No guarda directamente — redirige a la consulta activa para registrar hallazgos.
+// Muestra FDI, nombre, estado, hallazgos y acciones de ciclo de vida (LIFECYCLE-1B).
+// Acciones disponibles según permisos: tratar, resolver, controlar, observación, anular.
+// No expone lifecycleReason ni IDs internos sensibles en vistas públicas.
 
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import type { FindingPanelItem } from "@/server/domain/clinical/odontogram-views";
 import { getToothName } from "./tooth-names";
 import { ToothDiagram } from "./ToothDiagram";
+import {
+  voidFindingAction,
+  treatFindingAction,
+  resolveFindingAction,
+} from "@/server/actions/odontogram";
 
 const FINDING_TYPE_LABEL: Record<string, string> = {
   CARIES:      "Caries",
@@ -64,6 +71,15 @@ const FINDING_TYPE_COLOR: Record<string, string> = {
   OTHER:       "#9ca3af",
 };
 
+const LIFECYCLE_CHIP: Record<string, { label: string; cls: string }> = {
+  ACTIVE:      { label: "Activo",      cls: "bg-blue-50 text-blue-700 border-blue-200" },
+  OBSERVATION: { label: "Observación", cls: "bg-yellow-50 text-yellow-700 border-yellow-200" },
+  TREATED:     { label: "Tratado",     cls: "bg-green-50 text-green-700 border-green-200" },
+  RESOLVED:    { label: "Resuelto",    cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  CONTROLLED:  { label: "Controlado",  cls: "bg-teal-50 text-teal-700 border-teal-200" },
+  VOIDED:      { label: "Anulado",     cls: "bg-gray-100 text-gray-500 border-gray-200" },
+};
+
 const FMT_DATE = new Intl.DateTimeFormat("es-MX", {
   timeZone: "America/Mexico_City",
   dateStyle: "short",
@@ -73,6 +89,25 @@ function fDate(iso: string): string {
   try { return FMT_DATE.format(new Date(iso)); } catch { return "—"; }
 }
 
+// ─── Tipos de acción de ciclo de vida ────────────────────────────────────────
+
+type ActionType = "void" | "treat" | "resolve" | "controlled" | "observation";
+
+interface ActiveAction {
+  findingId: string;
+  action: ActionType;
+}
+
+const ACTION_LABEL: Record<ActionType, string> = {
+  void:        "Anular hallazgo",
+  treat:       "Marcar como tratado",
+  resolve:     "Marcar como resuelto",
+  controlled:  "Marcar como controlado",
+  observation: "Marcar en observación",
+};
+
+// ─── Props ────────────────────────────────────────────────────────────────────
+
 interface Props {
   fdi: number;
   status: string;
@@ -80,12 +115,87 @@ interface Props {
   patientId?: string;
   activeEncounterId?: string | null;
   onClose: () => void;
+  canVoid?: boolean;
+  canActOnFindings?: boolean;
 }
 
-export function ToothDetailPanel({ fdi, status, findings, patientId, activeEncounterId, onClose }: Props) {
+// ─── Componente ──────────────────────────────────────────────────────────────
+
+export function ToothDetailPanel({
+  fdi,
+  status,
+  findings,
+  patientId,
+  activeEncounterId,
+  onClose,
+  canVoid,
+  canActOnFindings,
+}: Props) {
   const name = getToothName(fdi);
   const statusLabel = TOOTH_STATUS_LABEL[status] ?? status;
   const statusColorClass = TOOTH_STATUS_COLOR[status] ?? "bg-gray-100 text-gray-600 border-gray-200";
+
+  const [activeAction, setActiveAction] = useState<ActiveAction | null>(null);
+  const [reason, setReason] = useState("");
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function openAction(findingId: string, action: ActionType) {
+    setActiveAction({ findingId, action });
+    setReason("");
+    setActionError(null);
+  }
+
+  function cancelAction() {
+    setActiveAction(null);
+    setReason("");
+    setActionError(null);
+  }
+
+  function confirmAction() {
+    if (!activeAction || !patientId) return;
+
+    if (activeAction.action === "void" && !reason.trim()) {
+      setActionError("El motivo es obligatorio para anular un hallazgo.");
+      return;
+    }
+
+    startTransition(async () => {
+      const { findingId, action } = activeAction;
+      let result;
+
+      if (action === "void") {
+        result = await voidFindingAction(patientId, {
+          findingId,
+          lifecycleReason: reason.trim(),
+        });
+      } else if (action === "treat") {
+        result = await treatFindingAction(patientId, {
+          findingId,
+          ...(reason.trim() ? { lifecycleReason: reason.trim() } : {}),
+        });
+      } else {
+        const targetStatus =
+          action === "resolve"     ? "RESOLVED" :
+          action === "controlled"  ? "CONTROLLED" :
+                                     "OBSERVATION";
+        result = await resolveFindingAction(patientId, {
+          findingId,
+          targetStatus,
+          ...(reason.trim() ? { lifecycleReason: reason.trim() } : {}),
+        });
+      }
+
+      if (result.ok) {
+        cancelAction();
+        onClose();
+      } else {
+        setActionError(result.error);
+      }
+    });
+  }
+
+  const hasActions = (canVoid || canActOnFindings) && !!patientId;
 
   return (
     <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
@@ -138,25 +248,147 @@ export function ToothDetailPanel({ fdi, status, findings, patientId, activeEncou
           <div className="space-y-1.5">
             {findings.map((f, i) => {
               const color = FINDING_TYPE_COLOR[f.findingType] ?? "#9ca3af";
+              const chip = LIFECYCLE_CHIP[f.lifecycleStatus] ?? LIFECYCLE_CHIP.ACTIVE;
+              const isTarget = activeAction?.findingId === f.findingId;
+              const canActOnThis = hasActions && f.lifecycleStatus !== "VOIDED";
+
               return (
-                <div key={i} className="flex items-start gap-2 text-xs">
-                  <div
-                    className="mt-0.5 w-2 h-2 rounded-sm flex-shrink-0"
-                    style={{ backgroundColor: color }}
-                  />
-                  <div className="min-w-0">
-                    <span className="font-medium">
-                      {FINDING_TYPE_LABEL[f.findingType] ?? f.findingType}
-                    </span>
-                    {f.surface && (
-                      <span className="text-muted-foreground">
-                        {" · "}{SURFACE_LABEL[f.surface] ?? f.surface}
+                <div
+                  key={i}
+                  className={`rounded border text-xs transition-colors ${
+                    isTarget ? "border-blue-200 bg-blue-50/40" : "border-transparent"
+                  }`}
+                >
+                  {/* Fila del hallazgo */}
+                  <div className="flex items-start gap-2 px-1.5 py-1.5">
+                    <div
+                      className="mt-0.5 w-2 h-2 rounded-sm flex-shrink-0"
+                      style={{ backgroundColor: color }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <span className="font-medium">
+                        {FINDING_TYPE_LABEL[f.findingType] ?? f.findingType}
                       </span>
-                    )}
-                    <div className="text-[10px] text-muted-foreground mt-0.5">
-                      {fDate(f.createdAt)}
+                      {f.surface && (
+                        <span className="text-muted-foreground">
+                          {" · "}{SURFACE_LABEL[f.surface] ?? f.surface}
+                        </span>
+                      )}
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                        <span className={`text-[9px] font-medium px-1 py-px rounded border ${chip.cls}`}>
+                          {chip.label}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">{fDate(f.createdAt)}</span>
+                      </div>
                     </div>
+
+                    {/* Botones de acción */}
+                    {canActOnThis && !isTarget && (
+                      <div className="flex flex-col gap-1 flex-shrink-0 items-end">
+                        <div className="flex gap-1 flex-wrap justify-end">
+                          {canActOnFindings && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => openAction(f.findingId, "treat")}
+                                className="text-[9px] px-1.5 py-0.5 rounded border border-green-200 text-green-700 hover:bg-green-50 transition-colors whitespace-nowrap"
+                              >
+                                Tratar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openAction(f.findingId, "resolve")}
+                                className="text-[9px] px-1.5 py-0.5 rounded border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-colors whitespace-nowrap"
+                              >
+                                Resuelto
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openAction(f.findingId, "controlled")}
+                                className="text-[9px] px-1.5 py-0.5 rounded border border-teal-200 text-teal-700 hover:bg-teal-50 transition-colors whitespace-nowrap"
+                              >
+                                Controlado
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openAction(f.findingId, "observation")}
+                                className="text-[9px] px-1.5 py-0.5 rounded border border-yellow-200 text-yellow-700 hover:bg-yellow-50 transition-colors whitespace-nowrap"
+                              >
+                                Obs.
+                              </button>
+                            </>
+                          )}
+                          {canVoid && (
+                            <button
+                              type="button"
+                              onClick={() => openAction(f.findingId, "void")}
+                              className="text-[9px] px-1.5 py-0.5 rounded border border-red-200 text-red-600 hover:bg-red-50 transition-colors whitespace-nowrap"
+                            >
+                              Anular
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Botón cerrar form inline */}
+                    {isTarget && (
+                      <button
+                        type="button"
+                        onClick={cancelAction}
+                        disabled={isPending}
+                        className="text-muted-foreground hover:text-foreground text-xs flex-shrink-0 leading-none disabled:opacity-40"
+                        aria-label="Cancelar acción"
+                      >
+                        ✕
+                      </button>
+                    )}
                   </div>
+
+                  {/* Formulario de confirmación inline */}
+                  {isTarget && activeAction && (
+                    <div className="px-2 pb-2.5 space-y-1.5">
+                      <p className="text-[10px] font-medium text-foreground">
+                        {ACTION_LABEL[activeAction.action]}
+                        {activeAction.action === "void"
+                          ? " — motivo obligatorio"
+                          : " — motivo opcional"}
+                      </p>
+                      <textarea
+                        className="w-full rounded border border-input bg-background text-xs px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+                        rows={2}
+                        placeholder={
+                          activeAction.action === "void"
+                            ? "Escribe el motivo de anulación…"
+                            : "Motivo (opcional)…"
+                        }
+                        value={reason}
+                        onChange={(e) => { setReason(e.target.value); setActionError(null); }}
+                        disabled={isPending}
+                      />
+                      {actionError && (
+                        <p className="text-[10px] text-destructive">{actionError}</p>
+                      )}
+                      <div className="flex gap-1.5">
+                        <button
+                          type="button"
+                          onClick={confirmAction}
+                          disabled={isPending}
+                          className="text-[10px] px-2.5 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/80 transition-colors disabled:opacity-50 font-medium"
+                        >
+                          {isPending ? "Guardando…" : "Confirmar"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={cancelAction}
+                          disabled={isPending}
+                          className="text-[10px] px-2.5 py-1 rounded border hover:bg-muted transition-colors disabled:opacity-50"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

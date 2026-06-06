@@ -74,6 +74,9 @@ export default async function PacienteDetallePage({
     }
   }
 
+  const canVoid = can(ctx.permissions, "odontogram.void");
+  const canActOnFindings = can(ctx.permissions, "odontogram.record");
+
   // Odontograma vigente — UI-4 solo lectura.
   const odoResult = await getOdontogramMasterView(run, ctx, id);
 
@@ -102,6 +105,8 @@ export default async function PacienteDetallePage({
       view={odoResult.value}
       patientId={id}
       activeEncounterId={activeEncounterId}
+      canVoid={canVoid}
+      canActOnFindings={canActOnFindings}
     />
   ) : odoResult.reason === "FORBIDDEN" ? (
     <OdontogramNoPermission />

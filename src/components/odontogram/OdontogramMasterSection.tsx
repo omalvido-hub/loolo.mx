@@ -23,9 +23,11 @@ interface Props {
   view: OdontogramMasterView;
   patientId: string;
   activeEncounterId?: string | null;
+  canVoid?: boolean;
+  canActOnFindings?: boolean;
 }
 
-export function OdontogramMasterSection({ view, patientId, activeEncounterId }: Props) {
+export function OdontogramMasterSection({ view, patientId, activeEncounterId, canVoid, canActOnFindings }: Props) {
   const { teeth, findingsPanel, summary } = view;
 
   return (
@@ -49,6 +51,8 @@ export function OdontogramMasterSection({ view, patientId, activeEncounterId }: 
               teeth={teeth}
               patientId={patientId}
               activeEncounterId={activeEncounterId}
+              canVoid={canVoid}
+              canActOnFindings={canActOnFindings}
             />
           </div>
         </div>

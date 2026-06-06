@@ -31,6 +31,8 @@ interface Props {
   onToothClick?: (fdi: number | null) => void;
   /** ID de la consulta activa (DRAFT/IN_PROGRESS) del paciente, si existe. Solo modo autónomo. */
   activeEncounterId?: string | null;
+  canVoid?: boolean;
+  canActOnFindings?: boolean;
 }
 
 function Arch({
@@ -81,6 +83,8 @@ export function OdontogramChartInteractive({
   selectedFdi: externalFdi,
   onToothClick,
   activeEncounterId,
+  canVoid,
+  canActOnFindings,
 }: Props) {
   const isControlled = onToothClick !== undefined;
   const [internalFdi, setInternalFdi] = useState<number | null>(null);
@@ -181,6 +185,8 @@ export function OdontogramChartInteractive({
           patientId={patientId}
           activeEncounterId={activeEncounterId}
           onClose={() => setInternalFdi(null)}
+          canVoid={canVoid}
+          canActOnFindings={canActOnFindings}
         />
       )}
     </div>
