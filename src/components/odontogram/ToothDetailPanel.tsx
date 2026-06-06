@@ -106,6 +106,15 @@ const ACTION_LABEL: Record<ActionType, string> = {
   observation: "Marcar en observación",
 };
 
+// Mapeo de estado actual → acción que lo representa.
+// Si el hallazgo ya está en ese estado, su botón equivalente se oculta.
+const LIFECYCLE_STATUS_TO_ACTION: Partial<Record<string, ActionType>> = {
+  TREATED:     "treat",
+  RESOLVED:    "resolve",
+  CONTROLLED:  "controlled",
+  OBSERVATION: "observation",
+};
+
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -251,6 +260,8 @@ export function ToothDetailPanel({
               const chip = LIFECYCLE_CHIP[f.lifecycleStatus] ?? LIFECYCLE_CHIP.ACTIVE;
               const isTarget = activeAction?.findingId === f.findingId;
               const canActOnThis = hasActions && f.lifecycleStatus !== "VOIDED";
+              // Acción que ya representa el estado actual → su botón se oculta.
+              const currentStatusAction = LIFECYCLE_STATUS_TO_ACTION[f.lifecycleStatus] ?? null;
 
               return (
                 <div
@@ -288,34 +299,42 @@ export function ToothDetailPanel({
                         <div className="flex gap-1 flex-wrap justify-end">
                           {canActOnFindings && (
                             <>
-                              <button
-                                type="button"
-                                onClick={() => openAction(f.findingId, "treat")}
-                                className="text-[9px] px-1.5 py-0.5 rounded border border-green-200 text-green-700 hover:bg-green-50 transition-colors whitespace-nowrap"
-                              >
-                                Tratar
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => openAction(f.findingId, "resolve")}
-                                className="text-[9px] px-1.5 py-0.5 rounded border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-colors whitespace-nowrap"
-                              >
-                                Resuelto
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => openAction(f.findingId, "controlled")}
-                                className="text-[9px] px-1.5 py-0.5 rounded border border-teal-200 text-teal-700 hover:bg-teal-50 transition-colors whitespace-nowrap"
-                              >
-                                Controlado
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => openAction(f.findingId, "observation")}
-                                className="text-[9px] px-1.5 py-0.5 rounded border border-yellow-200 text-yellow-700 hover:bg-yellow-50 transition-colors whitespace-nowrap"
-                              >
-                                Obs.
-                              </button>
+                              {currentStatusAction !== "treat" && (
+                                <button
+                                  type="button"
+                                  onClick={() => openAction(f.findingId, "treat")}
+                                  className="text-[9px] px-1.5 py-0.5 rounded border border-green-200 text-green-700 hover:bg-green-50 transition-colors whitespace-nowrap"
+                                >
+                                  Tratar
+                                </button>
+                              )}
+                              {currentStatusAction !== "resolve" && (
+                                <button
+                                  type="button"
+                                  onClick={() => openAction(f.findingId, "resolve")}
+                                  className="text-[9px] px-1.5 py-0.5 rounded border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-colors whitespace-nowrap"
+                                >
+                                  Resuelto
+                                </button>
+                              )}
+                              {currentStatusAction !== "controlled" && (
+                                <button
+                                  type="button"
+                                  onClick={() => openAction(f.findingId, "controlled")}
+                                  className="text-[9px] px-1.5 py-0.5 rounded border border-teal-200 text-teal-700 hover:bg-teal-50 transition-colors whitespace-nowrap"
+                                >
+                                  Controlado
+                                </button>
+                              )}
+                              {currentStatusAction !== "observation" && (
+                                <button
+                                  type="button"
+                                  onClick={() => openAction(f.findingId, "observation")}
+                                  className="text-[9px] px-1.5 py-0.5 rounded border border-yellow-200 text-yellow-700 hover:bg-yellow-50 transition-colors whitespace-nowrap"
+                                >
+                                  Obs.
+                                </button>
+                              )}
                             </>
                           )}
                           {canVoid && (
