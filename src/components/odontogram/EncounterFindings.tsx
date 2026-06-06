@@ -98,6 +98,15 @@ const LIFECYCLE_CHIP: Record<string, { label: string; cls: string }> = {
   VOIDED:      { label: "Anulado",     cls: "bg-gray-100 text-gray-500 border-gray-200" },
 };
 
+// Mapeo de estado actual → acción que lo representa.
+// Si el hallazgo ya está en ese estado, su botón equivalente se oculta.
+const LIFECYCLE_STATUS_TO_ACTION: Partial<Record<string, LifecycleAction>> = {
+  TREATED:     "treat",
+  RESOLVED:    "resolve",
+  CONTROLLED:  "controlled",
+  OBSERVATION: "observation",
+};
+
 // ─── Props ───────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -325,6 +334,8 @@ export function EncounterFindings({
                     const chip = LIFECYCLE_CHIP[f.lifecycleStatus] ?? LIFECYCLE_CHIP.ACTIVE;
                     const isTarget = activeLifecycle?.findingId === f.findingId;
                     const canActOnThis = hasLifecycleActions && f.lifecycleStatus !== "VOIDED";
+                    // Acción que ya representa el estado actual → su botón se oculta para evitar duplicidad.
+                    const currentStatusAction = LIFECYCLE_STATUS_TO_ACTION[f.lifecycleStatus] ?? null;
                     return (
                       <div key={i} className={`rounded border text-xs transition-colors ${isTarget ? "border-blue-200 bg-blue-50/40" : "border-transparent"}`}>
                         <div className="flex items-start gap-2 px-1 py-1">
@@ -347,22 +358,30 @@ export function EncounterFindings({
                             <div className="flex gap-1 flex-shrink-0 flex-wrap justify-end">
                               {canActOnFindings && (
                                 <>
-                                  <button type="button" onClick={() => openLifecycle(f.findingId, "treat")}
-                                    className="text-[9px] px-1.5 py-0.5 rounded border border-green-200 text-green-700 hover:bg-green-50 transition-colors">
-                                    Tratar
-                                  </button>
-                                  <button type="button" onClick={() => openLifecycle(f.findingId, "resolve")}
-                                    className="text-[9px] px-1.5 py-0.5 rounded border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-colors">
-                                    Resuelto
-                                  </button>
-                                  <button type="button" onClick={() => openLifecycle(f.findingId, "controlled")}
-                                    className="text-[9px] px-1.5 py-0.5 rounded border border-teal-200 text-teal-700 hover:bg-teal-50 transition-colors">
-                                    Controlado
-                                  </button>
-                                  <button type="button" onClick={() => openLifecycle(f.findingId, "observation")}
-                                    className="text-[9px] px-1.5 py-0.5 rounded border border-yellow-200 text-yellow-700 hover:bg-yellow-50 transition-colors">
-                                    Obs.
-                                  </button>
+                                  {currentStatusAction !== "treat" && (
+                                    <button type="button" onClick={() => openLifecycle(f.findingId, "treat")}
+                                      className="text-[9px] px-1.5 py-0.5 rounded border border-green-200 text-green-700 hover:bg-green-50 transition-colors">
+                                      Tratar
+                                    </button>
+                                  )}
+                                  {currentStatusAction !== "resolve" && (
+                                    <button type="button" onClick={() => openLifecycle(f.findingId, "resolve")}
+                                      className="text-[9px] px-1.5 py-0.5 rounded border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-colors">
+                                      Resuelto
+                                    </button>
+                                  )}
+                                  {currentStatusAction !== "controlled" && (
+                                    <button type="button" onClick={() => openLifecycle(f.findingId, "controlled")}
+                                      className="text-[9px] px-1.5 py-0.5 rounded border border-teal-200 text-teal-700 hover:bg-teal-50 transition-colors">
+                                      Controlado
+                                    </button>
+                                  )}
+                                  {currentStatusAction !== "observation" && (
+                                    <button type="button" onClick={() => openLifecycle(f.findingId, "observation")}
+                                      className="text-[9px] px-1.5 py-0.5 rounded border border-yellow-200 text-yellow-700 hover:bg-yellow-50 transition-colors">
+                                      Obs.
+                                    </button>
+                                  )}
                                 </>
                               )}
                               {canVoid && (
