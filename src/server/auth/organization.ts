@@ -21,7 +21,7 @@ export async function listMemberships(userId: string) {
 /** Decide la organización por defecto al iniciar sesión (auto / elegir / ninguna). */
 export async function resolveDefaultOrganization(userId: string) {
   const memberships = await listMemberships(userId);
-  return decideDefaultOrganization(memberships.map((m) => ({ organizationId: m.organizationId })));
+  return decideDefaultOrganization(memberships.map((m: { organizationId: string }) => ({ organizationId: m.organizationId })));
 }
 
 /**
@@ -31,7 +31,7 @@ export async function resolveDefaultOrganization(userId: string) {
 export async function selectOrganization(userId: string, targetOrgId: string): Promise<void> {
   const memberships = await listMemberships(userId);
   const guard = assertCanSelectOrganization(
-    memberships.map((m) => ({ organizationId: m.organizationId })),
+    memberships.map((m: { organizationId: string }) => ({ organizationId: m.organizationId })),
     targetOrgId,
   );
   if (!guard.ok) throw new ForbiddenError(guard.detail ?? "Organización no permitida");
