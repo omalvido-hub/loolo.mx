@@ -4,7 +4,9 @@
 // Acepta props opcionales de interacción: onClick, isSelected, overflowCount.
 
 import type { FindingPanelItem } from "@/server/domain/clinical/odontogram-views";
-import { ToothSurfaceZone } from "./ToothSurfaceZone";
+import { ToothSurfaceZone, FINDING_TYPE_COLOR } from "./ToothSurfaceZone";
+import { pickGlobalBorderFinding } from "./tooth-utils";
+export { pickGlobalBorderFinding } from "./tooth-utils";
 
 // Dimensiones del diente: 36×36px (+ 12px para etiqueta FDI = 48px total).
 const W = 36;
@@ -39,18 +41,22 @@ export function ToothGlyph({ fdi, status, findings, onClick, isSelected, overflo
 
   // Construir mapa superficie → findingType (primer hallazgo por superficie gana).
   const surfaceMap: Record<string, string> = {};
-  let toothLevelFinding: string | null = null;
   for (const f of findings) {
-    if (!f.surface) {
-      if (!toothLevelFinding) toothLevelFinding = f.findingType;
-    } else if (!surfaceMap[f.surface]) {
+    if (f.surface && !surfaceMap[f.surface]) {
       surfaceMap[f.surface] = f.findingType;
     }
   }
 
-  // Zona central = oclusal o incisal (o hallazgo a nivel pieza como corona).
+  // Hallazgo global de pieza (sin superficie) de mayor prioridad.
+  const toothLevelFinding = pickGlobalBorderFinding(findings);
+
+  // Zona central = oclusal o incisal primero; global como fallback cuando el centro está libre.
   const centerFinding =
     surfaceMap["OCCLUSAL"] ?? surfaceMap["INCISAL"] ?? toothLevelFinding ?? null;
+
+  // Borde coloreado cuando hay hallazgo global Y el centro ya está ocupado por superficie.
+  const globalBorderFinding =
+    toothLevelFinding && centerFinding !== toothLevelFinding ? toothLevelFinding : null;
 
   const hasFindings = findings.length > 0;
 
@@ -81,8 +87,13 @@ export function ToothGlyph({ fdi, status, findings, onClick, isSelected, overflo
             height={H - 1}
             rx={3}
             fill={style.fill}
-            stroke={isSelected ? "#3b82f6" : (hasFindings ? "#94a3b8" : style.stroke)}
-            strokeWidth={isSelected ? 2.5 : (hasFindings ? 1.5 : 1)}
+            stroke={
+              globalBorderFinding  ? (FINDING_TYPE_COLOR[globalBorderFinding] ?? "#94a3b8")
+              : isSelected         ? "#3b82f6"
+              : hasFindings        ? "#94a3b8"
+              : style.stroke
+            }
+            strokeWidth={!!globalBorderFinding || isSelected ? 2.5 : (hasFindings ? 1.5 : 1)}
           />
 
         {/* Zonas de superficie (solo si la pieza no está extraída/ausente) */}

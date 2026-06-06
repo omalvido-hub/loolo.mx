@@ -4,6 +4,7 @@
 
 import type { FindingPanelItem } from "@/server/domain/clinical/odontogram-views";
 import { FINDING_TYPE_COLOR } from "./ToothSurfaceZone";
+import { pickGlobalBorderFinding } from "./tooth-utils";
 
 const STATUS_STYLE: Record<string, { fill: string; stroke: string }> = {
   PRESENT:   { fill: "#ffffff", stroke: "#d1d5db" },
@@ -33,16 +34,16 @@ export function ToothDiagram({ status, findings, size = 72 }: Props) {
   const isGone = status === "EXTRACTED" || status === "MISSING" || status === "ABSENT";
 
   const surfaceMap: Record<string, string> = {};
-  let toothLevel: string | null = null;
   for (const f of findings) {
-    if (!f.surface) {
-      if (!toothLevel) toothLevel = f.findingType;
-    } else if (!surfaceMap[f.surface]) {
+    if (f.surface && !surfaceMap[f.surface]) {
       surfaceMap[f.surface] = f.findingType;
     }
   }
+  const toothLevel = pickGlobalBorderFinding(findings);
   const centerFinding =
     surfaceMap["OCCLUSAL"] ?? surfaceMap["INCISAL"] ?? toothLevel ?? null;
+  const globalBorderFinding =
+    toothLevel && centerFinding !== toothLevel ? toothLevel : null;
 
   const FS = Math.max(7, Math.round(S * 0.13));
   const labelFill = "#94a3b8";
@@ -66,8 +67,8 @@ export function ToothDiagram({ status, findings, size = 72 }: Props) {
         width={S - 1} height={S - 1}
         rx={5}
         fill={style.fill}
-        stroke={style.stroke}
-        strokeWidth={1.5}
+        stroke={globalBorderFinding ? (FINDING_TYPE_COLOR[globalBorderFinding] ?? style.stroke) : style.stroke}
+        strokeWidth={globalBorderFinding ? 3 : 1.5}
       />
 
       {!isGone ? (

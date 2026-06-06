@@ -188,10 +188,11 @@ export function EncounterFindings({
       const { findingId, action } = activeLifecycle;
       let result;
       if (action === "void") {
-        result = await voidFindingAction(patientId, { findingId, lifecycleReason: lifecycleReason.trim() });
+        result = await voidFindingAction(patientId, { findingId, lifecycleReason: lifecycleReason.trim(), encounterId });
       } else if (action === "treat") {
         result = await treatFindingAction(patientId, {
           findingId,
+          encounterId,
           ...(lifecycleReason.trim() ? { lifecycleReason: lifecycleReason.trim() } : {}),
         });
       } else {
@@ -202,6 +203,7 @@ export function EncounterFindings({
         result = await resolveFindingAction(patientId, {
           findingId,
           targetStatus,
+          encounterId,
           ...(lifecycleReason.trim() ? { lifecycleReason: lifecycleReason.trim() } : {}),
         });
       }

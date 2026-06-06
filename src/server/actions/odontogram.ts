@@ -56,6 +56,7 @@ export async function voidFindingAction(
     const { ctx, run } = await getCtx();
     const result = await run((exec) => voidFinding(exec, ctx, data));
     revalidatePath(`/pacientes/${patientId}`);
+    if (data.encounterId) revalidatePath(`/pacientes/${patientId}/consultas/${data.encounterId}`);
     return { ok: true, data: result };
   } catch (e: any) {
     if (e instanceof UnauthorizedError || e instanceof NoOrganizationError) {
@@ -73,6 +74,7 @@ export async function treatFindingAction(
     const { ctx, run } = await getCtx();
     const result = await run((exec) => treatFinding(exec, ctx, data));
     revalidatePath(`/pacientes/${patientId}`);
+    if (data.encounterId) revalidatePath(`/pacientes/${patientId}/consultas/${data.encounterId}`);
     return { ok: true, data: result };
   } catch (e: any) {
     if (e instanceof UnauthorizedError || e instanceof NoOrganizationError) {
@@ -90,6 +92,7 @@ export async function resolveFindingAction(
     const { ctx, run } = await getCtx();
     const result = await run((exec) => resolveFinding(exec, ctx, data));
     revalidatePath(`/pacientes/${patientId}`);
+    if (data.encounterId) revalidatePath(`/pacientes/${patientId}/consultas/${data.encounterId}`);
     return { ok: true, data: result };
   } catch (e: any) {
     if (e instanceof UnauthorizedError || e instanceof NoOrganizationError) {

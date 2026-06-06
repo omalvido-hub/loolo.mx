@@ -271,11 +271,14 @@ export async function getOdontogramEncounterView(
     );
 
     // Resolver supersesiones intra-consulta: muestra solo el hallazgo vigente por pieza/superficie.
-    // Nota: el encounter view es un snapshot histórico — no filtra VOIDED para preservar la integridad.
-    const active = resolveOdontogram(rows as any);
-    const teeth = buildTeethGrid(active as any);
+    const resolved = resolveOdontogram(rows as any);
 
-    const findingsPanel: FindingPanelItem[] = active
+    // El mapa visual de dientes excluye VOIDED: un hallazgo anulado no debe pintar color.
+    const forTeeth = resolved.filter((f: any) => (f.lifecycleStatus ?? "ACTIVE") !== "VOIDED");
+    const teeth = buildTeethGrid(forTeeth as any);
+
+    // El panel histórico incluye todos (incluso VOIDED): la UI muestra chip "Anulado" sin botones.
+    const findingsPanel: FindingPanelItem[] = resolved
       .map((f: any) => ({
         findingId: f.id,
         toothFdi: f.toothFdi,
@@ -296,7 +299,7 @@ export async function getOdontogramEncounterView(
       action: "odontogram.viewed",
       entityType: "clinical_encounter",
       entityId: encounterId,
-      metadata: { accessType: "getOdontogramEncounterView", patientId, count: active.length },
+      metadata: { accessType: "getOdontogramEncounterView", patientId, count: resolved.length },
     });
 
     return ok<OdontogramEncounterView>({
