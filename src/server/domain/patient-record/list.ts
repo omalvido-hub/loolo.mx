@@ -27,6 +27,71 @@ export interface PatientListResult {
   offset: number;
 }
 
+export interface PatientSearchItem {
+  id: string;
+  contactId: string;
+  fullName: string | null;
+  phone: string | null;
+}
+
+export async function searchPatients(
+  run: TenantRunner,
+  ctx: ActorContext,
+  query: string,
+  limit = 8,
+): Promise<Result<PatientSearchItem[]>> {
+  if (!ctx.organizationId) return fail("FORBIDDEN", "Falta organizationId.");
+  if (!ctx.userId) return fail("FORBIDDEN", "Falta userId.");
+
+  if (!can(ctx.permissions, "patients.view")) {
+    await run(async (exec) => {
+      await recordPermissionDenied(exec, {
+        organizationId: ctx.organizationId,
+        actorUserId: ctx.userId,
+        permission: "patients.view",
+        entityType: "patient_search",
+      });
+    });
+    return fail("FORBIDDEN", "Falta el permiso: patients.view");
+  }
+
+  const q = query.trim();
+  if (q.length < 2) return ok([]);
+
+  // Escapar caracteres especiales de LIKE para que sean literales.
+  const escaped = q.replace(/[%_\\]/g, "\\$&");
+  const pattern = `%${escaped}%`;
+  const cap = Math.min(limit, 8);
+
+  return run(async (exec): Promise<Result<PatientSearchItem[]>> => {
+    const rows: any[] = await exec(
+      `SELECT p."id", p."contactId", c."fullName", c."phone"
+       FROM "patients" p
+       JOIN "contacts" c ON c."id" = p."contactId"
+       WHERE p."state" != 'ARCHIVED'
+         AND p."archivedAt" IS NULL
+         AND p."deletedAt" IS NULL
+         AND (
+           c."fullName"        ILIKE $1
+           OR c."phone"        ILIKE $1
+           OR c."phoneNormalized" ILIKE $1
+           OR c."email"        ILIKE $1
+           OR c."emailNormalized" ILIKE $1
+         )
+       ORDER BY c."fullName" ASC NULLS LAST
+       LIMIT $2`,
+      [pattern, cap],
+    );
+
+    return ok(rows.map((r) => ({
+      id: r.id,
+      contactId: r.contactId,
+      fullName: r.fullName ?? null,
+      phone: r.phone ?? null,
+    })));
+  });
+}
+
 export async function listPatientsForOrg(
   run: TenantRunner,
   ctx: ActorContext,

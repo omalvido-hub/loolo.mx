@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { hasPermission } from "@/lib/permissions";
+import { GlobalSearch } from "./GlobalSearch";
 
 interface NavItem {
   label: string;
@@ -51,6 +52,12 @@ export function AppSidebar({ roleKey, orgName }: AppSidebarProps) {
         <span className="text-lg font-bold text-sidebar-foreground">Loolo</span>
         <p className="text-xs text-muted-foreground mt-0.5 truncate">{orgName}</p>
       </div>
+
+      {hasPermission(roleKey, "patients.view") && (
+        <div className="px-0 pt-3 pb-1">
+          <GlobalSearch />
+        </div>
+      )}
 
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {visibleItems.map((item) => {
