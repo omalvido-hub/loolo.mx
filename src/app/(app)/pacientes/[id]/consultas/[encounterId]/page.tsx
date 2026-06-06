@@ -56,6 +56,8 @@ export default async function ConsultaDetallePage({
   // Hallazgos de esta consulta — UI-4 solo lectura / UI-7B-B escritura si activa.
   const odoResult = await getOdontogramEncounterView(run, ctx, id, encounterId);
   const canRecord = can(ctx.permissions, "odontogram.record");
+  const canVoid = can(ctx.permissions, "odontogram.void");
+  const canActOnFindings = can(ctx.permissions, "odontogram.record");
   const encounterStatus = result.value.status;
 
   return (
@@ -74,6 +76,8 @@ export default async function ConsultaDetallePage({
                 encounterId={encounterId}
                 encounterStatus={encounterStatus}
                 canRecord={canRecord}
+                canVoid={canVoid}
+                canActOnFindings={canActOnFindings}
                 initialToothFdi={initialToothFdi}
                 autoOpenForm={autoOpenForm}
               />
