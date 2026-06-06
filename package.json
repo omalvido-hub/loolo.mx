@@ -13,7 +13,8 @@
     "test": "vitest run",
     "seed:modules": "tsx prisma/seed-modules.ts",
     "seed:demo": "tsx scripts/seed-demo-user.ts",
-    "sync:rbac": "tsx scripts/sync-rbac.ts"
+    "sync:rbac": "tsx scripts/sync-rbac.ts",
+    "repair:voided-encounter": "tsx scripts/repair-voided-encounter-id.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
