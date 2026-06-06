@@ -7,8 +7,11 @@
 import { useState } from "react";
 import type { ToothView } from "@/server/domain/clinical/odontogram-views";
 import { ToothGlyph } from "./ToothGlyph";
+import { ToothAnatomyGlyph } from "./ToothAnatomyGlyph";
 import { ToothDetailPanel } from "./ToothDetailPanel";
 import { getToothName } from "./tooth-names";
+
+type ViewMode = "squares" | "teeth";
 
 // Orden de visualización estándar (igual que OdontogramChart):
 //   Arco superior: Q1 de 18→11 | Q2 de 21→28
@@ -35,11 +38,13 @@ function Arch({
   byFdi,
   selectedFdi,
   onToothClick,
+  viewMode,
 }: {
   fdis: number[];
   byFdi: Record<number, ToothView>;
   selectedFdi: number | null;
   onToothClick: (fdi: number) => void;
+  viewMode: ViewMode;
 }) {
   return (
     <div className="flex items-end gap-0.5">
@@ -48,16 +53,21 @@ function Arch({
         const isGap = idx === 8;
         const findings = tooth?.findings ?? [];
         const overflowCount = Math.max(0, findings.length - MAX_VISIBLE_FINDINGS);
+        const commonProps = {
+          fdi,
+          status: tooth?.status ?? "PRESENT",
+          findings,
+          onClick: () => onToothClick(fdi),
+          isSelected: selectedFdi === fdi,
+          overflowCount,
+        };
         return (
           <div key={fdi} className={isGap ? "ml-2" : undefined}>
-            <ToothGlyph
-              fdi={fdi}
-              status={tooth?.status ?? "PRESENT"}
-              findings={findings}
-              onClick={() => onToothClick(fdi)}
-              isSelected={selectedFdi === fdi}
-              overflowCount={overflowCount}
-            />
+            {viewMode === "teeth" ? (
+              <ToothAnatomyGlyph {...commonProps} />
+            ) : (
+              <ToothGlyph {...commonProps} />
+            )}
           </div>
         );
       })}
@@ -74,6 +84,7 @@ export function OdontogramChartInteractive({
 }: Props) {
   const isControlled = onToothClick !== undefined;
   const [internalFdi, setInternalFdi] = useState<number | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("squares");
   const selectedFdi = isControlled ? (externalFdi ?? null) : internalFdi;
 
   const byFdi: Record<number, ToothView> = Object.fromEntries(
@@ -94,6 +105,35 @@ export function OdontogramChartInteractive({
     <div className="space-y-4">
       {/* Diagrama dental — siempre completo, nunca comprimido */}
       <div>
+        {/* Toggle de vista */}
+        <div className="flex items-center justify-end gap-1.5 mb-2">
+          <span className="text-[11px] text-muted-foreground">Vista:</span>
+          <div className="flex rounded border border-muted-foreground/20 overflow-hidden text-[11px] divide-x divide-muted-foreground/20">
+            <button
+              type="button"
+              onClick={() => setViewMode("squares")}
+              className={
+                viewMode === "squares"
+                  ? "px-2.5 py-0.5 bg-muted font-medium text-foreground"
+                  : "px-2.5 py-0.5 text-muted-foreground hover:bg-muted/40 transition-colors"
+              }
+            >
+              Cuadros
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("teeth")}
+              className={
+                viewMode === "teeth"
+                  ? "px-2.5 py-0.5 bg-muted font-medium text-foreground"
+                  : "px-2.5 py-0.5 text-muted-foreground hover:bg-muted/40 transition-colors"
+              }
+            >
+              Dientes
+            </button>
+          </div>
+        </div>
+
         <div className="space-y-0">
           {/* Arco superior */}
           <div className="flex justify-center">
@@ -102,6 +142,7 @@ export function OdontogramChartInteractive({
               byFdi={byFdi}
               selectedFdi={selectedFdi}
               onToothClick={handleToothClick}
+              viewMode={viewMode}
             />
           </div>
 
@@ -115,6 +156,7 @@ export function OdontogramChartInteractive({
               byFdi={byFdi}
               selectedFdi={selectedFdi}
               onToothClick={handleToothClick}
+              viewMode={viewMode}
             />
           </div>
         </div>
