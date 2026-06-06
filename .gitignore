@@ -4,3 +4,10 @@ node_modules
 .env.local
 .env*.local
 *.tsbuildinfo
+
+# PM2 / deploy — archivos con credenciales reales (solo viven en el VPS)
+ecosystem.config.cjs
+ecosystem.config.js
+server.cjs
+server.js
+# ecosystem.config.example.cjs y start.sh sí se versionan

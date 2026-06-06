@@ -105,7 +105,40 @@ Llevar a **una clínica dental operando al 100% en producción**: agenda → con
 
 ---
 
-## 7. Modo de trabajo con Claude Code
+## 7. Deploy PM2 / Next.js 15 (producción en VPS)
+
+### Archivos de infra en el repo
+- **`start.sh`** — wrapper de arranque; versionado, sin secretos.
+- **`ecosystem.config.example.cjs`** — plantilla PM2; versionada, sin secretos.
+- **`ecosystem.config.cjs`** — configuración real con credenciales; **NO versionado**, vive solo en el VPS. Ignorado por `.gitignore`.
+
+### Deploy normal
+```bash
+git pull
+npm run build
+pm2 restart loolo
+```
+
+### Por qué existe `start.sh`
+Next.js 15 puede renombrar su proceso a `next-server` y en algunos entornos PM2 pierde el rastro del PID padre. En el siguiente reinicio PM2 intenta arrancar en el puerto 3000 que ya está ocupado → EADDRINUSE. `start.sh` mata cualquier proceso en puerto 3000 (`fuser -k 3000/tcp`) antes de cada inicio, rompiendo ese ciclo.
+
+### Si PM2 entra en loop EADDRINUSE
+```bash
+pm2 stop loolo
+pm2 delete loolo
+fuser -k 3000/tcp
+# esperar 2 segundos
+pm2 start ecosystem.config.cjs
+```
+
+### Reglas de infraestructura
+- Nunca subir `ecosystem.config.cjs` al repo — contiene credenciales reales.
+- No usar `ecosystem.config.js` — falla porque `package.json` tiene `"type": "module"`. Usar siempre `.cjs`.
+- El archivo real en el VPS se genera copiando el ejemplo y rellenando credenciales: `cp ecosystem.config.example.cjs ecosystem.config.cjs`.
+
+---
+
+## 8. Modo de trabajo con Claude Code
 
 - Antes de un bloque grande de UI: proponer un plan corto (qué pantallas, qué componentes) y esperar OK.
 - Cambios pequeños y no arquitectónicos: hacerlos y reportar.
