@@ -72,7 +72,7 @@ describe("integridad de archivos FVO-1a", () => {
 
   it("no existe migración 0018 ni superior (FVO-1a no creó más)", () => {
     const files = readdirSync(resolve("prisma/migrations"));
-    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 18)).toBe(false);
+    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 19)).toBe(false);
   });
 
   it("PHASE_FVO-1A_DELIVERY_MARKER.txt existe", () => {

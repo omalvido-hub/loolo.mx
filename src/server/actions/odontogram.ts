@@ -1,14 +1,14 @@
 "use server";
 
-// LOOLO — Server Actions de Odontograma (UI-7B-B).
-// Wrapper 1:1 sobre recordFinding del dominio.
+// LOOLO — Server Actions de Odontograma (UI-7B-B + Lifecycle 1A).
+// Wrapper 1:1 sobre el dominio odontogram.ts.
 // Patrón: sesión → actor context → dominio → revalidatePath → ActionResult.
 
 import { revalidatePath } from "next/cache";
 import { requireOrganization, UnauthorizedError, NoOrganizationError } from "@/server/auth/session";
 import { getActorContext } from "@/server/auth/context";
 import { makeTenantRunner } from "@/server/db/tenant";
-import { recordFinding } from "@/server/domain/clinical/odontogram";
+import { recordFinding, voidFinding, treatFinding, resolveFinding } from "@/server/domain/clinical/odontogram";
 
 type ActionResult<T = undefined> =
   | { ok: true; data: T }
@@ -45,5 +45,56 @@ export async function recordFindingAction(
       return { ok: false, error: "Sesión expirada. Recarga la página." };
     }
     return { ok: false, error: e?.message ?? "Error al registrar el hallazgo." };
+  }
+}
+
+export async function voidFindingAction(
+  patientId: string,
+  data: { findingId: string; lifecycleReason: string; encounterId?: string },
+): Promise<ActionResult<{ findingId: string }>> {
+  try {
+    const { ctx, run } = await getCtx();
+    const result = await run((exec) => voidFinding(exec, ctx, data));
+    revalidatePath(`/pacientes/${patientId}`);
+    return { ok: true, data: result };
+  } catch (e: any) {
+    if (e instanceof UnauthorizedError || e instanceof NoOrganizationError) {
+      return { ok: false, error: "Sesión expirada. Recarga la página." };
+    }
+    return { ok: false, error: e?.message ?? "Error al anular el hallazgo." };
+  }
+}
+
+export async function treatFindingAction(
+  patientId: string,
+  data: { findingId: string; lifecycleReason?: string; linkedTreatmentItemId?: string; encounterId?: string },
+): Promise<ActionResult<{ findingId: string }>> {
+  try {
+    const { ctx, run } = await getCtx();
+    const result = await run((exec) => treatFinding(exec, ctx, data));
+    revalidatePath(`/pacientes/${patientId}`);
+    return { ok: true, data: result };
+  } catch (e: any) {
+    if (e instanceof UnauthorizedError || e instanceof NoOrganizationError) {
+      return { ok: false, error: "Sesión expirada. Recarga la página." };
+    }
+    return { ok: false, error: e?.message ?? "Error al marcar el hallazgo como tratado." };
+  }
+}
+
+export async function resolveFindingAction(
+  patientId: string,
+  data: { findingId: string; targetStatus: "RESOLVED" | "CONTROLLED" | "OBSERVATION"; lifecycleReason?: string; encounterId?: string },
+): Promise<ActionResult<{ findingId: string }>> {
+  try {
+    const { ctx, run } = await getCtx();
+    const result = await run((exec) => resolveFinding(exec, ctx, data));
+    revalidatePath(`/pacientes/${patientId}`);
+    return { ok: true, data: result };
+  } catch (e: any) {
+    if (e instanceof UnauthorizedError || e instanceof NoOrganizationError) {
+      return { ok: false, error: "Sesión expirada. Recarga la página." };
+    }
+    return { ok: false, error: e?.message ?? "Error al resolver el hallazgo." };
   }
 }

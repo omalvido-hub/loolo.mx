@@ -6,13 +6,17 @@ import { validateEvent } from "../events/schemas.js";
 import { recordAudit } from "../audit/record.js";
 import { authorize } from "../identity/authorize.js";
 import type { Exec, ActorContext } from "../identity/authorize.js";
-import { parseOrThrow, RecordFindingInputZ, SupersedeFindingInputZ, checkSurfaceRule } from "./odontogram-schemas.js";
+import {
+  parseOrThrow, RecordFindingInputZ, SupersedeFindingInputZ, checkSurfaceRule,
+  VoidFindingInputZ, TreatFindingInputZ, ResolveFindingInputZ,
+} from "./odontogram-schemas.js";
 import { resolveOdontogram } from "./odontogram-resolver.js";
 
 export class OrgRefError extends Error { constructor(m: string) { super(m); this.name = "OrgRefError"; } }
 export class CoherenceError extends Error { constructor(m: string) { super(m); this.name = "CoherenceError"; } }
 export class EncounterStateError extends Error { constructor(m: string) { super(m); this.name = "EncounterStateError"; } }
 export class FindingNotFoundError extends Error { constructor(m: string) { super(m); this.name = "FindingNotFoundError"; } }
+export class FindingAlreadySupersededError extends Error { constructor(m: string) { super(m); this.name = "FindingAlreadySupersededError"; } }
 
 const OPEN_STATES = ["DRAFT", "IN_PROGRESS"];
 
@@ -75,6 +79,152 @@ export async function supersedeFinding(exec: Exec, ctx: ActorContext, raw: unkno
   await emit(exec, ctx.organizationId, "odontogram.finding_superseded",
     { findingId: id, supersedesFindingId: input.supersedesFindingId, toothFdi: input.toothFdi });
   await audit(exec, ctx, "odontogram.finding_superseded", "odontogram_finding", id, { supersedesFindingId: input.supersedesFindingId, toothFdi: input.toothFdi });
+  return { findingId: id };
+}
+
+// ── Helpers privados de ciclo de vida ────────────────────────────────────────
+
+/** Obtiene la fila del hallazgo (tenant-safe por RLS). Null si no existe en la org. */
+async function getFindingRow(exec: Exec, findingId: string) {
+  const rows = await exec(
+    `SELECT "patientId","toothFdi","surface","findingType","toothStatus","lifecycleStatus"
+     FROM "odontogram_findings" WHERE "id"=$1`,
+    [findingId],
+  );
+  return (rows[0] ?? null) as {
+    patientId: string; toothFdi: number; surface: string | null;
+    findingType: string; toothStatus: string; lifecycleStatus: string;
+  } | null;
+}
+
+/** Lanza si el hallazgo ya fue supersedido por otro (no es el extremo vigente de la cadena). */
+async function assertIsCurrentTip(exec: Exec, findingId: string): Promise<void> {
+  const rows = await exec(
+    `SELECT 1 FROM "odontogram_findings" WHERE "supersedesFindingId"=$1 LIMIT 1`,
+    [findingId],
+  );
+  if (rows.length > 0) {
+    throw new FindingAlreadySupersededError(
+      "Este hallazgo ya fue reemplazado. Solo se puede actuar sobre el hallazgo vigente de la cadena.",
+    );
+  }
+}
+
+/** Valida que el encounter exista y pertenezca al paciente indicado, sin exigir estado abierto. */
+async function assertEncounterForPatient(exec: Exec, encounterId: string, patientId: string): Promise<void> {
+  const enc = (await exec(`SELECT "patientId" FROM "clinical_encounters" WHERE "id"=$1`, [encounterId]))[0];
+  if (!enc) throw new OrgRefError("encounterId no pertenece a la organización (fail-closed).");
+  if (enc.patientId !== patientId) throw new CoherenceError("La consulta no corresponde al mismo paciente.");
+}
+
+// ── Funciones de ciclo de vida ────────────────────────────────────────────────
+
+/**
+ * Anula un hallazgo por error de registro. Requiere motivo obligatorio.
+ * Inserta una fila nueva (lifecycleStatus=VOIDED) que supersede la original.
+ * No requiere consulta abierta. Requiere permiso odontogram.void.
+ * El hallazgo anulado deja de aparecer en el odontograma vigente.
+ */
+export async function voidFinding(exec: Exec, ctx: ActorContext, raw: unknown) {
+  authorize(ctx, "odontogram.void");
+  const input = parseOrThrow(VoidFindingInputZ, raw);
+
+  const original = await getFindingRow(exec, input.findingId);
+  if (!original) throw new FindingNotFoundError("Hallazgo no encontrado en la organización (fail-closed).");
+
+  await assertIsCurrentTip(exec, input.findingId);
+
+  if (input.encounterId) {
+    await assertEncounterForPatient(exec, input.encounterId, original.patientId);
+  }
+
+  const id = (await exec(
+    `INSERT INTO "odontogram_findings"
+       ("organizationId","patientId","encounterId","toothFdi","surface","findingType","toothStatus",
+        "lifecycleStatus","lifecycleReason","supersedesFindingId","recordedByUserId")
+     VALUES ($1,$2,$3,$4,$5,$6,$7,'VOIDED',$8,$9,$10) RETURNING "id"`,
+    [ctx.organizationId, original.patientId, input.encounterId ?? null,
+      original.toothFdi, original.surface ?? null, original.findingType, original.toothStatus,
+      input.lifecycleReason, input.findingId, ctx.userId],
+  ))[0].id;
+
+  await emit(exec, ctx.organizationId, "odontogram.finding_voided",
+    { findingId: id, originalFindingId: input.findingId, toothFdi: original.toothFdi });
+  await audit(exec, ctx, "odontogram.finding_voided", "odontogram_finding", id,
+    { originalFindingId: input.findingId, toothFdi: original.toothFdi });
+  return { findingId: id };
+}
+
+/**
+ * Marca un hallazgo como tratado. Requiere lifecycleReason o linkedTreatmentItemId.
+ * Inserta una fila nueva (lifecycleStatus=TREATED) que supersede la original.
+ * No requiere consulta abierta. Requiere permiso odontogram.record.
+ */
+export async function treatFinding(exec: Exec, ctx: ActorContext, raw: unknown) {
+  authorize(ctx, "odontogram.record");
+  const input = parseOrThrow(TreatFindingInputZ, raw);
+
+  const original = await getFindingRow(exec, input.findingId);
+  if (!original) throw new FindingNotFoundError("Hallazgo no encontrado en la organización (fail-closed).");
+
+  await assertIsCurrentTip(exec, input.findingId);
+
+  if (input.encounterId) {
+    await assertEncounterForPatient(exec, input.encounterId, original.patientId);
+  }
+
+  const id = (await exec(
+    `INSERT INTO "odontogram_findings"
+       ("organizationId","patientId","encounterId","toothFdi","surface","findingType","toothStatus",
+        "lifecycleStatus","lifecycleReason","linkedTreatmentItemId","supersedesFindingId","recordedByUserId")
+     VALUES ($1,$2,$3,$4,$5,$6,$7,'TREATED',$8,$9,$10,$11) RETURNING "id"`,
+    [ctx.organizationId, original.patientId, input.encounterId ?? null,
+      original.toothFdi, original.surface ?? null, original.findingType, original.toothStatus,
+      input.lifecycleReason ?? null, input.linkedTreatmentItemId ?? null,
+      input.findingId, ctx.userId],
+  ))[0].id;
+
+  await emit(exec, ctx.organizationId, "odontogram.finding_treated",
+    { findingId: id, originalFindingId: input.findingId, toothFdi: original.toothFdi,
+      linkedTreatmentItemId: input.linkedTreatmentItemId });
+  await audit(exec, ctx, "odontogram.finding_treated", "odontogram_finding", id,
+    { originalFindingId: input.findingId, toothFdi: original.toothFdi });
+  return { findingId: id };
+}
+
+/**
+ * Marca un hallazgo como resuelto, controlado o en observación.
+ * Inserta una fila nueva (lifecycleStatus=targetStatus) que supersede la original.
+ * No requiere consulta abierta. Requiere permiso odontogram.record.
+ */
+export async function resolveFinding(exec: Exec, ctx: ActorContext, raw: unknown) {
+  authorize(ctx, "odontogram.record");
+  const input = parseOrThrow(ResolveFindingInputZ, raw);
+
+  const original = await getFindingRow(exec, input.findingId);
+  if (!original) throw new FindingNotFoundError("Hallazgo no encontrado en la organización (fail-closed).");
+
+  await assertIsCurrentTip(exec, input.findingId);
+
+  if (input.encounterId) {
+    await assertEncounterForPatient(exec, input.encounterId, original.patientId);
+  }
+
+  const id = (await exec(
+    `INSERT INTO "odontogram_findings"
+       ("organizationId","patientId","encounterId","toothFdi","surface","findingType","toothStatus",
+        "lifecycleStatus","lifecycleReason","supersedesFindingId","recordedByUserId")
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`,
+    [ctx.organizationId, original.patientId, input.encounterId ?? null,
+      original.toothFdi, original.surface ?? null, original.findingType, original.toothStatus,
+      input.targetStatus, input.lifecycleReason ?? null, input.findingId, ctx.userId],
+  ))[0].id;
+
+  await emit(exec, ctx.organizationId, "odontogram.finding_resolved",
+    { findingId: id, originalFindingId: input.findingId, toothFdi: original.toothFdi,
+      targetStatus: input.targetStatus });
+  await audit(exec, ctx, "odontogram.finding_resolved", "odontogram_finding", id,
+    { originalFindingId: input.findingId, toothFdi: original.toothFdi, targetStatus: input.targetStatus });
   return { findingId: id };
 }
 

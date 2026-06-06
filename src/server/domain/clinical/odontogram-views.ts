@@ -41,6 +41,7 @@ export interface FindingPanelItem {
   surface: string | null;
   findingType: string;
   toothStatus: string;
+  lifecycleStatus: string;  // 'ACTIVE' | 'OBSERVATION' | 'TREATED' | 'RESOLVED' | 'CONTROLLED' | 'VOIDED'
   createdAt: string;
   encounterId?: string;
 }
@@ -83,6 +84,7 @@ type RawFinding = {
   surface: string | null;
   findingType: string;
   toothStatus: string;
+  lifecycleStatus?: string;
   supersedesFindingId: string | null;
   createdAt: Date | string | null;
   encounterId?: string;
@@ -101,6 +103,7 @@ function buildTeethGrid(activeFindings: RawFinding[]): ToothView[] {
       surface: f.surface ?? null,
       findingType: f.findingType,
       toothStatus: f.toothStatus,
+      lifecycleStatus: f.lifecycleStatus ?? "ACTIVE",
       createdAt: toIso(f.createdAt) ?? new Date().toISOString(),
       ...(f.encounterId ? { encounterId: f.encounterId } : {}),
     }));
@@ -162,17 +165,20 @@ export async function getOdontogramMasterView(
   }
 
   return run(async (exec) => {
-    // SELECT explícito — sin note, sin recordedByUserId, sin organizationId.
+    // SELECT explícito — sin note, sin recordedByUserId, sin organizationId, sin lifecycleReason.
     // encounterId incluido (seguro y útil: permite enlazar hallazgo → consulta en la UI).
     const rows = await exec(
-      `SELECT "id","toothFdi","surface","findingType","toothStatus","supersedesFindingId","createdAt","encounterId"
+      `SELECT "id","toothFdi","surface","findingType","toothStatus","lifecycleStatus","supersedesFindingId","createdAt","encounterId"
        FROM "odontogram_findings"
        WHERE "patientId" = $1
        ORDER BY "createdAt" ASC`,
       [patientId],
     );
 
-    const active = resolveOdontogram(rows as any);
+    // resolveOdontogram colapsa cadenas de supersesión → solo el extremo vigente.
+    // Luego se filtran los VOIDED: un hallazgo anulado no debe aparecer como activo.
+    const resolved = resolveOdontogram(rows as any);
+    const active = resolved.filter((f: any) => (f.lifecycleStatus ?? "ACTIVE") !== "VOIDED");
     const teeth = buildTeethGrid(active as any);
 
     const findingsPanel: FindingPanelItem[] = active
@@ -181,6 +187,7 @@ export async function getOdontogramMasterView(
         surface: f.surface ?? null,
         findingType: f.findingType,
         toothStatus: f.toothStatus,
+        lifecycleStatus: f.lifecycleStatus ?? "ACTIVE",
         createdAt: toIso(f.createdAt) ?? new Date().toISOString(),
         ...(f.encounterId ? { encounterId: f.encounterId } : {}),
       }))
@@ -251,9 +258,9 @@ export async function getOdontogramEncounterView(
       return fail("NOT_FOUND", "La consulta no pertenece al paciente indicado.");
     }
 
-    // SELECT explícito — sin note, sin recordedByUserId, sin organizationId.
+    // SELECT explícito — sin note, sin recordedByUserId, sin organizationId, sin lifecycleReason.
     const rows = await exec(
-      `SELECT "id","toothFdi","surface","findingType","toothStatus","supersedesFindingId","createdAt"
+      `SELECT "id","toothFdi","surface","findingType","toothStatus","lifecycleStatus","supersedesFindingId","createdAt"
        FROM "odontogram_findings"
        WHERE "encounterId" = $1
        ORDER BY "createdAt" ASC`,
@@ -261,6 +268,7 @@ export async function getOdontogramEncounterView(
     );
 
     // Resolver supersesiones intra-consulta: muestra solo el hallazgo vigente por pieza/superficie.
+    // Nota: el encounter view es un snapshot histórico — no filtra VOIDED para preservar la integridad.
     const active = resolveOdontogram(rows as any);
     const teeth = buildTeethGrid(active as any);
 
@@ -270,6 +278,7 @@ export async function getOdontogramEncounterView(
         surface: f.surface ?? null,
         findingType: f.findingType,
         toothStatus: f.toothStatus,
+        lifecycleStatus: f.lifecycleStatus ?? "ACTIVE",
         createdAt: toIso(f.createdAt) ?? new Date().toISOString(),
       }))
       .sort((a: FindingPanelItem, b: FindingPanelItem) => a.toothFdi - b.toothFdi);

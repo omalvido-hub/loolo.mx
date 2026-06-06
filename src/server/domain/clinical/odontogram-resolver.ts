@@ -7,6 +7,7 @@ export interface Finding {
   surface: string | null;
   findingType: string;
   toothStatus: string;
+  lifecycleStatus?: string;  // 'ACTIVE' | 'OBSERVATION' | 'TREATED' | 'RESOLVED' | 'CONTROLLED' | 'VOIDED'
   supersedesFindingId: string | null;
   createdAt?: string | Date;
 }

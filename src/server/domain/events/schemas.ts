@@ -157,6 +157,33 @@ const eventRegistry = {
       toothFdi: z.number().int(),
     }),
   },
+  // ── Lifecycle 1A: ciclo de vida de hallazgos (NUNCA lifecycleReason) ──
+  "odontogram.finding_voided": {
+    version: 1,
+    schema: z.object({
+      findingId: z.string().uuid(),
+      originalFindingId: z.string().uuid(),
+      toothFdi: z.number().int(),
+    }),
+  },
+  "odontogram.finding_treated": {
+    version: 1,
+    schema: z.object({
+      findingId: z.string().uuid(),
+      originalFindingId: z.string().uuid(),
+      toothFdi: z.number().int(),
+      linkedTreatmentItemId: z.string().uuid().optional(),
+    }),
+  },
+  "odontogram.finding_resolved": {
+    version: 1,
+    schema: z.object({
+      findingId: z.string().uuid(),
+      originalFindingId: z.string().uuid(),
+      toothFdi: z.number().int(),
+      targetStatus: z.enum(["RESOLVED", "CONTROLLED", "OBSERVATION"]),
+    }),
+  },
   // ── Fase 5C: Plan de tratamiento (estructurado, NUNCA title/notes/note) ──
   "treatment.plan_created": {
     version: 1,

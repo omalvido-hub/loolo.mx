@@ -1007,6 +1007,15 @@ enum ToothSurface {
   INCISAL
 }
 
+enum OdontogramLifecycleStatus {
+  ACTIVE
+  OBSERVATION
+  TREATED
+  RESOLVED
+  CONTROLLED
+  VOIDED
+}
+
 enum OdontogramFindingType {
   CARIES
   RESTORATION
@@ -1030,22 +1039,27 @@ enum ToothStatus {
 }
 
 model OdontogramFinding {
-  id                  String                @id @default(uuid()) @db.Uuid
-  organizationId      String                @db.Uuid
-  patientId           String                @db.Uuid
-  encounterId         String                @db.Uuid
-  toothFdi            Int                   @db.SmallInt
-  surface             ToothSurface?
-  findingType         OdontogramFindingType
-  toothStatus         ToothStatus
-  note                String?
-  supersedesFindingId String?               @db.Uuid
-  recordedByUserId    String                @db.Uuid
-  createdAt           DateTime              @default(now())
+  id                    String                    @id @default(uuid()) @db.Uuid
+  organizationId        String                    @db.Uuid
+  patientId             String                    @db.Uuid
+  encounterId           String?                   @db.Uuid   // nullable: lifecycle events no requieren consulta
+  toothFdi              Int                       @db.SmallInt
+  surface               ToothSurface?
+  findingType           OdontogramFindingType
+  toothStatus           ToothStatus
+  lifecycleStatus       OdontogramLifecycleStatus @default(ACTIVE)
+  lifecycleReason       String?                              // NUNCA exponer en vistas ni eventos
+  linkedTreatmentItemId String?                   @db.Uuid   // ítem de plan de tratamiento (TREATED)
+  note                  String?
+  supersedesFindingId   String?                   @db.Uuid
+  recordedByUserId      String                    @db.Uuid
+  createdAt             DateTime                  @default(now())
 
   @@index([organizationId, patientId, toothFdi])
   @@index([organizationId, encounterId])
   @@index([supersedesFindingId])
+  @@index([organizationId, patientId, lifecycleStatus])
+  @@index([linkedTreatmentItemId])
   @@map("odontogram_findings")
 }
 

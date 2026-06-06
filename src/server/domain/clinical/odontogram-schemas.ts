@@ -1,4 +1,4 @@
-// LOOLO — Validadores Zod de Odontograma (Fase 5B). Fail-closed.
+// LOOLO — Validadores Zod de Odontograma (Fase 5B + Lifecycle). Fail-closed.
 // FDI permanentes 11-48. Matriz surface↔findingType conservadora y documentada.
 
 import { z } from "zod";
@@ -48,3 +48,35 @@ export function parseOrThrow<T>(schema: z.ZodType<T>, data: unknown): T {
   if (!r.success) throw new Error("Validación 5B falló: " + r.error.message);
   return r.data;
 }
+
+// ── Schemas de ciclo de vida (Lifecycle 1A) ───────────────────────────────────
+
+export const OdontogramLifecycleStatusZ = z.enum([
+  "ACTIVE", "OBSERVATION", "TREATED", "RESOLVED", "CONTROLLED", "VOIDED",
+]);
+
+// Anular hallazgo por error de registro. Motivo obligatorio.
+export const VoidFindingInputZ = z.object({
+  findingId:       z.string().uuid(),
+  lifecycleReason: z.string().min(1, "El motivo de anulación es obligatorio.").max(500),
+  encounterId:     z.string().uuid().optional(),  // contexto de consulta (opcional)
+});
+
+// Marcar hallazgo como tratado. Requiere motivo O enlace a ítem de tratamiento.
+export const TreatFindingInputZ = z.object({
+  findingId:              z.string().uuid(),
+  lifecycleReason:        z.string().max(500).optional(),
+  linkedTreatmentItemId:  z.string().uuid().optional(),
+  encounterId:            z.string().uuid().optional(),
+}).refine(
+  (d) => !!d.lifecycleReason || !!d.linkedTreatmentItemId,
+  { message: "treatFinding requiere lifecycleReason o linkedTreatmentItemId." },
+);
+
+// Marcar hallazgo como resuelto, controlado o en observación.
+export const ResolveFindingInputZ = z.object({
+  findingId:       z.string().uuid(),
+  targetStatus:    z.enum(["RESOLVED", "CONTROLLED", "OBSERVATION"]),
+  lifecycleReason: z.string().max(500).optional(),
+  encounterId:     z.string().uuid().optional(),
+});
