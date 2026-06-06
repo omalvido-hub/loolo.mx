@@ -7,6 +7,7 @@
 import { useId } from "react";
 import type { FindingPanelItem } from "@/server/domain/clinical/odontogram-views";
 import { FINDING_TYPE_COLOR } from "./ToothSurfaceZone";
+import { pickGlobalBorderFinding } from "./tooth-utils";
 
 // ─── Estilos por estado ──────────────────────────────────────────────────────
 
@@ -168,20 +169,30 @@ export function ToothAnatomyGlyph({ fdi, status, findings, onClick, isSelected }
 
   // Mapa superficie → color (primer hallazgo por superficie gana).
   const surfaceMap: Record<string, string> = {};
-  let toothLevelFinding: string | null = null;
   for (const f of findings) {
-    if (!f.surface) {
-      if (!toothLevelFinding) toothLevelFinding = f.findingType;
-    } else if (!surfaceMap[f.surface]) {
+    if (f.surface && !surfaceMap[f.surface]) {
       surfaceMap[f.surface] = f.findingType;
     }
   }
+
+  // Hallazgo global de pieza (sin superficie) de mayor prioridad.
+  const toothLevelFinding = pickGlobalBorderFinding(findings);
+
+  // Zona central = oclusal/incisal primero; global como fallback cuando el centro está libre.
   const centerFinding =
     surfaceMap["OCCLUSAL"] ?? surfaceMap["INCISAL"] ?? toothLevelFinding ?? null;
 
+  // Borde coloreado cuando hay hallazgo global Y el centro ya está ocupado por superficie.
+  const globalBorderFinding =
+    toothLevelFinding && centerFinding !== toothLevelFinding ? toothLevelFinding : null;
+
   const hasFindings = findings.length > 0;
-  const strokeColor = isSelected ? "#3b82f6" : hasFindings ? "#94a3b8" : style.stroke;
-  const strokeW     = isSelected ? 2.5         : hasFindings ? 1.5         : 1;
+  // Prioridad: globalBorderFinding > isSelected > hasFindings (div ring maneja selección visual)
+  const strokeColor = globalBorderFinding ? (FINDING_TYPE_COLOR[globalBorderFinding] ?? "#94a3b8")
+    : isSelected ? "#3b82f6"
+    : hasFindings ? "#94a3b8"
+    : style.stroke;
+  const strokeW = !!globalBorderFinding || isSelected ? 3 : hasFindings ? 1.5 : 1;
 
   const zc = (ft: string | null | undefined): string | null =>
     ft ? (FINDING_TYPE_COLOR[ft] ?? "#9ca3af") : null;
