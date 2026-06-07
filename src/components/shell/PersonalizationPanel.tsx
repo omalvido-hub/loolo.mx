@@ -332,44 +332,40 @@ function StudioMiniPreview() {
   return (
     <div
       aria-hidden
-      className="overflow-hidden rounded-2xl border bg-gradient-to-br from-sky-50 via-violet-50 to-fuchsia-50 p-3 shadow-inner ring-1 ring-foreground/[0.04] dark:from-sky-500/[0.07] dark:via-violet-500/[0.07] dark:to-fuchsia-500/[0.07]"
+      className="overflow-hidden rounded-xl border bg-gradient-to-br from-sky-50 via-violet-50 to-fuchsia-50 p-2 shadow-inner ring-1 ring-foreground/[0.04] dark:from-sky-500/[0.07] dark:via-violet-500/[0.07] dark:to-fuchsia-500/[0.07]"
     >
-      <div className="overflow-hidden rounded-xl border bg-card/80 shadow-sm ring-1 ring-foreground/[0.05] backdrop-blur">
+      <div className="overflow-hidden rounded-lg border bg-card/80 shadow-sm ring-1 ring-foreground/[0.05] backdrop-blur">
         {/* topbar miniatura */}
-        <div className="flex items-center gap-1.5 border-b px-2.5 py-1.5">
+        <div className="flex items-center gap-1.5 border-b px-2 py-1">
           <span className="size-1.5 rounded-full bg-rose-400/70" />
           <span className="size-1.5 rounded-full bg-amber-400/70" />
           <span className="size-1.5 rounded-full bg-emerald-400/70" />
-          <span className="ml-2 h-1.5 w-20 rounded-full bg-gradient-to-r from-sky-400/50 via-violet-400/50 to-fuchsia-400/50" />
-          <span className="ml-auto size-3.5 rounded-full bg-muted" />
+          <span className="ml-2 h-1.5 w-16 rounded-full bg-gradient-to-r from-sky-400/50 via-violet-400/50 to-fuchsia-400/50" />
         </div>
         <div className="flex">
           {/* sidebar miniatura */}
-          <div className="hidden w-10 shrink-0 space-y-1.5 border-r p-2 sm:block">
-            <span className="block h-1.5 w-6 rounded-full bg-primary/30" />
-            <span className="block h-1.5 w-7 rounded-full bg-muted" />
-            <span className="block h-1.5 w-5 rounded-full bg-muted" />
-            <span className="block h-1.5 w-7 rounded-full bg-muted" />
+          <div className="hidden w-8 shrink-0 space-y-1 border-r p-1.5 sm:block">
+            <span className="block h-1 w-5 rounded-full bg-primary/30" />
+            <span className="block h-1 w-6 rounded-full bg-muted" />
+            <span className="block h-1 w-4 rounded-full bg-muted" />
           </div>
           {/* tarjetas tipo dashboard */}
-          <div className="grid flex-1 grid-cols-3 gap-1.5 p-2.5">
-            <span className="col-span-2 row-span-2 rounded-lg bg-gradient-to-br from-sky-400/25 to-violet-400/15 ring-1 ring-foreground/[0.04]" />
-            <span className="rounded-lg bg-emerald-400/20 ring-1 ring-foreground/[0.04]" />
-            <span className="rounded-lg bg-amber-400/20 ring-1 ring-foreground/[0.04]" />
-            <span className="col-span-2 rounded-lg bg-fuchsia-400/15 ring-1 ring-foreground/[0.04]" />
-            <span className="rounded-lg bg-violet-400/20 ring-1 ring-foreground/[0.04]" />
+          <div className="grid flex-1 grid-cols-3 gap-1 p-2">
+            <span className="col-span-2 row-span-2 rounded-md bg-gradient-to-br from-sky-400/25 to-violet-400/15 ring-1 ring-foreground/[0.04]" />
+            <span className="rounded-md bg-emerald-400/20 ring-1 ring-foreground/[0.04]" />
+            <span className="rounded-md bg-amber-400/20 ring-1 ring-foreground/[0.04]" />
+            <span className="col-span-2 rounded-md bg-fuchsia-400/15 ring-1 ring-foreground/[0.04]" />
           </div>
         </div>
         {/* dock miniatura */}
-        <div className="flex items-center justify-center gap-1 border-t bg-muted/30 px-2 py-1.5">
-          <span className="size-3 rounded-md bg-primary/20 ring-1 ring-primary/30" />
-          <span className="size-3 rounded-md bg-muted ring-1 ring-foreground/[0.05]" />
-          <span className="size-3 rounded-md bg-muted ring-1 ring-foreground/[0.05]" />
-          <span className="size-3 rounded-md bg-muted ring-1 ring-foreground/[0.05]" />
+        <div className="flex items-center justify-center gap-1 border-t bg-muted/30 px-2 py-1">
+          <span className="size-2.5 rounded-md bg-primary/20 ring-1 ring-primary/30" />
+          <span className="size-2.5 rounded-md bg-muted ring-1 ring-foreground/[0.05]" />
+          <span className="size-2.5 rounded-md bg-muted ring-1 ring-foreground/[0.05]" />
         </div>
       </div>
-      <p className="mt-2 px-1 text-[10px] leading-snug text-muted-foreground">
-        Una idea de cómo se vería tu nelzzon — colores, tarjetas y accesos, a tu manera.
+      <p className="mt-1.5 px-0.5 text-[10px] leading-snug text-muted-foreground">
+        Una idea de cómo se vería tu nelzzon.
       </p>
     </div>
   );
@@ -377,25 +373,23 @@ function StudioMiniPreview() {
 
 function StudioHome({ onNavigate }: { onNavigate: (key: string) => void }) {
   return (
-    <div className="space-y-6">
-      <div className="grid gap-5 sm:grid-cols-[1.1fr_1fr]">
-        <div className="flex flex-col justify-center">
-          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-medium tracking-wide text-primary">
-            <Sparkles className="h-2.5 w-2.5" />
-            Tu Design Studio
-          </span>
-          <h3 className="mt-2.5 text-2xl font-semibold tracking-tight">Tu nelzzon</h3>
-          <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-muted-foreground">
-            Diseña cómo se ve, se siente y se organiza tu sistema — explora, prueba estilos
-            y descubre hacia dónde puede llegar tu espacio de trabajo.
-          </p>
-        </div>
-        <StudioMiniPreview />
+    <div className="space-y-4">
+      <div>
+        <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-medium tracking-wide text-primary">
+          <Sparkles className="h-2.5 w-2.5" />
+          Tu Design Studio
+        </span>
+        <h3 className="mt-2 text-xl font-semibold tracking-tight">Tu nelzzon</h3>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+          Diseña cómo se ve, se siente y se organiza tu sistema.
+        </p>
       </div>
 
+      <StudioMiniPreview />
+
       <div>
-        <p className="mb-2.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Empieza por aquí</p>
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Empieza por aquí</p>
+        <div className="grid grid-cols-2 gap-2">
           {HOME_QUICK_LINKS.map((link) => {
             const Icon = link.icon;
             return (
@@ -403,14 +397,14 @@ function StudioHome({ onNavigate }: { onNavigate: (key: string) => void }) {
                 key={link.key}
                 type="button"
                 onClick={() => onNavigate(link.key)}
-                className="group flex flex-col items-start gap-2 rounded-2xl border bg-background/60 p-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-md hover:ring-1 hover:ring-foreground/10"
+                className="group flex items-center gap-2 rounded-xl border bg-background/60 px-2.5 py-2 text-left transition-all hover:-translate-y-0.5 hover:shadow-sm hover:ring-1 hover:ring-foreground/10"
               >
-                <span className={cn("flex size-8 items-center justify-center rounded-xl transition-transform group-hover:scale-105", link.accent)}>
+                <span className={cn("flex size-7 shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-105", link.accent)}>
                   <Icon className="h-3.5 w-3.5" />
                 </span>
-                <span>
-                  <span className="block text-xs font-medium">{link.label}</span>
-                  <span className="mt-0.5 block text-[10px] leading-snug text-muted-foreground">{link.hint}</span>
+                <span className="min-w-0">
+                  <span className="block truncate text-xs font-medium">{link.label}</span>
+                  <span className="block truncate text-[10px] leading-snug text-muted-foreground">{link.hint}</span>
                 </span>
               </button>
             );
@@ -418,17 +412,22 @@ function StudioHome({ onNavigate }: { onNavigate: (key: string) => void }) {
         </div>
       </div>
 
-      <div className="rounded-2xl border bg-muted/20 p-4">
-        <p className="mb-2.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Cómo va este adelanto</p>
-        <ul className="grid gap-2 sm:grid-cols-3">
+      <div>
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Cómo va este adelanto</p>
+        <div className="flex flex-wrap items-center gap-1.5">
           {HOME_STATUS_SUMMARY.map((item) => (
-            <li key={item.label} className="rounded-xl border bg-background/60 p-3">
-              <StatusBadge status={item.status} />
-              <p className="mt-1.5 text-xs font-medium">{item.label}</p>
-              <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">{item.detail}</p>
-            </li>
+            <span
+              key={item.label}
+              title={item.detail}
+              className={cn(
+                "inline-flex cursor-default items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium tracking-wide",
+                STATUS_META[item.status].className
+              )}
+            >
+              {item.label}
+            </span>
           ))}
-        </ul>
+        </div>
       </div>
     </div>
   );
@@ -479,7 +478,7 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
       role="dialog"
       aria-label="Personalizar nelzzon"
       className={cn(
-        "flex max-h-[min(40rem,82vh)] w-[min(46rem,94vw)] flex-col overflow-hidden rounded-3xl border bg-card shadow-[0_32px_88px_-28px_rgba(0,0,0,0.32)] ring-1 ring-foreground/[0.06]",
+        "flex max-h-[min(33rem,76vh)] w-[min(25rem,92vw)] flex-col overflow-hidden rounded-3xl border bg-card shadow-[0_28px_76px_-26px_rgba(0,0,0,0.30)] ring-1 ring-foreground/[0.06]",
         className
       )}
     >
@@ -489,17 +488,17 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
       />
 
       {/* Header */}
-      <div className="shrink-0 border-b px-6 py-5">
+      <div className="shrink-0 border-b px-5 py-4">
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold tracking-tight">Personalizar nelzzon</h2>
+              <h2 className="text-base font-semibold tracking-tight">Personalizar nelzzon</h2>
               <span className="inline-flex items-center gap-1 rounded-full bg-muted/70 px-2 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground">
                 <Sparkles className="h-2.5 w-2.5" />
                 Vista previa
               </span>
             </div>
-            <p className="mt-1 text-sm leading-snug text-muted-foreground">
+            <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
               Haz que el sistema se sienta tuyo.
             </p>
           </div>
@@ -507,59 +506,61 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
             type="button"
             onClick={onClose}
             aria-label="Cerrar Personalizar"
-            className="flex items-center justify-center size-8 shrink-0 rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex items-center justify-center size-7 shrink-0 rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="relative mt-4">
+        <div className="relative mt-3">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Busca una categoría — marca, fondos, dashboard, accesibilidad…"
-            className="w-full rounded-full border bg-muted/30 py-2 pl-9 pr-3.5 text-xs placeholder:text-muted-foreground/70 focus:bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+            placeholder="Busca una categoría…"
+            className="w-full rounded-full border bg-muted/30 py-1.5 pl-9 pr-3.5 text-xs placeholder:text-muted-foreground/70 focus:bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
-      </div>
 
-      {/* Body: rail + active section */}
-      <div className="flex min-h-0 flex-1">
-        <nav aria-label="Categorías de personalización" className="w-44 shrink-0 overflow-y-auto border-r px-2.5 py-3 sm:w-52">
-          {filteredSections.length === 0 && (
-            <p className="px-2 py-4 text-[11px] leading-snug text-muted-foreground">
-              No encontramos coincidencias — prueba con otra palabra.
-            </p>
-          )}
-          <ul className="space-y-0.5">
+        {/* Categorías — fila horizontal de chips, compacta y siempre visible */}
+        {filteredSections.length === 0 ? (
+          <p className="mt-3 px-1 text-[11px] leading-snug text-muted-foreground">
+            No encontramos coincidencias — prueba con otra palabra.
+          </p>
+        ) : (
+          <nav
+            aria-label="Categorías de personalización"
+            className="-mx-1 mt-3 flex gap-1 overflow-x-auto px-1 pb-0.5 [scrollbar-width:thin]"
+          >
             {filteredSections.map((section) => {
               const Icon = section.icon;
               const isActive = section.key === activeKey;
               return (
-                <li key={section.key}>
-                  <button
-                    type="button"
-                    onClick={() => setActiveKey(section.key)}
-                    aria-current={isActive}
-                    className={cn(
-                      "flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-medium transition-colors",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
-                    )}
-                  >
-                    <Icon className="h-3.5 w-3.5 shrink-0" />
-                    <span className="truncate">{section.label}</span>
-                  </button>
-                </li>
+                <button
+                  key={section.key}
+                  type="button"
+                  onClick={() => setActiveKey(section.key)}
+                  aria-current={isActive}
+                  className={cn(
+                    "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
+                    isActive
+                      ? "bg-primary/10 text-primary"
+                      : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  <Icon className="h-3 w-3 shrink-0" />
+                  {section.label}
+                </button>
               );
             })}
-          </ul>
-        </nav>
+          </nav>
+        )}
+      </div>
 
-        <div className="flex-1 overflow-y-auto px-6 pb-8 pt-5">
+      {/* Sección activa */}
+      <div className="min-h-0 flex-1">
+        <div className="h-full overflow-y-auto px-5 pb-7 pt-4">
           {active.key === "inicio" ? (
             <StudioHome onNavigate={setActiveKey} />
           ) : (
@@ -633,18 +634,15 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="flex shrink-0 items-center justify-between gap-3 border-t bg-muted/20 px-6 py-3.5">
-        <p className="text-[11px] leading-snug text-muted-foreground">
-          Los cambios todavía no se guardan — esto es un adelanto de hacia dónde va nelzzon.
+      {/* Footer — estado informativo, no es un botón */}
+      <div className="shrink-0 border-t bg-muted/20 px-5 py-3">
+        <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] leading-snug text-muted-foreground">
+          <span className="font-medium text-foreground/80">Los cambios todavía no se guardan.</span>
+          <span className="inline-flex items-center gap-1 text-muted-foreground/70">
+            <Lock className="h-2.5 w-2.5" />
+            Guardar es parte del motor de personalización — todavía no existe.
+          </span>
         </p>
-        <span
-          title="Guardar — requiere el motor de personalización"
-          className="inline-flex shrink-0 cursor-default items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground/70"
-        >
-          <Lock className="h-3 w-3" />
-          Guardar — requiere motor
-        </span>
       </div>
     </div>
   );
