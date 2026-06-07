@@ -69,7 +69,7 @@ export function AppSidebar({ roleKey, orgName, collapsed, onToggleCollapse, onOp
         onClick={onToggleCollapse}
         aria-label="Abrir menú"
         title="Abrir menú"
-        className="fixed left-3 top-4 z-40 flex items-center justify-center size-9 rounded-full border bg-card/90 text-muted-foreground shadow-sm ring-1 ring-foreground/10 backdrop-blur transition-colors hover:text-foreground"
+        className="fixed left-4 top-20 z-40 flex items-center justify-center size-9 rounded-full border bg-card/90 text-muted-foreground shadow-sm ring-1 ring-foreground/10 backdrop-blur transition-colors hover:text-foreground"
       >
         <PanelLeftOpen className="h-4 w-4" />
       </button>
