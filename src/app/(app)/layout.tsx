@@ -6,6 +6,7 @@ import { UserMenu } from "@/components/user-menu";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { hasPermission } from "@/lib/permissions";
 import { ROLES } from "@/server/domain/identity/rbac";
+import { APP_NAME } from "@/lib/brand";
 
 export default async function AppLayout({
   children,
@@ -53,7 +54,7 @@ export default async function AppLayout({
       <div className="flex flex-col flex-1 min-w-0">
         {hasPermission(roleKey, "patients.view") && (
           <header className="flex items-center border-b px-6 py-3 bg-background">
-            <GlobalSearch placeholder="Buscar en LOOLO…" className="w-full max-w-md" />
+            <GlobalSearch placeholder={`Buscar en ${APP_NAME}…`} className="w-full max-w-md" />
           </header>
         )}
         <main className="flex-1 overflow-auto bg-background">

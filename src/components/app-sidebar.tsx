@@ -13,6 +13,7 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { APP_NAME } from "@/lib/brand";
 import { hasPermission } from "@/lib/permissions";
 
 interface NavItem {
@@ -48,7 +49,7 @@ export function AppSidebar({ roleKey, orgName }: AppSidebarProps) {
   return (
     <aside className="flex flex-col w-64 min-h-screen border-r bg-sidebar">
       <div className="px-6 py-5 border-b">
-        <span className="text-lg font-bold text-sidebar-foreground">Loolo</span>
+        <span className="text-lg font-bold text-sidebar-foreground">{APP_NAME}</span>
         <p className="text-xs text-muted-foreground mt-0.5 truncate">{orgName}</p>
       </div>
 

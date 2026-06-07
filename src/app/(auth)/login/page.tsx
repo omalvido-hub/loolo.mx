@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { APP_NAME } from "@/lib/brand";
 
 function LoginForm() {
   const router = useRouter();
@@ -74,7 +75,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-muted/40 px-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Loolo</CardTitle>
+          <CardTitle className="text-2xl font-bold">{APP_NAME}</CardTitle>
           <CardDescription>Ingresa a tu cuenta</CardDescription>
         </CardHeader>
         <CardContent>
