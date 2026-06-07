@@ -46,14 +46,26 @@ function fCents(cents: number): string {
 
 interface SectionCardProps {
   title: string;
+  /** Aviso corto ("Resumen") junto al título — aclara que el detalle completo vive en otra parte. */
+  badge?: string;
+  /** Texto bajo el título, p.ej. apuntando a dónde está el detalle completo. */
+  hint?: string;
   children: React.ReactNode;
 }
 
-function SectionCard({ title, children }: SectionCardProps) {
+function SectionCard({ title, badge, hint, children }: SectionCardProps) {
   return (
     <div className="rounded-xl border bg-card text-sm ring-1 ring-foreground/10 overflow-hidden">
       <div className="px-4 py-3 border-b bg-muted/30">
-        <h2 className="font-medium text-base">{title}</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="font-medium text-base">{title}</h2>
+          {badge && (
+            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-foreground/5 text-muted-foreground">
+              {badge}
+            </span>
+          )}
+        </div>
+        {hint && <p className="text-xs text-muted-foreground mt-0.5">{hint}</p>}
       </div>
       <div className="px-4 py-4 space-y-2">{children}</div>
     </div>
@@ -61,7 +73,7 @@ function SectionCard({ title, children }: SectionCardProps) {
 }
 
 /** Encabezado de grupo: agrupa varias tarjetas bajo un mismo propósito ("qué es esto"). */
-function GroupHeading({ title, subtitle }: { title: string; subtitle?: string }) {
+export function GroupHeading({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="pt-2 first:pt-0">
       <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
@@ -222,7 +234,7 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
 
       <GroupHeading
         title="Expediente clínico"
-        subtitle="Perfil médico, odontograma, consultas y plan de tratamiento."
+        subtitle="Resumen rápido — perfil médico, odontograma, consultas y plan/saldo. El detalle completo de planes y presupuestos vive más abajo, en sus propios módulos."
       />
 
       {/* Perfil clínico — alertas médicas, alergias, medicamentos, antecedentes */}
@@ -250,9 +262,14 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         </SectionCard>
       )}
 
-      {/* Plan de tratamiento */}
+      {/* Resumen corto del plan — el módulo "Planes de tratamiento — detalle" (más abajo)
+          tiene la lista completa de planes, ítems y acciones. */}
       {treatment && (
-        <SectionCard title="Plan de tratamiento">
+        <SectionCard
+          title="Resumen de plan de tratamiento"
+          badge="Resumen"
+          hint="Vista rápida. El detalle completo (planes, ítems y acciones) está en “Planes de tratamiento — detalle”, más abajo."
+        >
           <Row label="Planes registrados" value={treatment.plansCount} />
           <Row label="Plan activo" value={treatment.activePlanId ? "Sí" : "No"} />
           {Object.entries(treatment.itemsByStatus).map(([status, count]) => (
@@ -261,9 +278,14 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         </SectionCard>
       )}
 
-      {/* Financiero — presupuestos, cobros y saldo derivados del plan */}
+      {/* Resumen corto de presupuestos/cobros — el módulo "Presupuestos y cobros — detalle"
+          (más abajo) tiene las líneas, estados y registro de pagos. */}
       {financial && (
-        <SectionCard title="Presupuestos y cobros">
+        <SectionCard
+          title="Resumen de presupuestos y cobros"
+          badge="Resumen"
+          hint="Vista rápida del saldo. El detalle completo (presupuestos, líneas y pagos) está en “Presupuestos y cobros — detalle”, más abajo."
+        >
           <Row label="Presupuestos" value={financial.quotesCount} />
           <Row label="Total propuesto" value={fCents(financial.totalProposedCents)} />
           <Row label="Total aceptado" value={fCents(financial.totalAcceptedCents)} />
@@ -362,13 +384,18 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
 
       <GroupHeading
         title="Actividad reciente"
-        subtitle="Lo más reciente primero — útil para retomar el contexto rápido."
+        subtitle="Eventos del sistema más recientes, en orden cronológico — útil para retomar el contexto rápido."
       />
 
-      {/* Bitácora de eventos del sistema (versionados) — distinta del historial detallado
-          de abajo (PatientTimeline), que cruza encuentros + hallazgos + planes + cobros. */}
+      {/* Bitácora de eventos del sistema (versionados) — resumen corto y reciente.
+          Distinta de "Historial del paciente" (más abajo, fuera de esta vista), que
+          es el detalle completo cruzando encuentros + hallazgos + planes + cobros. */}
       {timeline.length > 0 && (
-        <SectionCard title="Bitácora de eventos">
+        <SectionCard
+          title="Bitácora de eventos"
+          badge="Resumen"
+          hint="Los 20 eventos más recientes del sistema. Para el cruce completo de actividad clínica y administrativa, ve “Historial del paciente”, en la parte inferior de esta ficha."
+        >
           <ul className="space-y-2">
             {timeline.slice(0, 20).map((ev, i) => (
               <li key={i} className="flex items-start gap-3 text-sm">

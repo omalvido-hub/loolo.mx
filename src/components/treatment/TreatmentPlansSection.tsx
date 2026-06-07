@@ -36,7 +36,7 @@ export function TreatmentPlansSection({ view }: Props) {
     <div className="space-y-4">
       {/* Cabecera de sección */}
       <div>
-        <h2 className="text-lg font-semibold">Planes de tratamiento</h2>
+        <h2 className="text-lg font-semibold">Planes de tratamiento — detalle</h2>
         <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>
       </div>
 

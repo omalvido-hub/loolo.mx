@@ -847,7 +847,7 @@ export function QuotesSectionClient({
       {/* Cabecera de sección */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Presupuestos y Cobros</h2>
+          <h2 className="text-lg font-semibold">Presupuestos y cobros — detalle</h2>
           <p className="text-sm text-muted-foreground mt-0.5">
             {totalQuotes === 0
               ? "Sin presupuestos registrados"
@@ -869,7 +869,7 @@ export function QuotesSectionClient({
       {totalQuotes > 0 && (
         <div className="rounded-xl border bg-card ring-1 ring-foreground/10 overflow-hidden">
           <div className="px-4 py-3 border-b bg-muted/30">
-            <h3 className="font-medium text-sm">Resumen financiero</h3>
+            <h3 className="font-medium text-sm">Totales</h3>
           </div>
           <div className="px-4 py-3 grid grid-cols-2 gap-x-6 gap-y-1 text-sm sm:grid-cols-4">
             <div>

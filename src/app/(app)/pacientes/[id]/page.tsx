@@ -8,7 +8,7 @@ import { getOdontogramMasterView } from "@/server/domain/clinical/odontogram-vie
 import { getTreatmentPlansSafeView } from "@/server/domain/clinical/treatment-views";
 import { getQuotesSafeView } from "@/server/domain/billing/billing-views";
 import { can } from "@/server/domain/identity/permissions";
-import { PatientLiveRecordView } from "@/components/patients/PatientLiveRecordView";
+import { PatientLiveRecordView, GroupHeading } from "@/components/patients/PatientLiveRecordView";
 import { OdontogramMasterSection } from "@/components/odontogram/OdontogramMasterSection";
 import { OdontogramNoPermission } from "@/components/odontogram/OdontogramNoPermission";
 import { TreatmentPlansSection } from "@/components/treatment/TreatmentPlansSection";
@@ -123,6 +123,12 @@ export default async function PacienteDetallePage({
         odontogramSection={odontogramSection}
       />
       <div className="px-8 pb-10 max-w-4xl mx-auto space-y-6">
+        <div className="pt-2 border-t">
+          <GroupHeading
+            title="Detalle completo"
+            subtitle="Historial cronológico cruzado y módulos extendidos — aquí están las acciones, líneas y registros completos detrás de los resúmenes de arriba."
+          />
+        </div>
         <PatientTimeline
           encounters={encounters}
           findings={odoResult.ok ? odoResult.value.findingsPanel : []}
