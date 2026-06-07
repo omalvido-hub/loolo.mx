@@ -11,7 +11,7 @@
 
 module.exports = {
   apps: [{
-    name: 'loolo',
+    name: 'nelzzon',
     script: '/ruta/absoluta/al/proyecto/start.sh',
     cwd: '/ruta/absoluta/al/proyecto',
     // autorestart: false previene el loop de EADDRINUSE causado por Next.js 15.

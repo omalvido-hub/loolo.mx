@@ -9,6 +9,8 @@
 # Uso: pm2 start ecosystem.config.cjs
 # (ecosystem.config.cjs apunta a este script como script de inicio)
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 fuser -k 3000/tcp 2>/dev/null || true
 sleep 1
-node /root/Desktop/SAAS/loolo/node_modules/next/dist/bin/next start -p 3000
+node "$SCRIPT_DIR/node_modules/next/dist/bin/next" start -p 3000
