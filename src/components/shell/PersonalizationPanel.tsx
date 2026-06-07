@@ -315,6 +315,125 @@ function AccessibilityPreview() {
   );
 }
 
+const HOME_QUICK_LINKS: { key: string; label: string; hint: string; icon: React.ElementType; accent: string }[] = [
+  { key: "apariencia", label: "Apariencia", hint: "Tema, estilos y modo de vista", icon: Palette, accent: "bg-violet-500/10 text-violet-600" },
+  { key: "fondos", label: "Fondos", hint: "Imágenes y gradientes propios", icon: ImageIcon, accent: "bg-sky-500/10 text-sky-600" },
+  { key: "dashboard", label: "Dashboard", hint: "Tu panorama, a tu manera", icon: LayoutDashboard, accent: "bg-emerald-500/10 text-emerald-600" },
+  { key: "portal", label: "Portal", hint: "La cara de tu negocio", icon: Globe, accent: "bg-amber-500/10 text-amber-600" },
+];
+
+const HOME_STATUS_SUMMARY: { label: string; detail: string; status: StudioOptionStatus }[] = [
+  { label: "Vista previa local", detail: "Lo que pruebas aquí vive solo en este panel", status: "preview" },
+  { label: "Motor futuro", detail: "Guardar y aplicar de verdad llega después", status: "engine" },
+  { label: "Sin guardar todavía", detail: "Nada se escribe en tu organización", status: "soon" },
+];
+
+function StudioMiniPreview() {
+  return (
+    <div
+      aria-hidden
+      className="overflow-hidden rounded-2xl border bg-gradient-to-br from-sky-50 via-violet-50 to-fuchsia-50 p-3 shadow-inner ring-1 ring-foreground/[0.04] dark:from-sky-500/[0.07] dark:via-violet-500/[0.07] dark:to-fuchsia-500/[0.07]"
+    >
+      <div className="overflow-hidden rounded-xl border bg-card/80 shadow-sm ring-1 ring-foreground/[0.05] backdrop-blur">
+        {/* topbar miniatura */}
+        <div className="flex items-center gap-1.5 border-b px-2.5 py-1.5">
+          <span className="size-1.5 rounded-full bg-rose-400/70" />
+          <span className="size-1.5 rounded-full bg-amber-400/70" />
+          <span className="size-1.5 rounded-full bg-emerald-400/70" />
+          <span className="ml-2 h-1.5 w-20 rounded-full bg-gradient-to-r from-sky-400/50 via-violet-400/50 to-fuchsia-400/50" />
+          <span className="ml-auto size-3.5 rounded-full bg-muted" />
+        </div>
+        <div className="flex">
+          {/* sidebar miniatura */}
+          <div className="hidden w-10 shrink-0 space-y-1.5 border-r p-2 sm:block">
+            <span className="block h-1.5 w-6 rounded-full bg-primary/30" />
+            <span className="block h-1.5 w-7 rounded-full bg-muted" />
+            <span className="block h-1.5 w-5 rounded-full bg-muted" />
+            <span className="block h-1.5 w-7 rounded-full bg-muted" />
+          </div>
+          {/* tarjetas tipo dashboard */}
+          <div className="grid flex-1 grid-cols-3 gap-1.5 p-2.5">
+            <span className="col-span-2 row-span-2 rounded-lg bg-gradient-to-br from-sky-400/25 to-violet-400/15 ring-1 ring-foreground/[0.04]" />
+            <span className="rounded-lg bg-emerald-400/20 ring-1 ring-foreground/[0.04]" />
+            <span className="rounded-lg bg-amber-400/20 ring-1 ring-foreground/[0.04]" />
+            <span className="col-span-2 rounded-lg bg-fuchsia-400/15 ring-1 ring-foreground/[0.04]" />
+            <span className="rounded-lg bg-violet-400/20 ring-1 ring-foreground/[0.04]" />
+          </div>
+        </div>
+        {/* dock miniatura */}
+        <div className="flex items-center justify-center gap-1 border-t bg-muted/30 px-2 py-1.5">
+          <span className="size-3 rounded-md bg-primary/20 ring-1 ring-primary/30" />
+          <span className="size-3 rounded-md bg-muted ring-1 ring-foreground/[0.05]" />
+          <span className="size-3 rounded-md bg-muted ring-1 ring-foreground/[0.05]" />
+          <span className="size-3 rounded-md bg-muted ring-1 ring-foreground/[0.05]" />
+        </div>
+      </div>
+      <p className="mt-2 px-1 text-[10px] leading-snug text-muted-foreground">
+        Una idea de cómo se vería tu nelzzon — colores, tarjetas y accesos, a tu manera.
+      </p>
+    </div>
+  );
+}
+
+function StudioHome({ onNavigate }: { onNavigate: (key: string) => void }) {
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-5 sm:grid-cols-[1.1fr_1fr]">
+        <div className="flex flex-col justify-center">
+          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-medium tracking-wide text-primary">
+            <Sparkles className="h-2.5 w-2.5" />
+            Tu Design Studio
+          </span>
+          <h3 className="mt-2.5 text-2xl font-semibold tracking-tight">Tu nelzzon</h3>
+          <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-muted-foreground">
+            Diseña cómo se ve, se siente y se organiza tu sistema — explora, prueba estilos
+            y descubre hacia dónde puede llegar tu espacio de trabajo.
+          </p>
+        </div>
+        <StudioMiniPreview />
+      </div>
+
+      <div>
+        <p className="mb-2.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Empieza por aquí</p>
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+          {HOME_QUICK_LINKS.map((link) => {
+            const Icon = link.icon;
+            return (
+              <button
+                key={link.key}
+                type="button"
+                onClick={() => onNavigate(link.key)}
+                className="group flex flex-col items-start gap-2 rounded-2xl border bg-background/60 p-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-md hover:ring-1 hover:ring-foreground/10"
+              >
+                <span className={cn("flex size-8 items-center justify-center rounded-xl transition-transform group-hover:scale-105", link.accent)}>
+                  <Icon className="h-3.5 w-3.5" />
+                </span>
+                <span>
+                  <span className="block text-xs font-medium">{link.label}</span>
+                  <span className="mt-0.5 block text-[10px] leading-snug text-muted-foreground">{link.hint}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border bg-muted/20 p-4">
+        <p className="mb-2.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Cómo va este adelanto</p>
+        <ul className="grid gap-2 sm:grid-cols-3">
+          {HOME_STATUS_SUMMARY.map((item) => (
+            <li key={item.label} className="rounded-xl border bg-background/60 p-3">
+              <StatusBadge status={item.status} />
+              <p className="mt-1.5 text-xs font-medium">{item.label}</p>
+              <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">{item.detail}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 interface PersonalizationPanelProps {
   mode: PersonalizationMode;
   onChange: (mode: PersonalizationMode) => void;
@@ -441,6 +560,10 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
         </nav>
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
+          {active.key === "inicio" ? (
+            <StudioHome onNavigate={setActiveKey} />
+          ) : (
+            <>
           <div className="flex items-start gap-3">
             <span className="flex size-9 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               <ActiveIcon className="h-4 w-4" />
@@ -505,6 +628,8 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
               </li>
             ))}
           </ul>
+            </>
+          )}
         </div>
       </div>
 
