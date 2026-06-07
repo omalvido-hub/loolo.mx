@@ -1,39 +1,19 @@
 "use client";
 
-// Selector visual de "modo de vista". Anticipa el futuro motor de personalización
-// de nelzzon: el usuario podrá elegir cómo "siente" su espacio de trabajo (plano,
-// interactivo, o en edición para acomodar módulos). Vive dentro de PersonalizationPanel.
-// Por ahora NO persiste nada — es un preview de la dirección de producto.
+// Control puramente visual. Anticipa el futuro motor de personalización de nelzzon:
+// el usuario podrá elegir cómo "siente" su espacio de trabajo (plano, interactivo,
+// o en edición para acomodar módulos). Por ahora NO persiste nada — es un preview
+// de la dirección de producto, sin guardar preferencias en BD ni en sesión.
 
 import { Layers, MousePointerClick, PencilRuler } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type PersonalizationMode = "flat" | "interactive" | "edit";
 
-const MODES: {
-  key: PersonalizationMode;
-  label: string;
-  description: string;
-  icon: React.ElementType;
-}[] = [
-  {
-    key: "flat",
-    label: "Modo plano",
-    description: "Vista simple y silenciosa — sin acentos extra, ideal para enfocarte en los datos.",
-    icon: Layers,
-  },
-  {
-    key: "interactive",
-    label: "Modo interactivo",
-    description: "Tarjetas y accesos resaltan al interactuar — la experiencia recomendada por defecto.",
-    icon: MousePointerClick,
-  },
-  {
-    key: "edit",
-    label: "Editar vista",
-    description: "Vista previa de cómo se sentirá acomodar tus propios módulos (próximamente).",
-    icon: PencilRuler,
-  },
+const MODES: { key: PersonalizationMode; label: string; icon: React.ElementType }[] = [
+  { key: "flat", label: "Modo plano", icon: Layers },
+  { key: "interactive", label: "Modo interactivo", icon: MousePointerClick },
+  { key: "edit", label: "Editar vista", icon: PencilRuler },
 ];
 
 interface PersonalizationPreviewToggleProps {
@@ -44,7 +24,13 @@ interface PersonalizationPreviewToggleProps {
 
 export function PersonalizationPreviewToggle({ mode, onChange, className }: PersonalizationPreviewToggleProps) {
   return (
-    <div className={cn("space-y-1.5", className)} role="radiogroup" aria-label="Modo de vista">
+    <div
+      className={cn(
+        "inline-flex items-center gap-0.5 rounded-full border bg-muted/40 p-0.5 text-xs",
+        className
+      )}
+      title="Vista previa visual — la personalización real llega en una fase futura"
+    >
       {MODES.map((m) => {
         const Icon = m.icon;
         const active = mode === m.key;
@@ -53,27 +39,16 @@ export function PersonalizationPreviewToggle({ mode, onChange, className }: Pers
             key={m.key}
             type="button"
             onClick={() => onChange(m.key)}
-            role="radio"
-            aria-checked={active}
+            aria-pressed={active}
             className={cn(
-              "flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors",
+              "flex items-center gap-1.5 rounded-full px-2.5 py-1.5 font-medium transition-colors",
               active
-                ? "border-primary/25 bg-primary/[0.06]"
-                : "border-transparent hover:bg-muted/60"
+                ? "bg-background text-foreground shadow-sm ring-1 ring-foreground/10"
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
-            <span
-              className={cn(
-                "flex items-center justify-center size-8 shrink-0 rounded-lg transition-colors",
-                active ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
-              )}
-            >
-              <Icon className="h-4 w-4" />
-            </span>
-            <span className="min-w-0">
-              <span className="block text-sm font-medium">{m.label}</span>
-              <span className="block text-xs text-muted-foreground mt-0.5 leading-snug">{m.description}</span>
-            </span>
+            <Icon className="h-3.5 w-3.5 shrink-0" />
+            <span className="hidden lg:inline">{m.label}</span>
           </button>
         );
       })}
