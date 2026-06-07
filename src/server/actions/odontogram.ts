@@ -9,6 +9,8 @@ import { requireOrganization, UnauthorizedError, NoOrganizationError } from "@/s
 import { getActorContext } from "@/server/auth/context";
 import { makeTenantRunner } from "@/server/db/tenant";
 import { recordFinding, voidFinding, treatFinding, resolveFinding } from "@/server/domain/clinical/odontogram";
+import { getToothHistory } from "@/server/domain/clinical/odontogram-views";
+import type { ToothHistoryView } from "@/server/domain/clinical/odontogram-views";
 
 type ActionResult<T = undefined> =
   | { ok: true; data: T }
@@ -99,5 +101,25 @@ export async function resolveFindingAction(
       return { ok: false, error: "Sesión expirada. Recarga la página." };
     }
     return { ok: false, error: e?.message ?? "Error al resolver el hallazgo." };
+  }
+}
+
+// Lectura del historial cronológico de una pieza (TOOTH-HISTORY-1A). Solo lectura.
+export async function getToothHistoryAction(
+  patientId: string,
+  toothFdi: number,
+): Promise<ActionResult<ToothHistoryView>> {
+  try {
+    const { ctx, run } = await getCtx();
+    const result = await getToothHistory(run, ctx, patientId, toothFdi);
+    if (!result.ok) {
+      return { ok: false, error: result.detail ?? result.reason };
+    }
+    return { ok: true, data: result.value };
+  } catch (e: any) {
+    if (e instanceof UnauthorizedError || e instanceof NoOrganizationError) {
+      return { ok: false, error: "Sesión expirada. Recarga la página." };
+    }
+    return { ok: false, error: e?.message ?? "Error al cargar el historial de la pieza." };
   }
 }

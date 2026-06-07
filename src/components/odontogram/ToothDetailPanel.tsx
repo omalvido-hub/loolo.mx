@@ -7,13 +7,14 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import type { FindingPanelItem } from "@/server/domain/clinical/odontogram-views";
+import type { FindingPanelItem, ToothHistoryEntry } from "@/server/domain/clinical/odontogram-views";
 import { getToothName } from "./tooth-names";
 import { ToothDiagram } from "./ToothDiagram";
 import {
   voidFindingAction,
   treatFindingAction,
   resolveFindingAction,
+  getToothHistoryAction,
 } from "@/server/actions/odontogram";
 
 const FINDING_TYPE_LABEL: Record<string, string> = {
@@ -149,6 +150,31 @@ export function ToothDetailPanel({
   const [actionError, setActionError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  // ── Historial de la pieza (TOOTH-HISTORY-1A) — solo lectura, carga bajo demanda ──
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyEntries, setHistoryEntries] = useState<ToothHistoryEntry[] | null>(null);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [isHistoryPending, startHistoryTransition] = useTransition();
+
+  function toggleHistory() {
+    if (historyOpen) {
+      setHistoryOpen(false);
+      return;
+    }
+    setHistoryOpen(true);
+    if (historyEntries === null && patientId) {
+      setHistoryError(null);
+      startHistoryTransition(async () => {
+        const result = await getToothHistoryAction(patientId, fdi);
+        if (result.ok) {
+          setHistoryEntries(result.data.entries);
+        } else {
+          setHistoryError(result.error);
+        }
+      });
+    }
+  }
+
   function openAction(findingId: string, action: ActionType) {
     setActiveAction({ findingId, action });
     setReason("");
@@ -245,9 +271,76 @@ export function ToothDetailPanel({
 
       {/* Hallazgos */}
       <div className="px-3 py-2.5">
-        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-2">
-          Hallazgos en esta pieza
-        </p>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+            Hallazgos en esta pieza
+          </p>
+          {patientId && (
+            <button
+              type="button"
+              onClick={toggleHistory}
+              className="text-[10px] font-medium px-1.5 py-0.5 rounded border border-input text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              {historyOpen ? "Ocultar historial" : "Historial"}
+            </button>
+          )}
+        </div>
+
+        {historyOpen && (
+          <div className="mb-3 rounded border bg-muted/20 px-2.5 py-2">
+            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-1.5">
+              Historial de la pieza {fdi} — solo lectura
+            </p>
+            {isHistoryPending ? (
+              <p className="text-xs text-muted-foreground py-1">Cargando historial…</p>
+            ) : historyError ? (
+              <p className="text-xs text-destructive py-1">{historyError}</p>
+            ) : !historyEntries || historyEntries.length === 0 ? (
+              <p className="text-xs text-muted-foreground py-1">
+                Sin registros históricos para esta pieza.
+              </p>
+            ) : (
+              <ol className="space-y-1.5">
+                {historyEntries.map((h, i) => {
+                  const color = FINDING_TYPE_COLOR[h.findingType] ?? "#9ca3af";
+                  const chip = LIFECYCLE_CHIP[h.lifecycleStatus] ?? LIFECYCLE_CHIP.ACTIVE;
+                  return (
+                    <li key={h.findingId} className="flex items-start gap-2 text-xs">
+                      <span className="mt-0.5 text-[9px] font-medium text-muted-foreground/70 w-4 text-right shrink-0">
+                        {i + 1}.
+                      </span>
+                      <div
+                        className="mt-1 w-2 h-2 rounded-sm flex-shrink-0"
+                        style={{ backgroundColor: color }}
+                      />
+                      <div className="min-w-0">
+                        <span className="font-medium">
+                          {FINDING_TYPE_LABEL[h.findingType] ?? h.findingType}
+                        </span>
+                        {h.surface && (
+                          <span className="text-muted-foreground">
+                            {" · "}{SURFACE_LABEL[h.surface] ?? h.surface}
+                          </span>
+                        )}
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          <span className={`text-[9px] font-medium px-1 py-px rounded border ${chip.cls}`}>
+                            {chip.label}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">{fDate(h.createdAt)}</span>
+                          {h.supersedesFindingId && (
+                            <span className="text-[9px] text-muted-foreground/70 italic">
+                              reemplaza registro anterior
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </div>
+        )}
 
         {findings.length === 0 ? (
           <p className="text-xs text-muted-foreground py-2">

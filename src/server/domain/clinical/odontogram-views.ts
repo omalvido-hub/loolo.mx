@@ -69,6 +69,23 @@ export interface OdontogramMasterView {
   summary: OdontogramViewSummary;
 }
 
+export interface ToothHistoryEntry {
+  findingId: string;
+  surface: string | null;
+  findingType: string;
+  toothStatus: string;
+  lifecycleStatus: string;
+  supersedesFindingId: string | null;
+  createdAt: string;
+  encounterId: string | null;
+}
+
+export interface ToothHistoryView {
+  patientId: string;
+  toothFdi: number;
+  entries: ToothHistoryEntry[];
+}
+
 export interface OdontogramEncounterView {
   encounterId: string;
   mode: "encounter_snapshot";
@@ -309,5 +326,77 @@ export async function getOdontogramEncounterView(
       findingsPanel,
       summary,
     });
+  });
+}
+
+// ─── getToothHistory (TOOTH-HISTORY-1A) ──────────────────────────────────
+
+/**
+ * Historial cronológico append-only de una pieza: todas las filas registradas
+ * para ese FDI (incluye ACTIVE, OBSERVATION, TREATED, RESOLVED, CONTROLLED y
+ * VOIDED), en el orden en que fueron creadas. No colapsa cadenas de
+ * supersesión — la cadena completa es justamente lo que se quiere mostrar.
+ * Exige odontogram.view. Fail-closed.
+ * NUNCA devuelve note, lifecycleReason, recordedByUserId ni organizationId.
+ */
+export async function getToothHistory(
+  run: TenantRunner,
+  ctx: ActorContext,
+  patientId: string,
+  toothFdi: number,
+): Promise<Result<ToothHistoryView>> {
+  if (!ctx.organizationId || !ctx.userId) {
+    return fail("FORBIDDEN", "Actor o tenant no válido (fail-closed).");
+  }
+
+  if (!can(ctx.permissions, "odontogram.view")) {
+    await run(async (exec) => {
+      await recordPermissionDenied(exec, {
+        organizationId: ctx.organizationId,
+        actorUserId: ctx.userId,
+        permission: "odontogram.view",
+        entityType: "patient",
+        entityId: patientId,
+      });
+    });
+    return fail("FORBIDDEN", "Falta el permiso: odontogram.view");
+  }
+
+  if (!Number.isInteger(toothFdi) || toothFdi < 11 || toothFdi > 48) {
+    return fail("INVALID", "FDI fuera de rango (11-48).");
+  }
+
+  return run(async (exec) => {
+    // SELECT explícito — sin note, sin recordedByUserId, sin organizationId, sin lifecycleReason.
+    const rows = await exec(
+      `SELECT "id","surface","findingType","toothStatus","lifecycleStatus","supersedesFindingId","createdAt","encounterId"
+       FROM "odontogram_findings"
+       WHERE "patientId" = $1 AND "toothFdi" = $2
+       ORDER BY "createdAt" ASC`,
+      [patientId, toothFdi],
+    );
+
+    const entries: ToothHistoryEntry[] = rows.map((f: any) => ({
+      findingId: f.id,
+      surface: f.surface ?? null,
+      findingType: f.findingType,
+      toothStatus: f.toothStatus,
+      lifecycleStatus: f.lifecycleStatus ?? "ACTIVE",
+      supersedesFindingId: f.supersedesFindingId ?? null,
+      createdAt: toIso(f.createdAt) ?? new Date().toISOString(),
+      encounterId: f.encounterId ?? null,
+    }));
+
+    await recordAudit(exec, {
+      organizationId: ctx.organizationId,
+      actorUserId: ctx.userId,
+      actorType: "USER",
+      action: "odontogram.viewed",
+      entityType: "patient",
+      entityId: patientId,
+      metadata: { accessType: "getToothHistory", toothFdi, count: entries.length },
+    });
+
+    return ok<ToothHistoryView>({ patientId, toothFdi, entries });
   });
 }
