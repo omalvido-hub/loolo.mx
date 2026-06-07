@@ -122,8 +122,13 @@
     }
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
     }
   html {
     @apply font-sans;
+    }
+  h1, h2, h3 {
+    @apply tracking-tight;
     }
 }

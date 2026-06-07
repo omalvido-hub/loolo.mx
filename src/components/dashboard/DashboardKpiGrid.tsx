@@ -32,18 +32,18 @@ export function DashboardKpiGrid() {
         return (
           <div
             key={kpi.key}
-            className="rounded-2xl border bg-card p-4 shadow-sm ring-1 ring-foreground/10 transition-shadow hover:shadow-md"
+            className="group rounded-2xl border bg-card p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-16px_rgba(0,0,0,0.18)]"
           >
             <div className="flex items-start justify-between">
-              <span className={cn("flex items-center justify-center size-9 rounded-xl", kpi.accent)}>
-                <Icon className="h-4.5 w-4.5" />
+              <span className={cn("flex items-center justify-center size-10 rounded-2xl transition-transform group-hover:scale-105", kpi.accent)}>
+                <Icon className="h-[18px] w-[18px]" />
               </span>
-              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                Próximamente
+              <span className="rounded-full bg-muted/70 px-2 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground">
+                Pronto
               </span>
             </div>
-            <p className="mt-3 text-sm font-semibold">{kpi.label}</p>
-            <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{kpi.source}</p>
+            <p className="mt-4 text-sm font-semibold tracking-tight">{kpi.label}</p>
+            <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{kpi.source}</p>
           </div>
         );
       })}

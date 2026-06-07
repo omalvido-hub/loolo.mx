@@ -43,7 +43,7 @@ export function AppDock({ roleKey, open, onToggleOpen, onOpenCatalog }: AppDockP
         onClick={onToggleOpen}
         aria-label={open ? "Ocultar accesos rápidos" : "Mostrar accesos rápidos"}
         title={open ? "Ocultar accesos rápidos" : "Mostrar accesos rápidos"}
-        className="pointer-events-auto inline-flex items-center gap-1 rounded-full border bg-card/90 px-3 py-1 text-[11px] font-medium text-muted-foreground shadow-sm ring-1 ring-foreground/10 backdrop-blur transition-colors hover:text-foreground"
+        className="pointer-events-auto inline-flex items-center gap-1 rounded-full border bg-card/90 px-3 py-1 text-[11px] font-medium tracking-wide text-muted-foreground shadow-sm ring-1 ring-foreground/[0.06] backdrop-blur transition-colors hover:text-foreground"
       >
         {open ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />}
         {open ? "Ocultar accesos" : "Mostrar accesos"}
@@ -51,7 +51,7 @@ export function AppDock({ roleKey, open, onToggleOpen, onOpenCatalog }: AppDockP
 
       {open && (
         <nav
-          className="pointer-events-auto flex max-w-[94vw] items-center gap-1 overflow-x-auto rounded-[1.75rem] border bg-card/90 px-3 py-2.5 shadow-[0_16px_48px_-16px_rgba(0,0,0,0.28)] ring-1 ring-foreground/10 backdrop-blur-md"
+          className="pointer-events-auto flex max-w-[94vw] items-center gap-1 overflow-x-auto rounded-[1.75rem] border bg-card/90 px-3 py-2.5 shadow-[0_20px_56px_-20px_rgba(0,0,0,0.24)] ring-1 ring-foreground/[0.06] backdrop-blur-md"
           aria-label="Accesos rápidos"
         >
           {visibleItems.map((item) => {

@@ -43,19 +43,19 @@ export function VisualStylePreview({ className }: VisualStylePreviewProps) {
               aria-pressed={active}
               title="Vista previa — no cambia nelzzon todavía"
               className={cn(
-                "rounded-xl border p-2.5 text-left transition-colors",
-                active ? "border-primary/30 bg-primary/[0.05]" : "border-transparent hover:bg-muted/60"
+                "rounded-xl border p-2.5 text-left transition-all",
+                active ? "border-primary/25 bg-primary/[0.04] shadow-sm" : "border-transparent hover:bg-muted/50"
               )}
             >
-              <span className={cn("block h-8 w-full rounded-lg bg-gradient-to-r", preset.swatch)} />
-              <span className="mt-2 block text-xs font-medium">{preset.name}</span>
-              <span className="block text-[11px] leading-snug text-muted-foreground mt-0.5">{preset.description}</span>
+              <span className={cn("block h-8 w-full rounded-lg bg-gradient-to-r shadow-inner", preset.swatch)} />
+              <span className="mt-2 block text-xs font-medium tracking-tight">{preset.name}</span>
+              <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">{preset.description}</span>
             </button>
           );
         })}
       </div>
-      <p className="px-1 text-[11px] text-muted-foreground leading-snug">
-        Vista previa visual — elegir un estilo aquí no cambia nelzzon todavía.
+      <p className="px-1 text-[11px] leading-snug text-muted-foreground">
+        Una vista previa — elegir un estilo aquí todavía no cambia nelzzon.
       </p>
     </div>
   );

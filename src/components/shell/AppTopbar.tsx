@@ -32,13 +32,13 @@ export function AppTopbar({
   menuTrigger,
 }: AppTopbarProps) {
   return (
-    <header className="flex items-center gap-4 border-b bg-background/80 px-6 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="flex items-center gap-3 border-b bg-background/80 px-6 py-3.5 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       {menuTrigger}
       <div className="flex-1 min-w-0">
         {showSearch ? (
           <GlobalSearch
             placeholder={`Buscar pacientes, módulos, acciones en ${APP_NAME}…`}
-            className="w-full max-w-2xl"
+            className="w-full max-w-xl"
           />
         ) : (
           <span className="text-sm font-medium text-muted-foreground">{orgName}</span>
@@ -54,14 +54,14 @@ export function AppTopbar({
           "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
           personalizationOpen
             ? "border-primary/25 bg-primary/[0.06] text-primary"
-            : "border-dashed text-muted-foreground hover:text-foreground"
+            : "border-dashed text-muted-foreground hover:border-foreground/20 hover:text-foreground"
         )}
       >
         <Sparkles className="h-3.5 w-3.5" />
         Personalizar
       </button>
 
-      <div className="shrink-0 border-l pl-4">
+      <div className="shrink-0 border-l pl-3.5">
         <UserMenu name={userName} email={userEmail} roleName={roleName} />
       </div>
     </header>

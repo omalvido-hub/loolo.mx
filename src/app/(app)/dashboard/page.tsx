@@ -11,20 +11,25 @@ export default async function DashboardPage() {
   const org = memberships[0]?.organization;
 
   return (
-    <div className="p-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold mb-1">
+    <div className="mx-auto max-w-7xl space-y-8 px-6 py-8 sm:px-8 lg:py-10">
+      <div className="space-y-1.5">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          Tu espacio de trabajo
+        </p>
+        <h1 className="text-3xl font-semibold tracking-tight">
           Bienvenido, {session.user.name.split(" ")[0]}
         </h1>
-        {org && <p className="text-muted-foreground">{org.name}</p>}
+        {org && <p className="text-sm text-muted-foreground">{org.name}</p>}
       </div>
 
-      <DashboardKpiGrid />
-      <DashboardWidgetGrid />
+      <div className="space-y-6">
+        <DashboardKpiGrid />
+        <DashboardWidgetGrid />
+      </div>
 
-      <p className="text-xs text-muted-foreground">
-        Las cifras de arriba son una vista previa (datos de muestra) mientras se conectan
-        las consultas reales de agenda, cobros y seguimiento a este dashboard.
+      <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">
+        Estas cifras son una vista previa con datos de muestra — cobrarán vida en cuanto
+        conectemos Agenda, Cobros y Seguimiento a tu dashboard.
       </p>
     </div>
   );
