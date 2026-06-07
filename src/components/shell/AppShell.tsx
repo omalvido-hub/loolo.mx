@@ -66,11 +66,15 @@ export function AppShell({ roleKey, orgName, userName, userEmail, roleName, chil
       />
 
       {personalizationOpen && (
-        <div className="fixed right-4 top-16 z-50 sm:right-6">
+        <div className="fixed inset-x-3 top-16 z-50 flex justify-center sm:inset-x-auto sm:right-6 sm:justify-end">
           <PersonalizationPanel
             mode={mode}
             onChange={setMode}
             onClose={() => setPersonalizationOpen(false)}
+            onOpenModuleLibrary={() => {
+              setPersonalizationOpen(false);
+              setCatalogOpen(true);
+            }}
           />
         </div>
       )}
