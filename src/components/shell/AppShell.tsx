@@ -7,7 +7,7 @@
 // base visual para la futura personalización profunda de nelzzon, no el motor en sí.
 
 import { useState } from "react";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar, SidebarMenuTrigger } from "@/components/app-sidebar";
 import { AppTopbar } from "@/components/shell/AppTopbar";
 import { AppDock } from "@/components/shell/AppDock";
 import { ModuleCatalog } from "@/components/shell/ModuleCatalog";
@@ -32,6 +32,7 @@ export function AppShell({ roleKey, orgName, userName, userEmail, roleName, chil
   const [mode, setMode] = useState<PersonalizationMode>("interactive");
 
   const showSearch = hasPermission(roleKey, "patients.view");
+  const toggleSidebarCollapse = () => setSidebarCollapsed((v) => !v);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -39,7 +40,7 @@ export function AppShell({ roleKey, orgName, userName, userEmail, roleName, chil
         roleKey={roleKey}
         orgName={orgName}
         collapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
+        onToggleCollapse={toggleSidebarCollapse}
         onOpenPersonalization={() => setPersonalizationOpen(true)}
       />
 
@@ -52,6 +53,7 @@ export function AppShell({ roleKey, orgName, userName, userEmail, roleName, chil
           roleName={roleName}
           personalizationOpen={personalizationOpen}
           onTogglePersonalization={() => setPersonalizationOpen((v) => !v)}
+          menuTrigger={sidebarCollapsed ? <SidebarMenuTrigger onClick={toggleSidebarCollapse} /> : null}
         />
         <main className="flex-1 overflow-auto bg-background pb-20">{children}</main>
       </div>

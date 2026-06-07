@@ -58,22 +58,12 @@ export function AppSidebar({ roleKey, orgName, collapsed, onToggleCollapse, onOp
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
-  // Colapsado = casi invisible a propósito: el dock inferior ya cubre los accesos
-  // rápidos, así que aquí no repetimos marca, sección activa ni menú. Tampoco
-  // reservamos columna: el botón flota sobre el contenido (fixed, fuera del flujo)
-  // para que el dashboard ocupe todo el ancho y no quede ninguna línea divisoria.
+  // Colapsado = invisible a propósito: el dock inferior ya cubre los accesos
+  // rápidos, así que aquí no repetimos marca, sección activa ni menú, y no
+  // reservamos columna ni dejamos línea divisoria. El control para reabrir vive
+  // en la topbar como SidebarMenuTrigger — alineado con ella, no flotando suelto.
   if (collapsed) {
-    return (
-      <button
-        type="button"
-        onClick={onToggleCollapse}
-        aria-label="Abrir menú"
-        title="Abrir menú"
-        className="fixed left-4 top-20 z-40 flex items-center justify-center size-9 rounded-full border bg-card/90 text-muted-foreground shadow-sm ring-1 ring-foreground/10 backdrop-blur transition-colors hover:text-foreground"
-      >
-        <PanelLeftOpen className="h-4 w-4" />
-      </button>
-    );
+    return null;
   }
 
   return (
@@ -141,5 +131,26 @@ export function AppSidebar({ roleKey, orgName, collapsed, onToggleCollapse, onOp
         )}
       </div>
     </aside>
+  );
+}
+
+interface SidebarMenuTriggerProps {
+  onClick: () => void;
+}
+
+// Control para reabrir el menú cuando el sidebar está colapsado. Vive dentro de
+// la topbar (no flotando sobre el contenido): así queda al nivel de la barra,
+// con la separación que le da el gap del header, y no invade el dashboard.
+export function SidebarMenuTrigger({ onClick }: SidebarMenuTriggerProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="Abrir menú"
+      title="Abrir menú"
+      className="flex shrink-0 items-center justify-center size-8 rounded-full border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+    >
+      <PanelLeftOpen className="h-4 w-4" />
+    </button>
   );
 }

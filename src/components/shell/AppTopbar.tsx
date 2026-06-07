@@ -18,6 +18,7 @@ interface AppTopbarProps {
   roleName: string;
   personalizationOpen: boolean;
   onTogglePersonalization: () => void;
+  menuTrigger?: React.ReactNode;
 }
 
 export function AppTopbar({
@@ -28,9 +29,11 @@ export function AppTopbar({
   roleName,
   personalizationOpen,
   onTogglePersonalization,
+  menuTrigger,
 }: AppTopbarProps) {
   return (
     <header className="flex items-center gap-4 border-b bg-background/80 px-6 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      {menuTrigger}
       <div className="flex-1 min-w-0">
         {showSearch ? (
           <GlobalSearch
