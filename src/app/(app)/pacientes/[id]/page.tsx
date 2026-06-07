@@ -15,6 +15,7 @@ import { TreatmentPlansSection } from "@/components/treatment/TreatmentPlansSect
 import { TreatmentNoPermission } from "@/components/treatment/TreatmentNoPermission";
 import { QuotesSectionClient } from "@/components/billing/QuotesSectionClient";
 import { BillingNoPermission } from "@/components/billing/BillingNoPermission";
+import { PatientTimeline } from "@/components/patients/PatientTimeline";
 import type { EncounterListItem } from "@/server/domain/clinical/encounter-views";
 
 export default async function PacienteDetallePage({
@@ -122,6 +123,12 @@ export default async function PacienteDetallePage({
         odontogramSection={odontogramSection}
       />
       <div className="px-8 pb-10 max-w-4xl mx-auto space-y-6">
+        <PatientTimeline
+          encounters={encounters}
+          findings={odoResult.ok ? odoResult.value.findingsPanel : []}
+          treatmentPlans={treatmentResult.ok ? treatmentResult.value.plans : []}
+          quotes={quotesResult.ok ? quotesResult.value.quotes : []}
+        />
         {treatmentResult.ok ? (
           <TreatmentPlansSection view={treatmentResult.value} />
         ) : treatmentResult.reason === "FORBIDDEN" ? (
