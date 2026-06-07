@@ -59,21 +59,20 @@ export function AppSidebar({ roleKey, orgName, collapsed, onToggleCollapse, onOp
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
   // Colapsado = casi invisible a propósito: el dock inferior ya cubre los accesos
-  // rápidos, así que aquí no repetimos marca, sección activa ni menú — solo dejamos
-  // un control discreto para abrir, y el dashboard gana todo ese espacio visual.
+  // rápidos, así que aquí no repetimos marca, sección activa ni menú. Tampoco
+  // reservamos columna: el botón flota sobre el contenido (fixed, fuera del flujo)
+  // para que el dashboard ocupe todo el ancho y no quede ninguna línea divisoria.
   if (collapsed) {
     return (
-      <aside className="flex flex-col items-center min-h-screen w-[44px] shrink-0 border-r bg-sidebar pt-4 transition-[width] duration-200 ease-out">
-        <button
-          type="button"
-          onClick={onToggleCollapse}
-          aria-label="Abrir menú"
-          title="Abrir menú"
-          className="flex items-center justify-center size-8 rounded-lg text-sidebar-foreground/40 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
-        >
-          <PanelLeftOpen className="h-4 w-4" />
-        </button>
-      </aside>
+      <button
+        type="button"
+        onClick={onToggleCollapse}
+        aria-label="Abrir menú"
+        title="Abrir menú"
+        className="fixed left-3 top-4 z-40 flex items-center justify-center size-9 rounded-full border bg-card/90 text-muted-foreground shadow-sm ring-1 ring-foreground/10 backdrop-blur transition-colors hover:text-foreground"
+      >
+        <PanelLeftOpen className="h-4 w-4" />
+      </button>
     );
   }
 
