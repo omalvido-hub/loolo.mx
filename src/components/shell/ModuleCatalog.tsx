@@ -49,9 +49,9 @@ export function ModuleCatalog({ onClose }: ModuleCatalogProps) {
       >
         <div className="flex items-center justify-between border-b px-5 py-4">
           <div>
-            <h2 className="text-base font-semibold">Catálogo de módulos</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Vista previa — explora los módulos disponibles y prueba cómo se vería agregarlos a tu dock.
+            <h2 className="text-base font-semibold">Explora los módulos de nelzzon</h2>
+            <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
+              Vista previa — abre cualquier módulo o prueba cómo se sentiría agregarlo a tu dock.
             </p>
           </div>
           <button
@@ -70,7 +70,7 @@ export function ModuleCatalog({ onClose }: ModuleCatalogProps) {
             return (
               <div
                 key={mod.key}
-                className="flex items-center gap-4 rounded-xl border bg-background px-4 py-3 ring-1 ring-foreground/5"
+                className="flex items-center gap-4 rounded-2xl border bg-background px-4 py-3 shadow-sm ring-1 ring-foreground/5 transition-shadow hover:shadow-md"
               >
                 <span className="flex items-center justify-center size-10 shrink-0 rounded-lg bg-muted text-lg">
                   {mod.emoji}
