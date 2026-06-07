@@ -46,42 +46,49 @@ export function PersonalizationPanel({ mode, onChange, onClose, className }: Per
       role="dialog"
       aria-label="Personalizar tu espacio"
       className={cn(
-        "w-[23rem] max-w-[92vw] rounded-2xl border bg-card p-5 shadow-[0_24px_64px_-24px_rgba(0,0,0,0.28)] ring-1 ring-foreground/[0.06]",
+        "w-[23rem] max-w-[92vw] overflow-hidden rounded-2xl border bg-card shadow-[0_24px_64px_-24px_rgba(0,0,0,0.28)] ring-1 ring-foreground/[0.06]",
         className
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold tracking-tight">Personalizar tu espacio</p>
-          <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-            Una vista previa de hacia dónde va nelzzon — nada de esto se guarda todavía.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Cerrar panel de personalización"
-          className="flex items-center justify-center size-7 shrink-0 rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
+      <div
+        aria-hidden
+        className="h-1.5 w-full bg-gradient-to-r from-sky-400/70 via-violet-400/70 to-fuchsia-400/70"
+      />
 
-      <div className="mt-5 space-y-5">
-        <div>
-          <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Modo de vista</p>
-          <PersonalizationPreviewToggle mode={mode} onChange={onChange} />
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold tracking-tight">Personalizar tu espacio</p>
+            <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+              Una vista previa de hacia dónde va nelzzon — nada de esto se guarda todavía.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar panel de personalización"
+            className="flex items-center justify-center size-7 shrink-0 rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
-        <div>
-          <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Estilos visuales</p>
-          <VisualStylePreview />
-        </div>
-      </div>
 
-      <p className="mt-5 border-t pt-3 text-[11px] leading-snug text-muted-foreground">
-        El motor real de personalización — guardar tu propio estilo, acomodar módulos
-        y mucho más — llega en una fase futura.
-      </p>
+        <div className="mt-5 space-y-5">
+          <div>
+            <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Modo de vista</p>
+            <PersonalizationPreviewToggle mode={mode} onChange={onChange} />
+          </div>
+          <div>
+            <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Estilos visuales</p>
+            <VisualStylePreview />
+          </div>
+        </div>
+
+        <p className="mt-5 border-t pt-3 text-[11px] leading-snug text-muted-foreground">
+          El motor real de personalización — guardar tu propio estilo, acomodar módulos
+          y mucho más — llega en una fase futura.
+        </p>
+      </div>
     </div>
   );
 }

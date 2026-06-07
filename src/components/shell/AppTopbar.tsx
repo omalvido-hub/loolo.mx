@@ -34,11 +34,11 @@ export function AppTopbar({
   return (
     <header className="flex items-center gap-3 border-b bg-background/80 px-6 py-3.5 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       {menuTrigger}
-      <div className="flex-1 min-w-0">
+      <div className="flex flex-1 min-w-0">
         {showSearch ? (
           <GlobalSearch
             placeholder={`Buscar pacientes, módulos, acciones en ${APP_NAME}…`}
-            className="w-full max-w-xl"
+            className="w-full max-w-xl mx-auto lg:mx-0"
           />
         ) : (
           <span className="text-sm font-medium text-muted-foreground">{orgName}</span>

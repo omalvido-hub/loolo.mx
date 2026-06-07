@@ -5,6 +5,7 @@
 // Cuando esas consultas existan, cada tarjeta recibe props/datos reales.
 
 import { CalendarClock, UserRound, ListTodo, Wallet2, Activity, Compass } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 function WidgetCard({
   title,
@@ -19,20 +20,25 @@ function WidgetCard({
 }) {
   return (
     <div className={`rounded-2xl border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] overflow-hidden transition-all hover:shadow-[0_12px_32px_-16px_rgba(0,0,0,0.16)] ${className ?? ""}`}>
-      <div className="px-5 pt-4 pb-3.5">
-        <h3 className="text-sm font-semibold tracking-tight">{title}</h3>
-        {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
+      <div className="flex items-start justify-between gap-3 px-5 pt-4 pb-3.5">
+        <div>
+          <h3 className="text-sm font-semibold tracking-tight">{title}</h3>
+          {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
+        </div>
+        <span className="mt-0.5 shrink-0 rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground">
+          En construcción
+        </span>
       </div>
       <div className="px-5 pb-5">{children}</div>
     </div>
   );
 }
 
-function EmptyHint({ icon: Icon, children }: { icon: React.ElementType; children: React.ReactNode }) {
+function EmptyHint({ icon: Icon, accent, children }: { icon: React.ElementType; accent: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed bg-muted/20 px-4 py-9 text-center">
-      <span className="flex items-center justify-center size-10 rounded-full bg-muted/80 text-muted-foreground">
-        <Icon className="h-4 w-4" />
+    <div className="flex flex-col items-center justify-center gap-3 rounded-xl bg-gradient-to-b from-muted/40 to-transparent px-4 py-9 text-center">
+      <span className={cn("flex items-center justify-center size-11 rounded-2xl", accent)}>
+        <Icon className="h-[18px] w-[18px]" />
       </span>
       <p className="max-w-[230px] text-xs leading-relaxed text-muted-foreground">{children}</p>
     </div>
@@ -63,32 +69,32 @@ export function DashboardWidgetGrid() {
         </div>
       </WidgetCard>
 
-      <WidgetCard title="Próximas citas" subtitle="Vista previa">
-        <EmptyHint icon={CalendarClock}>
+      <WidgetCard title="Próximas citas">
+        <EmptyHint icon={CalendarClock} accent="bg-emerald-500/10 text-emerald-600">
           Aquí aparecerán tus próximas citas en cuanto conectemos Agenda.
         </EmptyHint>
       </WidgetCard>
 
-      <WidgetCard title="Pacientes recientes" subtitle="Vista previa">
-        <EmptyHint icon={UserRound}>
+      <WidgetCard title="Pacientes recientes">
+        <EmptyHint icon={UserRound} accent="bg-blue-500/10 text-blue-600">
           Se mostrarán los pacientes que has visto recientemente al conectar Pacientes.
         </EmptyHint>
       </WidgetCard>
 
-      <WidgetCard title="Seguimiento pendiente" subtitle="Vista previa">
-        <EmptyHint icon={ListTodo}>
+      <WidgetCard title="Seguimiento pendiente">
+        <EmptyHint icon={ListTodo} accent="bg-amber-500/10 text-amber-600">
           Se conectará con tu bandeja de seguimiento para mostrar lo pendiente.
         </EmptyHint>
       </WidgetCard>
 
       <WidgetCard title="Finanzas rápidas" subtitle="Los montos siempre los calcula el servidor">
-        <EmptyHint icon={Wallet2}>
+        <EmptyHint icon={Wallet2} accent="bg-violet-500/10 text-violet-600">
           Se conectará con Cobros para mostrar tus saldos cobrados y pendientes.
         </EmptyHint>
       </WidgetCard>
 
-      <WidgetCard title="Actividad reciente" subtitle="Vista previa">
-        <EmptyHint icon={Activity}>
+      <WidgetCard title="Actividad reciente">
+        <EmptyHint icon={Activity} accent="bg-cyan-500/10 text-cyan-600">
           Aquí aparecerá la actividad reciente de tu organización.
         </EmptyHint>
       </WidgetCard>
