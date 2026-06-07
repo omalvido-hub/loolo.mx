@@ -559,7 +559,7 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
           </ul>
         </nav>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex-1 overflow-y-auto px-6 pb-8 pt-5">
           {active.key === "inicio" ? (
             <StudioHome onNavigate={setActiveKey} />
           ) : (
