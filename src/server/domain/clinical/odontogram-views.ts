@@ -337,6 +337,7 @@ export async function getOdontogramEncounterView(
  * VOIDED), en el orden en que fueron creadas. No colapsa cadenas de
  * supersesión — la cadena completa es justamente lo que se quiere mostrar.
  * Exige odontogram.view. Fail-closed.
+ * 100% lectura: no escribe en audit_logs (solo recordPermissionDenied si falta el permiso).
  * NUNCA devuelve note, lifecycleReason, recordedByUserId ni organizationId.
  */
 export async function getToothHistory(
@@ -386,16 +387,6 @@ export async function getToothHistory(
       createdAt: toIso(f.createdAt) ?? new Date().toISOString(),
       encounterId: f.encounterId ?? null,
     }));
-
-    await recordAudit(exec, {
-      organizationId: ctx.organizationId,
-      actorUserId: ctx.userId,
-      actorType: "USER",
-      action: "odontogram.viewed",
-      entityType: "patient",
-      entityId: patientId,
-      metadata: { accessType: "getToothHistory", toothFdi, count: entries.length },
-    });
 
     return ok<ToothHistoryView>({ patientId, toothFdi, entries });
   });
