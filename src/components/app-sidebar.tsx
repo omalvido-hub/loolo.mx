@@ -57,43 +57,22 @@ export function AppSidebar({ roleKey, orgName, collapsed, onToggleCollapse, onOp
   const showSettings = hasPermission(roleKey, SETTINGS_ITEM.permission);
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
-  const activeItem = [...visibleItems, SETTINGS_ITEM].find((item) => isActive(item.href));
 
-  // Rail mínima cuando está colapsado: ya no repite todo el menú (eso lo cubre
-  // el dock inferior). Solo deja marca, control de expansión y dónde estás parado —
-  // así el dashboard respira más y el sidebar se siente como una pestaña discreta.
+  // Colapsado = casi invisible a propósito: el dock inferior ya cubre los accesos
+  // rápidos, así que aquí no repetimos marca, sección activa ni menú — solo dejamos
+  // un control discreto para abrir, y el dashboard gana todo ese espacio visual.
   if (collapsed) {
-    const ActiveIcon = activeItem?.icon;
     return (
-      <aside className="flex flex-col items-center min-h-screen w-[64px] shrink-0 gap-3 border-r bg-sidebar px-2 py-4 transition-[width] duration-200 ease-out">
-        <span
-          className="flex items-center justify-center size-10 rounded-xl bg-sidebar-accent text-sidebar-accent-foreground text-sm font-bold uppercase"
-          title={`${APP_NAME} — ${orgName}`}
-        >
-          {APP_NAME.slice(0, 1)}
-        </span>
-
+      <aside className="flex flex-col items-center min-h-screen w-[44px] shrink-0 border-r bg-sidebar pt-4 transition-[width] duration-200 ease-out">
         <button
           type="button"
           onClick={onToggleCollapse}
-          aria-label="Expandir menú"
-          title="Expandir menú"
-          className="flex items-center justify-center size-9 rounded-lg text-sidebar-foreground/50 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+          aria-label="Abrir menú"
+          title="Abrir menú"
+          className="flex items-center justify-center size-8 rounded-lg text-sidebar-foreground/40 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
         >
           <PanelLeftOpen className="h-4 w-4" />
         </button>
-
-        <div className="h-px w-7 bg-sidebar-border/60" />
-
-        {activeItem && ActiveIcon && (
-          <Link
-            href={activeItem.href}
-            title={activeItem.label}
-            className="flex items-center justify-center size-10 rounded-xl bg-sidebar-accent text-sidebar-accent-foreground"
-          >
-            <ActiveIcon className="h-4 w-4" />
-          </Link>
-        )}
       </aside>
     );
   }
