@@ -30,6 +30,10 @@ interface CatalogModule {
   href: string;
   icon: React.ElementType;
   accent: string;
+  // Solo true cuando existe una página real en src/app para este href. Los
+  // módulos sin página propia muestran "Próximamente" en vez de "Abrir" — para
+  // no llevar al usuario a un 404. Ver auditoría de rutas en NELZZON-EXPERIENCE-1B.
+  available: boolean;
 }
 
 interface CatalogGroup {
@@ -43,25 +47,25 @@ const CATALOG_GROUPS: CatalogGroup[] = [
     key: "atencion",
     label: "Atención al paciente",
     modules: [
-      { key: "pacientes",    name: "Pacientes",          description: "Busca, da de alta y revisa la ficha completa de cada paciente.",   href: "/pacientes",    icon: UserCircle,  accent: "bg-blue-500/10 text-blue-600" },
-      { key: "agenda",       name: "Agenda",             description: "Citas, recursos y disponibilidad del día a día de la clínica.",     href: "/agenda",       icon: CalendarDays, accent: "bg-emerald-500/10 text-emerald-600" },
-      { key: "consultas",    name: "Consultas",          description: "Historial clínico y notas de cada encuentro con el paciente.",       href: "/consultas",    icon: Stethoscope, accent: "bg-violet-500/10 text-violet-600" },
-      { key: "tratamiento",  name: "Plan de tratamiento",description: "Procedimientos propuestos y su seguimiento por estado.",             href: "/tratamiento",  icon: ListChecks,  accent: "bg-amber-500/10 text-amber-600" },
+      { key: "pacientes",    name: "Pacientes",          description: "Busca, da de alta y revisa la ficha completa de cada paciente.",   href: "/pacientes",    icon: UserCircle,  accent: "bg-blue-500/10 text-blue-600",   available: true },
+      { key: "agenda",       name: "Agenda",             description: "Citas, recursos y disponibilidad del día a día de la clínica.",     href: "/agenda",       icon: CalendarDays, accent: "bg-emerald-500/10 text-emerald-600", available: true },
+      { key: "consultas",    name: "Consultas",          description: "Historial clínico y notas de cada encuentro con el paciente.",       href: "/consultas",    icon: Stethoscope, accent: "bg-violet-500/10 text-violet-600", available: false },
+      { key: "tratamiento",  name: "Plan de tratamiento",description: "Procedimientos propuestos y su seguimiento por estado.",             href: "/tratamiento",  icon: ListChecks,  accent: "bg-amber-500/10 text-amber-600",  available: false },
     ],
   },
   {
     key: "negocio",
     label: "Cobros y administración",
     modules: [
-      { key: "presupuestos", name: "Presupuestos",       description: "Cotizaciones con líneas, totales y su ciclo de aprobación.",          href: "/presupuestos", icon: FileText,    accent: "bg-cyan-500/10 text-cyan-600" },
-      { key: "cobros",       name: "Cobros",             description: "Pagos registrados y saldos pendientes por paciente.",                 href: "/cobros",       icon: CreditCard,  accent: "bg-teal-500/10 text-teal-600" },
+      { key: "presupuestos", name: "Presupuestos",       description: "Cotizaciones con líneas, totales y su ciclo de aprobación.",          href: "/presupuestos", icon: FileText,    accent: "bg-cyan-500/10 text-cyan-600", available: true },
+      { key: "cobros",       name: "Cobros",             description: "Pagos registrados y saldos pendientes por paciente.",                 href: "/cobros",       icon: CreditCard,  accent: "bg-teal-500/10 text-teal-600", available: true },
     ],
   },
   {
     key: "organizacion",
     label: "Organización",
     modules: [
-      { key: "configuracion",name: "Configuración",      description: "Preferencias de la organización y del módulo de trabajo.",            href: "/configuracion",icon: Settings,    accent: "bg-slate-500/10 text-slate-600" },
+      { key: "configuracion",name: "Configuración",      description: "Preferencias de la organización y del módulo de trabajo.",            href: "/configuracion",icon: Settings,    accent: "bg-slate-500/10 text-slate-600", available: false },
     ],
   },
 ];
@@ -132,7 +136,14 @@ export function ModuleCatalog({ onClose }: ModuleCatalogProps) {
                         <p className="text-xs text-muted-foreground mt-0.5 truncate">{mod.description}</p>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
-                        {inDock ? (
+                        {!mod.available ? (
+                          <span
+                            title="Este módulo todavía está en preparación — su página llega en una fase futura"
+                            className="inline-flex items-center gap-1.5 rounded-full border border-dashed px-3 py-1.5 text-xs font-medium text-muted-foreground"
+                          >
+                            En preparación
+                          </span>
+                        ) : inDock ? (
                           <span
                             title="Este módulo ya vive en tu dock de accesos rápidos"
                             className="inline-flex items-center gap-1.5 rounded-full border border-transparent bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-700"
@@ -156,13 +167,23 @@ export function ModuleCatalog({ onClose }: ModuleCatalogProps) {
                             {isAdded ? "Agregado" : "Agregar al dock"}
                           </button>
                         )}
-                        <Link
-                          href={mod.href}
-                          onClick={onClose}
-                          className="inline-flex items-center rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/80"
-                        >
-                          Abrir
-                        </Link>
+                        {mod.available ? (
+                          <Link
+                            href={mod.href}
+                            onClick={onClose}
+                            className="inline-flex items-center rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/80"
+                          >
+                            Abrir
+                          </Link>
+                        ) : (
+                          <span
+                            aria-disabled="true"
+                            title="Próximamente — esta página todavía no existe"
+                            className="inline-flex cursor-default items-center rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground/70"
+                          >
+                            Próximamente
+                          </span>
+                        )}
                       </div>
                     </div>
                   );

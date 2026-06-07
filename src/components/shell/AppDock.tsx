@@ -15,19 +15,23 @@ interface DockItem {
   href: string;
   icon: React.ElementType;
   permission: string;
+  // Solo true cuando existe una página real en src/app para este href. Los
+  // accesos sin página propia se muestran como "Próximamente" — sin navegar —
+  // para no llevar al usuario a un 404. Ver auditoría de rutas en NELZZON-EXPERIENCE-1B.
+  available: boolean;
 }
 
 const DOCK_ITEMS: DockItem[] = [
-  { label: "Pacientes",   href: "/pacientes",    icon: UserCircle,  permission: "patients.view" },
-  { label: "Agenda",      href: "/agenda",       icon: CalendarDays, permission: "appointments.view" },
-  { label: "Consultas",   href: "/consultas",    icon: Stethoscope, permission: "clinical.view" },
-  { label: "Presupuestos",href: "/presupuestos", icon: FileText,    permission: "quote.view" },
-  { label: "Cobros",      href: "/cobros",       icon: CreditCard,  permission: "payment.view" },
+  { label: "Pacientes",   href: "/pacientes",    icon: UserCircle,  permission: "patients.view",    available: true },
+  { label: "Agenda",      href: "/agenda",       icon: CalendarDays, permission: "appointments.view", available: true },
+  { label: "Consultas",   href: "/consultas",    icon: Stethoscope, permission: "clinical.view",    available: false },
+  { label: "Presupuestos",href: "/presupuestos", icon: FileText,    permission: "quote.view",       available: true },
+  { label: "Cobros",      href: "/cobros",       icon: CreditCard,  permission: "payment.view",     available: true },
 ];
 
-// Hrefs presentes en el dock por defecto — el catálogo de módulos los usa para
-// mostrar "Ya en tu dock" en vez de un control de "agregar" contradictorio.
-export const DOCK_HREFS: string[] = DOCK_ITEMS.map((item) => item.href);
+// Hrefs con página real en el dock por defecto — el catálogo de módulos los usa
+// para mostrar "Ya en tu dock" en vez de un control de "agregar" contradictorio.
+export const DOCK_HREFS: string[] = DOCK_ITEMS.filter((item) => item.available).map((item) => item.href);
 
 interface AppDockProps {
   roleKey: string;
@@ -60,6 +64,26 @@ export function AppDock({ roleKey, open, onToggleOpen, onOpenCatalog }: AppDockP
           >
             {visibleItems.map((item) => {
               const Icon = item.icon;
+
+              if (!item.available) {
+                return (
+                  <span
+                    key={item.href}
+                    title={`${item.label} — próximamente`}
+                    aria-disabled="true"
+                    className="flex shrink-0 cursor-default flex-col items-center gap-0.5 rounded-xl px-2.5 py-1.5 text-[10px] font-medium text-muted-foreground/50"
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="flex items-center gap-1">
+                      {item.label}
+                      <span className="rounded-full bg-muted/70 px-1.5 py-px text-[8px] font-medium tracking-wide text-muted-foreground/80">
+                        Pronto
+                      </span>
+                    </span>
+                  </span>
+                );
+              }
+
               const active = pathname === item.href || pathname.startsWith(item.href + "/");
               return (
                 <Link
