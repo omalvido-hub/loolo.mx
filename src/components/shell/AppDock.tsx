@@ -45,14 +45,13 @@ export function AppDock({ roleKey, open, onToggleOpen, onOpenCatalog }: AppDockP
             onClick={onToggleOpen}
             aria-label="Ocultar accesos rápidos"
             title="Ocultar accesos rápidos"
-            className="absolute -top-3 left-1/2 z-10 inline-flex -translate-x-1/2 items-center gap-1 rounded-full border bg-card px-3 py-1 text-[11px] font-medium tracking-wide text-muted-foreground shadow-sm ring-1 ring-foreground/[0.06] transition-colors hover:text-foreground"
+            className="absolute -top-2.5 left-1/2 z-10 inline-flex -translate-x-1/2 items-center justify-center rounded-full border bg-card p-1 text-muted-foreground shadow-sm ring-1 ring-foreground/[0.06] transition-colors hover:text-foreground"
           >
             <ChevronDown className="h-3 w-3" />
-            Ocultar
           </button>
 
           <nav
-            className="flex max-w-[94vw] items-center gap-1 overflow-x-auto rounded-[1.75rem] border bg-card/90 px-3 py-2.5 shadow-[0_20px_56px_-20px_rgba(0,0,0,0.24)] ring-1 ring-foreground/[0.06] backdrop-blur-md"
+            className="flex max-w-[94vw] items-center gap-0.5 overflow-x-auto rounded-[1.5rem] border bg-card/90 px-2 py-1.5 shadow-[0_16px_44px_-20px_rgba(0,0,0,0.22)] ring-1 ring-foreground/[0.06] backdrop-blur-md"
             aria-label="Accesos rápidos"
           >
             {visibleItems.map((item) => {
@@ -64,27 +63,27 @@ export function AppDock({ roleKey, open, onToggleOpen, onOpenCatalog }: AppDockP
                   href={item.href}
                   title={item.label}
                   className={cn(
-                    "flex shrink-0 flex-col items-center gap-1 rounded-2xl px-3.5 py-2 text-[11px] font-medium transition-all",
+                    "flex shrink-0 flex-col items-center gap-0.5 rounded-xl px-2.5 py-1.5 text-[10px] font-medium transition-all",
                     active
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:-translate-y-0.5 hover:bg-muted/70 hover:text-foreground"
                   )}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-4 w-4" />
                   {item.label}
                 </Link>
               );
             })}
 
-            <div className="mx-1.5 h-9 w-px shrink-0 bg-border/70" />
+            <div className="mx-1 h-7 w-px shrink-0 bg-border/70" />
 
             <button
               type="button"
               onClick={onOpenCatalog}
               title="Agregar — abrir catálogo de módulos"
-              className="flex shrink-0 flex-col items-center gap-1 rounded-2xl px-3.5 py-2 text-[11px] font-medium text-muted-foreground transition-all hover:-translate-y-0.5 hover:bg-muted/70 hover:text-foreground"
+              className="flex shrink-0 flex-col items-center gap-0.5 rounded-xl px-2.5 py-1.5 text-[10px] font-medium text-muted-foreground transition-all hover:-translate-y-0.5 hover:bg-muted/70 hover:text-foreground"
             >
-              <Plus className="h-5 w-5" />
+              <Plus className="h-4 w-4" />
               Agregar
             </button>
           </nav>
