@@ -12,6 +12,7 @@ import { ALL_MODULES } from "../src/server/domain/modules/catalog-data.js";
 import { ODONTOLOGIA_TEMPLATE_MODULES } from "../src/server/domain/modules/template-data.js";
 import { applyTemplateToOrganization } from "../src/server/domain/modules/apply-template.js";
 import { enableModule, disableModule } from "../src/server/domain/modules/configure.js";
+import { getOrganizationModules } from "../src/server/domain/modules/queries.js";
 import { listEventTypes } from "../src/server/domain/events/schemas.js";
 
 const rnd = () => Math.random().toString(36).slice(2, 8);
@@ -227,5 +228,55 @@ describe("RLS", () => {
     const seen = await forTenantPg(orgB, async (c) =>
       (await c.query(`SELECT id FROM "organization_modules" WHERE "organizationId"=$1`, [orgA])).rows);
     expect(seen.length).toBe(0);
+  });
+});
+
+describe("getOrganizationModules (lectura)", () => {
+  const runFor = (orgId: string) =>
+    <T,>(work: (exec: any) => Promise<T>) => forTenantPg(orgId, async (c) => work(execOf(c)));
+
+  it("owner con modules.view obtiene los modulos de orgA con sus flags", async () => {
+    const res = await getOrganizationModules(runFor(orgA), ownerCtxA);
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.value.length).toBe(ODONTOLOGIA_TEMPLATE_MODULES.length);
+    const odontogram = res.value.find((m) => m.moduleKey === "odontogram");
+    expect(odontogram).toBeTruthy();
+    expect(odontogram?.enabled).toBe(true);
+    expect(odontogram?.visible).toBe(true);
+    expect(typeof odontogram?.showInMenu).toBe("boolean");
+    expect(typeof odontogram?.showInDock).toBe("boolean");
+    expect(typeof odontogram?.dashboardAvailable).toBe("boolean");
+  });
+
+  it("aislamiento multi-tenant: orgC (sin plantilla aplicada) no ve modulos de orgA", async () => {
+    const res = await getOrganizationModules(runFor(orgC), ownerCtxC);
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.value.length).toBe(0);
+    expect(res.value.find((m) => m.moduleKey === "odontogram")).toBeUndefined();
+  });
+
+  it("actor sin modules.view recibe FORBIDDEN y se audita permission.denied", async () => {
+    const noPermsCtx: ActorContext = { organizationId: orgA, userId: ownerUser, permissions: new Set<string>() };
+    const res = await getOrganizationModules(runFor(orgA), noPermsCtx);
+    expect(res.ok).toBe(false);
+    if (res.ok) return;
+    expect(res.reason).toBe("FORBIDDEN");
+
+    const denied = await forTenantPg(orgA, async (c) =>
+      Number((await c.query(
+        `SELECT count(*) FROM "audit_logs" WHERE action='permission.denied' AND metadata->>'permission'='modules.view'`,
+      )).rows[0].count));
+    expect(denied).toBeGreaterThanOrEqual(1);
+  });
+
+  it("labelOverride de la plantilla se resuelve en name", async () => {
+    const res = await getOrganizationModules(runFor(orgA), ownerCtxA);
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    const odontogram = res.value.find((m) => m.moduleKey === "odontogram");
+    expect(odontogram?.labelOverride).toBe("Odontograma");
+    expect(odontogram?.name).toBe("Odontograma");
   });
 });
