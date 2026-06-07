@@ -1,8 +1,9 @@
 # LOOLO — Estado validado · Odontología
 
 > Última actualización: 2026-06-06  
-> Commit HEAD: `eded45a` — `fix: type organization membership mapping`  
-> Producción: https://loolo.mx · HTTP 200 · PM2 online
+> Commit HEAD: `127aa1c`  
+> Producción principal: https://nelzzon.com · HTTP 200 · PM2 online  
+> Dominio anterior https://loolo.mx vivo solo como respaldo temporal (ver [docs/NELZZON_PRODUCTION_BASELINE.md](./NELZZON_PRODUCTION_BASELINE.md))
 
 ---
 
@@ -10,9 +11,10 @@
 
 | Punto | Estado |
 |---|---|
-| HEAD en VPS | `eded45a` ✅ |
+| HEAD en VPS | `127aa1c` ✅ |
 | PM2 | online · 0 unstable restarts |
-| HTTP 200 público | https://loolo.mx/login ✅ |
+| HTTP 200 público (principal) | https://nelzzon.com/login ✅ |
+| HTTP 200 público (respaldo temporal) | https://loolo.mx/login ✅ |
 | HTTP 200 local VPS | http://127.0.0.1:3000/login ✅ |
 | Error log | Sin actividad desde último arranque ✅ |
 

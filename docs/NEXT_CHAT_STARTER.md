@@ -14,7 +14,8 @@ Contexto del proyecto:
 - LOOLO es un SaaS multi-tenant para clínicas dentales (y futuras verticales).
 - Backend: Next.js 15 + TypeScript + PostgreSQL 16 + Prisma 7 + Better Auth 1.6 + Zod 4.
 - Pruebas: Vitest corriendo contra PostgreSQL real (no mocks). Total actual: 850/850.
-- Producción: https://loolo.mx · VPS Hostinger · PM2 · ~/Desktop/SAAS/loolo
+- Producción principal: https://nelzzon.com · VPS Hostinger · PM2 (proceso `loolo`, nombre técnico temporal) · ~/Desktop/SAAS/loolo (carpeta, nombre técnico temporal)
+- Dominio anterior https://loolo.mx sigue vivo solo como respaldo temporal (NO redirigir todavía). Detalle en docs/NELZZON_PRODUCTION_BASELINE.md
 
 Estado validado al inicio de esta sesión:
 - HEAD: eded45a ("fix: type organization membership mapping")
@@ -44,6 +45,7 @@ Busca pacientes por nombre/teléfono/FDI. Redirige a /pacientes/[id].
 Reutilizar dominio existente en src/server/domain/ — no inventar endpoints nuevos.
 
 Documentación de estado en:
+- docs/NELZZON_PRODUCTION_BASELINE.md (línea base de producción: dominio, PM2, env)
 - docs/LOOLO_ODONTOLOGIA_STATE.md
 - docs/LOOLO_ODONTOLOGIA_BACKLOG.md
 - docs/NEXT_CHAT_STARTER.md
