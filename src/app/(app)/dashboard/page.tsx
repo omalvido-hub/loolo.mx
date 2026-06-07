@@ -28,7 +28,7 @@ export default async function DashboardPage() {
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[28rem] bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(0,0,0,0.035),transparent)]"
       />
 
-      <div className="mx-auto max-w-7xl space-y-8 px-6 py-8 sm:px-8 lg:py-10">
+      <div className="mx-auto max-w-7xl space-y-8 px-6 pt-8 pb-32 sm:px-8 sm:pb-36 lg:pt-10">
         <div className="relative overflow-hidden rounded-3xl border bg-card px-6 py-7 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] sm:px-8 sm:py-9">
           <div
             aria-hidden
