@@ -8,7 +8,6 @@ import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { UserMenu } from "@/components/user-menu";
-import { APP_NAME } from "@/lib/brand";
 
 interface AppTopbarProps {
   showSearch: boolean;
@@ -37,7 +36,7 @@ export function AppTopbar({
       <div className="flex flex-1 min-w-0">
         {showSearch ? (
           <GlobalSearch
-            placeholder={`Buscar pacientes, módulos, acciones en ${APP_NAME}…`}
+            placeholder="Buscar pacientes…"
             className="w-full max-w-xl mx-auto lg:mx-0"
           />
         ) : (

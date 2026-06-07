@@ -9,7 +9,7 @@ import { resolve } from "node:path";
 import { adminPool, forTenantPg, closePools } from "./harness.js";
 import { PERMISSIONS, ROLES } from "../src/server/domain/identity/rbac.js";
 import type { ActorContext } from "../src/server/domain/identity/authorize.js";
-import { listPatientsForOrg } from "../src/server/domain/patient-record/list.js";
+import { listPatientsForOrg, searchPatients } from "../src/server/domain/patient-record/list.js";
 import { resolvePatientLiveRecord } from "../src/server/domain/patient-record/resolver.js";
 import { makeTenantRunner } from "../src/server/db/tenant.js";
 
@@ -33,6 +33,14 @@ let patientDeletedId: string;
 let patientArchivedAtId: string;
 // paciente en orgB (aislamiento)
 let patientBId: string;
+
+// pacientes con teléfono/correo distintivos para searchPatients
+let patientSearchableId: string;
+let patientSearchBId: string;
+const SEARCH_PHONE_A = "+525555501234";
+const SEARCH_EMAIL_A = "lucia.buscable@ui1.test";
+const SEARCH_PHONE_B = "+525555509876";
+const SEARCH_EMAIL_B = "lucia.orgb@ui1.test";
 
 async function ensureRbac() {
   for (const p of PERMISSIONS)
@@ -143,6 +151,22 @@ beforeAll(async () => {
 
   const contactBId = await insertContact(orgB, "Carlos OrgB");
   patientBId = await insertPatient(orgB, contactBId, "OK");
+
+  const contactSearchableId = (
+    await adminPool.query(
+      `INSERT INTO "contacts"("organizationId","fullName","phone","email") VALUES ($1,$2,$3,$4) RETURNING id`,
+      [orgA, "Lucía Fernández Buscable", SEARCH_PHONE_A, SEARCH_EMAIL_A],
+    )
+  ).rows[0].id as string;
+  patientSearchableId = await insertPatient(orgA, contactSearchableId, "OK");
+
+  const contactSearchBId = (
+    await adminPool.query(
+      `INSERT INTO "contacts"("organizationId","fullName","phone","email") VALUES ($1,$2,$3,$4) RETURNING id`,
+      [orgB, "Lucía Fernández OrgB", SEARCH_PHONE_B, SEARCH_EMAIL_B],
+    )
+  ).rows[0].id as string;
+  patientSearchBId = await insertPatient(orgB, contactSearchBId, "OK");
 }, 30_000);
 
 afterAll(async () => {
@@ -369,6 +393,174 @@ describe("listPatientsForOrg — campos mínimos", () => {
     expect(item).not.toHaveProperty("treatment");
     expect(item).not.toHaveProperty("balanceCents");
     expect(item).not.toHaveProperty("paidCents");
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════
+// 5b. searchPatients — buscador global de pacientes (solo lectura)
+// ══════════════════════════════════════════════════════════════════════
+
+describe("searchPatients — permisos", () => {
+  it("owner con patients.view recibe ok", async () => {
+    const run = runFor(orgA);
+    const result = await searchPatients(run, ownerA, "Lucía");
+    expect(result.ok).toBe(true);
+  });
+
+  it("billing sin patients.view recibe FORBIDDEN", async () => {
+    const run = runFor(orgA);
+    const result = await searchPatients(run, billingA, "Lucía");
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.reason).toBe("FORBIDDEN");
+  });
+
+  it("denegación registra permission.denied en auditoría con entityType patient_search", async () => {
+    const run = runFor(orgA);
+    const noPermsCtx: ActorContext = {
+      organizationId: orgA,
+      userId: frontDeskA.userId,
+      permissions: new Set(["app_shell.view"]),
+    };
+    await searchPatients(run, noPermsCtx, "Lucía");
+
+    const denial = (
+      await adminPool.query(
+        `SELECT "metadata" FROM "audit_logs"
+         WHERE "organizationId"=$1 AND "action"='permission.denied' AND "actorUserId"=$2
+         ORDER BY "createdAt" DESC LIMIT 1`,
+        [orgA, frontDeskA.userId],
+      )
+    ).rows;
+    expect(denial.length).toBeGreaterThanOrEqual(1);
+    expect(denial[0].metadata?.permission).toBe("patients.view");
+  });
+});
+
+describe("searchPatients — longitud mínima de búsqueda", () => {
+  it("texto con menos de 2 caracteres devuelve lista vacía sin consultar", async () => {
+    const run = runFor(orgA);
+    const result = await searchPatients(run, ownerA, "L");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value).toEqual([]);
+  });
+
+  it("texto vacío devuelve lista vacía", async () => {
+    const run = runFor(orgA);
+    const result = await searchPatients(run, ownerA, "   ");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value).toEqual([]);
+  });
+});
+
+describe("searchPatients — búsqueda por nombre, teléfono y correo", () => {
+  it("encuentra por coincidencia de nombre", async () => {
+    const run = runFor(orgA);
+    const result = await searchPatients(run, ownerA, "Buscable");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.map((p) => p.id)).toContain(patientSearchableId);
+  });
+
+  it("encuentra por coincidencia de teléfono", async () => {
+    const run = runFor(orgA);
+    const result = await searchPatients(run, ownerA, "5555501234");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.map((p) => p.id)).toContain(patientSearchableId);
+  });
+
+  it("encuentra por coincidencia de correo", async () => {
+    const run = runFor(orgA);
+    const result = await searchPatients(run, ownerA, "lucia.buscable");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.map((p) => p.id)).toContain(patientSearchableId);
+  });
+
+  it("sin coincidencias devuelve lista vacía", async () => {
+    const run = runFor(orgA);
+    const result = await searchPatients(run, ownerA, "xyznoexiste123");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value).toEqual([]);
+  });
+});
+
+describe("searchPatients — límite máximo de 8 resultados", () => {
+  it("nunca devuelve más de 8 resultados aunque limit sea mayor", async () => {
+    const run = runFor(orgA);
+    const result = await searchPatients(run, ownerA, "a", 999 as unknown as number);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.length).toBeLessThanOrEqual(8);
+  });
+});
+
+describe("searchPatients — aislamiento multi-tenant", () => {
+  it("paciente de orgB no aparece al buscar desde orgA aunque el nombre coincida", async () => {
+    const run = runFor(orgA);
+    const result = await searchPatients(run, ownerA, "Lucía");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const ids = result.value.map((p) => p.id);
+    expect(ids).toContain(patientSearchableId);
+    expect(ids).not.toContain(patientSearchBId);
+  });
+
+  it("paciente de orgB no aparece al buscar por su teléfono desde orgA", async () => {
+    const run = runFor(orgA);
+    const result = await searchPatients(run, ownerA, "5555509876");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.map((p) => p.id)).not.toContain(patientSearchBId);
+  });
+});
+
+describe("searchPatients — excluye archivados/eliminados", () => {
+  it("paciente con state=ARCHIVED no aparece en resultados", async () => {
+    const run = runFor(orgA);
+    const result = await searchPatients(run, ownerA, "Archivado");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.map((p) => p.id)).not.toContain(patientArchivedId);
+  });
+
+  it("paciente con deletedAt no aparece en resultados", async () => {
+    const run = runFor(orgA);
+    const result = await searchPatients(run, ownerA, "Eliminado");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.map((p) => p.id)).not.toContain(patientDeletedId);
+  });
+
+  it("paciente con archivedAt no aparece en resultados", async () => {
+    const run = runFor(orgA);
+    const result = await searchPatients(run, ownerA, "ArchivedAt");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.map((p) => p.id)).not.toContain(patientArchivedAtId);
+  });
+});
+
+describe("searchPatients — campos mínimos del resultado", () => {
+  it("cada item incluye id, contactId, fullName, phone y email", async () => {
+    const run = runFor(orgA);
+    const result = await searchPatients(run, ownerA, "Buscable");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.length).toBeGreaterThanOrEqual(1);
+
+    const item = result.value[0];
+    expect(item).toHaveProperty("id");
+    expect(item).toHaveProperty("contactId");
+    expect(item).toHaveProperty("fullName");
+    expect(item).toHaveProperty("phone");
+    expect(item).toHaveProperty("email");
+    expect(item.email).toBe(SEARCH_EMAIL_A);
   });
 });
 

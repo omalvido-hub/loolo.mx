@@ -32,6 +32,7 @@ export interface PatientSearchItem {
   contactId: string;
   fullName: string | null;
   phone: string | null;
+  email: string | null;
 }
 
 export async function searchPatients(
@@ -65,7 +66,7 @@ export async function searchPatients(
 
   return run(async (exec): Promise<Result<PatientSearchItem[]>> => {
     const rows: any[] = await exec(
-      `SELECT p."id", p."contactId", c."fullName", c."phone"
+      `SELECT p."id", p."contactId", c."fullName", c."phone", c."email"
        FROM "patients" p
        JOIN "contacts" c ON c."id" = p."contactId"
        WHERE p."state" != 'ARCHIVED'
@@ -88,6 +89,7 @@ export async function searchPatients(
       contactId: r.contactId,
       fullName: r.fullName ?? null,
       phone: r.phone ?? null,
+      email: r.email ?? null,
     })));
   });
 }

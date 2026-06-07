@@ -16,7 +16,7 @@ interface GlobalSearchProps {
   className?: string;
 }
 
-export function GlobalSearch({ placeholder = "Buscar paciente…", className }: GlobalSearchProps) {
+export function GlobalSearch({ placeholder = "Buscar pacientes…", className }: GlobalSearchProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PatientSearchItem[]>([]);
   const [open, setOpen] = useState(false);
@@ -37,7 +37,7 @@ export function GlobalSearch({ placeholder = "Buscar paciente…", className }: 
         const res = await searchPatientsAction(q);
         if (res.ok) {
           setResults(res.items);
-          setOpen(res.items.length > 0);
+          setOpen(true);
         } else {
           setResults([]);
           setOpen(false);
@@ -81,7 +81,7 @@ export function GlobalSearch({ placeholder = "Buscar paciente…", className }: 
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={() => results.length > 0 && setOpen(true)}
+          onFocus={() => query.trim().length >= 2 && setOpen(true)}
           placeholder={placeholder}
           className="w-full rounded-md border border-input bg-background pl-8 pr-3 py-1.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           aria-label="Buscar paciente por nombre, teléfono o correo"
@@ -92,23 +92,32 @@ export function GlobalSearch({ placeholder = "Buscar paciente…", className }: 
         )}
       </div>
 
-      {open && results.length > 0 && (
+      {open && (
         <div className="absolute left-3 right-3 top-full mt-1 z-50 rounded-md border bg-popover shadow-md overflow-hidden">
-          {results.map((r) => (
-            <button
-              key={r.id}
-              type="button"
-              onMouseDown={() => handleSelect(r.id)}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors flex flex-col gap-0.5"
-            >
-              <span className="font-medium text-foreground truncate">
-                {r.fullName ?? "Sin nombre"}
-              </span>
-              {r.phone && (
-                <span className="text-xs text-muted-foreground">{r.phone}</span>
-              )}
-            </button>
-          ))}
+          {results.length > 0 ? (
+            results.map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                onMouseDown={() => handleSelect(r.id)}
+                className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors flex flex-col gap-0.5"
+              >
+                <span className="flex items-center gap-1.5 min-w-0">
+                  <span className="font-medium text-foreground truncate">
+                    {r.fullName ?? "Sin nombre"}
+                  </span>
+                  <span className="shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                    Paciente
+                  </span>
+                </span>
+                {(r.phone || r.email) && (
+                  <span className="text-xs text-muted-foreground truncate">{r.phone || r.email}</span>
+                )}
+              </button>
+            ))
+          ) : (
+            <p className="px-3 py-2 text-sm text-muted-foreground">Sin resultados</p>
+          )}
         </div>
       )}
     </div>
