@@ -24,22 +24,27 @@ interface NavItem {
   href: string;
   icon: React.ElementType;
   permission: string;
+  // Solo true cuando existe una página real en src/app para este href. Los
+  // accesos sin página propia se muestran como "Próximamente" — sin navegar —
+  // para no llevar al usuario a un 404. Mismo patrón que AppDock/ModuleCatalog
+  // (ver auditoría de rutas en NELZZON-EXPERIENCE-1B / NELZZON-MODULE-SAFETY-1A).
+  available: boolean;
 }
 
 // "Configuración" vive aparte, anclada al pie del menú expandido junto a
 // "Personalizar" — para distinguirla del menú operativo principal.
 const NAV_ITEMS: NavItem[] = [
-  { label: "Inicio",            href: "/dashboard",      icon: LayoutDashboard, permission: "dashboard.view" },
-  { label: "Pacientes",         href: "/pacientes",      icon: UserCircle,      permission: "patients.view" },
-  { label: "Agenda",            href: "/agenda",         icon: CalendarDays,    permission: "appointments.view" },
-  { label: "Consultas",         href: "/consultas",      icon: Stethoscope,     permission: "clinical.view" },
-  { label: "Plan de tratamiento", href: "/tratamiento",  icon: ClipboardList,   permission: "treatment.view" },
-  { label: "Presupuestos",      href: "/presupuestos",   icon: FileText,        permission: "quote.view" },
-  { label: "Cobros",            href: "/cobros",         icon: CreditCard,      permission: "payment.view" },
+  { label: "Inicio",            href: "/dashboard",      icon: LayoutDashboard, permission: "dashboard.view",    available: true },
+  { label: "Pacientes",         href: "/pacientes",      icon: UserCircle,      permission: "patients.view",     available: true },
+  { label: "Agenda",            href: "/agenda",         icon: CalendarDays,    permission: "appointments.view", available: true },
+  { label: "Consultas",         href: "/consultas",      icon: Stethoscope,     permission: "clinical.view",     available: false },
+  { label: "Plan de tratamiento", href: "/tratamiento",  icon: ClipboardList,   permission: "treatment.view",    available: false },
+  { label: "Presupuestos",      href: "/presupuestos",   icon: FileText,        permission: "quote.view",        available: true },
+  { label: "Cobros",            href: "/cobros",         icon: CreditCard,      permission: "payment.view",      available: true },
 ];
 
 const SETTINGS_ITEM: NavItem = {
-  label: "Configuración", href: "/configuracion", icon: Settings, permission: "settings.view",
+  label: "Configuración", href: "/configuracion", icon: Settings, permission: "settings.view", available: false,
 };
 
 interface AppSidebarProps {
@@ -87,6 +92,26 @@ export function AppSidebar({ roleKey, orgName, collapsed, onToggleCollapse, onOp
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {visibleItems.map((item) => {
           const Icon = item.icon;
+
+          if (!item.available) {
+            return (
+              <span
+                key={item.href}
+                title={`${item.label} — próximamente`}
+                aria-disabled="true"
+                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground/40 cursor-default"
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                <span className="flex items-center gap-2">
+                  {item.label}
+                  <span className="rounded-full bg-sidebar-accent/60 px-1.5 py-px text-[10px] font-medium tracking-wide text-sidebar-foreground/60">
+                    Próximamente
+                  </span>
+                </span>
+              </span>
+            );
+          }
+
           const active = isActive(item.href);
           return (
             <Link
@@ -116,18 +141,34 @@ export function AppSidebar({ roleKey, orgName, collapsed, onToggleCollapse, onOp
           Personalizar
         </button>
         {showSettings && (
-          <Link
-            href={SETTINGS_ITEM.href}
-            className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-              isActive(SETTINGS_ITEM.href)
-                ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
-            )}
-          >
-            <Settings className="h-4 w-4 shrink-0" />
-            {SETTINGS_ITEM.label}
-          </Link>
+          SETTINGS_ITEM.available ? (
+            <Link
+              href={SETTINGS_ITEM.href}
+              className={cn(
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                isActive(SETTINGS_ITEM.href)
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+              )}
+            >
+              <Settings className="h-4 w-4 shrink-0" />
+              {SETTINGS_ITEM.label}
+            </Link>
+          ) : (
+            <span
+              title={`${SETTINGS_ITEM.label} — próximamente`}
+              aria-disabled="true"
+              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground/40 cursor-default"
+            >
+              <Settings className="h-4 w-4 shrink-0" />
+              <span className="flex items-center gap-2">
+                {SETTINGS_ITEM.label}
+                <span className="rounded-full bg-sidebar-accent/60 px-1.5 py-px text-[10px] font-medium tracking-wide text-sidebar-foreground/60">
+                  Próximamente
+                </span>
+              </span>
+            </span>
+          )
         )}
       </div>
     </aside>
