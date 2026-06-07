@@ -4,7 +4,8 @@
 // - getEncounterSafeView exige clinical.view.
 // - getEncounterSafeView respeta RLS / multi-tenant.
 // - getEncounterSafeView valida encounterId contra patientId.
-// - body NUNCA devuelto para ningún rol.
+// - getEncounterSafeView SÍ devuelve body y authorName — única vista autorizada
+//   para ello (NELZZON-CLINICAL-NOTES-1B) — y solo para actores con clinical.view.
 // - no existen endpoints REST clínicos.
 // - no existe migración 0016.
 // - encounters.ts no fue modificado.
@@ -64,13 +65,17 @@ async function ensureRbac() {
   }
 }
 
+const memberEmails = new Map<string, string>(); // userId -> email (sin name -> authorName cae a email)
+
 async function member(orgId: string, roleKey: string): Promise<ActorContext> {
+  const email = `${roleKey}-${rnd()}@ui3.test`;
   const userId = (
     await adminPool.query(
       `INSERT INTO "users"("email","emailVerified") VALUES ($1,true) RETURNING id`,
-      [`${roleKey}-${rnd()}@ui3.test`],
+      [email],
     )
   ).rows[0].id;
+  memberEmails.set(userId, email);
   const memberId = (
     await adminPool.query(
       `INSERT INTO "organization_memberships"("organizationId","userId","role") VALUES ($1,$2,$3) RETURNING id`,
@@ -274,65 +279,86 @@ describe("getEncounterSafeView — RBAC fail-closed", () => {
 });
 
 // ══════════════════════════════════════════════════════════════════════
-// 3. getEncounterSafeView — body NUNCA devuelto para ningún rol
+// 3. getEncounterSafeView — body y autor SOLO en esta vista autorizada
+//    (NELZZON-CLINICAL-NOTES-1B revierte conscientemente la regla "nunca
+//    body" de UI-3: si el actor puede escribir notas, debe poder leerlas).
 // ══════════════════════════════════════════════════════════════════════
 
-describe("getEncounterSafeView — body nunca devuelto", () => {
-  it("body no aparece en respuesta para clinician", async () => {
+describe("getEncounterSafeView — body y autor solo para actores con clinical.view", () => {
+  it("clinician (autor de la nota) ve el body y su propio nombre como autor", async () => {
     const run = runFor(orgA);
     const result = await getEncounterSafeView(run, clinicianA, patientAId, encounterAId);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    const raw = JSON.stringify(result.value);
-    expect(raw).not.toContain(noteBody);
-    expect(raw).not.toContain('"body"');
+    const item = result.value.notesSummary.items[0];
+    expect(item.body).toBe(noteBody);
+    expect(item.authorName).toBe(memberEmails.get(clinicianA.userId));
   });
 
-  it("body no aparece en respuesta para owner", async () => {
+  it("owner (no autor) también ve el body y el nombre del autor real", async () => {
     const run = runFor(orgA);
     const result = await getEncounterSafeView(run, ownerA, patientAId, encounterAId);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    const raw = JSON.stringify(result.value);
-    expect(raw).not.toContain(noteBody);
-    expect(raw).not.toContain('"body"');
+    const item = result.value.notesSummary.items[0];
+    expect(item.body).toBe(noteBody);
+    expect(item.authorName).toBe(memberEmails.get(clinicianA.userId));
   });
 
-  it("notesSummary tiene count correcto pero sin body", async () => {
+  it("notesSummary trae count, body y authorName resueltos", async () => {
     const run = runFor(orgA);
     const result = await getEncounterSafeView(run, clinicianA, patientAId, encounterAId);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.notesSummary.count).toBe(1);
-    expect(result.value.notesSummary.items[0]).not.toHaveProperty("body");
-    expect(result.value.notesSummary.items[0]).toHaveProperty("id");
-    expect(result.value.notesSummary.items[0]).toHaveProperty("createdAt");
+    const item = result.value.notesSummary.items[0];
+    expect(item).toHaveProperty("id");
+    expect(item).toHaveProperty("createdAt");
+    expect(item).toHaveProperty("body");
+    expect(item).toHaveProperty("authorName");
+    expect(item).not.toHaveProperty("authorUserId"); // nunca UUID crudo
   });
 
-  it("body no aparece para front_desk (rol sin clinical.view → FORBIDDEN, no body)", async () => {
+  it("front_desk (tiene clinical.view) también ve el body autorizado", async () => {
     const run = runFor(orgA);
-    // front_desk SÍ tiene clinical.view según RBAC; verificamos que aun así no hay body
     const result = await getEncounterSafeView(run, frontDeskA, patientAId, encounterAId);
     if (result.ok) {
-      const raw = JSON.stringify(result.value);
-      expect(raw).not.toContain(noteBody);
-      expect(raw).not.toContain('"body"');
+      expect(result.value.notesSummary.items[0].body).toBe(noteBody);
     } else {
-      // Si no tiene clinical.view, debe ser FORBIDDEN
       expect(result.reason).toBe("FORBIDDEN");
     }
   });
 
-  it("body no aparece para accountant (sin clinical.view → FORBIDDEN, no body)", async () => {
+  it("accountant (sin clinical.view) → FORBIDDEN, nunca ve el body", async () => {
     const run = runFor(orgA);
     const result = await getEncounterSafeView(run, accountantA, patientAId, encounterAId);
-    if (result.ok) {
-      const raw = JSON.stringify(result.value);
-      expect(raw).not.toContain(noteBody);
-      expect(raw).not.toContain('"body"');
-    } else {
-      expect(result.reason).toBe("FORBIDDEN");
-    }
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.reason).toBe("FORBIDDEN");
+  });
+
+  it("billing (sin clinical.view) → FORBIDDEN, nunca ve el body", async () => {
+    const run = runFor(orgA);
+    const result = await getEncounterSafeView(run, billingA, patientAId, encounterAId);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.reason).toBe("FORBIDDEN");
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════
+// 3b. listEncountersSafeForPatient — sigue sin exponer body (sin cambios)
+// ══════════════════════════════════════════════════════════════════════
+
+describe("listEncountersSafeForPatient — body sigue sin exponerse fuera de getEncounterSafeView", () => {
+  it("el listado de consultas no contiene el body de la nota", async () => {
+    const run = runFor(orgA);
+    const result = await listEncountersSafeForPatient(run, clinicianA, patientAId);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const raw = JSON.stringify(result.value);
+    expect(raw).not.toContain(noteBody);
+    expect(raw).not.toContain('"body"');
   });
 });
 
@@ -508,18 +534,29 @@ describe("integridad estructural", () => {
     expect(existsSync(resolve("src/components/clinical/ClinicalNoteBody.tsx"))).toBe(false);
   });
 
-  it("ningún componente clínico renderiza body", () => {
+  it("solo ClinicalNotesSummary renderiza body de notas (vista autorizada única)", () => {
+    // NELZZON-CLINICAL-NOTES-1B: ClinicalNotesSummary es el único componente clínico
+    // autorizado a mostrar item.body — viene de getEncounterSafeView (clinical.view).
+    // El resto de componentes clínicos NO debe renderizar contenido de notas.
     const clinicalDir = resolve("src/components/clinical");
     const files = readdirSync(clinicalDir).filter((f: string) => f.endsWith(".tsx"));
+    const AUTHORIZED = "ClinicalNotesSummary.tsx";
     for (const file of files) {
+      if (file === AUTHORIZED) continue;
       const content = readFileSync(resolve(clinicalDir, file), "utf-8");
-      // "body" puede aparecer en comentarios de seguridad o en prop names no relacionados
-      // Verificamos que no hay {.*body.*} ni body: en renderizado JSX
-      // Comprobación estricta: "note.body" o ".body" como valor JSX no debe existir
       expect(content, `${file} no debe renderizar .body de notas`).not.toContain(".body");
       expect(content, `${file} no debe renderizar note.body`).not.toContain("note.body");
       expect(content, `${file} no debe renderizar noteBody`).not.toContain("noteBody");
     }
+  });
+
+  it("ClinicalNotesSummary muestra item.body con whitespace-pre-wrap y sin dangerouslySetInnerHTML", () => {
+    const content = readFileSync(resolve("src/components/clinical/ClinicalNotesSummary.tsx"), "utf-8");
+    expect(content).toContain("item.body");
+    expect(content).toContain("whitespace-pre-wrap");
+    // El comentario de seguridad SÍ menciona dangerouslySetInnerHTML (para prohibirlo);
+    // lo que no debe existir es su uso real como atributo JSX.
+    expect(content).not.toContain("dangerouslySetInnerHTML={");
   });
 
   it("encounter-views.ts no hace SELECT *", () => {
@@ -527,10 +564,29 @@ describe("integridad estructural", () => {
     expect(content).not.toContain("SELECT *");
   });
 
-  it("encounter-views.ts no selecciona body de clinical_notes", () => {
+  it("getEncounterSafeView SÍ selecciona body/authorUserId de clinical_notes (vista autorizada única); listEncountersSafeForPatient NO", () => {
     const content = readFileSync(resolve("src/server/domain/clinical/encounter-views.ts"), "utf-8");
-    // No debe haber un SELECT que incluya "body" del lado de clinical_notes
-    // Buscamos la query de notas: no debe seleccionar "body"
-    expect(content).not.toContain('"body"');
+    // La función getEncounterSafeView selecciona body — es la única vista autorizada.
+    const fnStart = content.indexOf("export async function getEncounterSafeView");
+    const fnEnd = content.indexOf("export async function listEncountersSafeForPatient");
+    expect(fnStart).toBeGreaterThan(-1);
+    expect(fnEnd).toBeGreaterThan(fnStart);
+    const getViewBody = content.slice(fnStart, fnEnd);
+    expect(getViewBody).toContain('"authorUserId", "body"');
+
+    // listEncountersSafeForPatient sigue sin seleccionar body (queda igual que en UI-3).
+    const listViewBody = content.slice(fnEnd);
+    expect(listViewBody).not.toContain('"body"');
+  });
+
+  it("resolución de autor usa el helper de identidad (capa auth), no adminDb ni SQL directo sobre users en el dominio", () => {
+    const content = readFileSync(resolve("src/server/domain/clinical/encounter-views.ts"), "utf-8");
+    expect(content).toContain("resolveMemberDisplayNames");
+    expect(content).toContain('from "../../auth/identity-names.js"');
+    expect(content).not.toMatch(/FROM\s+"users"/i);
+    // El dominio no debe importar/usar adminDb directamente — solo el helper de la capa auth
+    // (que sí lo encapsula). La mención en el comentario de diseño es aceptable.
+    expect(content).not.toMatch(/import\s*\{[^}]*adminDb/);
+    expect(content).not.toContain("adminDb.");
   });
 });

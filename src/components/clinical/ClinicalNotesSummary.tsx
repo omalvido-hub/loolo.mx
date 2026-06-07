@@ -1,4 +1,7 @@
-// Presentacional puro. Muestra SOLO metadatos de notas: count, fecha y autor.
+// Presentacional puro. Muestra notas clínicas: contenido, autor y fecha.
+// El contenido viene de getEncounterSafeView, la única vista autorizada que lo
+// expone (NELZZON-CLINICAL-NOTES-1B). React escapa {item.body} por defecto —
+// no usar dangerouslySetInnerHTML.
 
 import type { NotesSummary } from "@/server/domain/clinical/encounter-views";
 
@@ -32,11 +35,14 @@ export function ClinicalNotesSummary({ summary }: Props) {
           <> Última: {fDatetime(summary.latestCreatedAt)}.</>
         )}
       </p>
-      <ul className="divide-y rounded-lg border text-sm">
+      <ul className="space-y-2">
         {summary.items.map((item) => (
-          <li key={item.id} className="flex items-center justify-between px-3 py-2 text-muted-foreground">
-            <span>{item.authorName ?? "Autor desconocido"}</span>
-            <span>{fDatetime(item.createdAt)}</span>
+          <li key={item.id} className="rounded-lg border px-3 py-2 space-y-1">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>{item.authorName ?? "Autor desconocido"}</span>
+              <span>{fDatetime(item.createdAt)}</span>
+            </div>
+            <p className="text-sm whitespace-pre-wrap">{item.body}</p>
           </li>
         ))}
       </ul>

@@ -1,9 +1,14 @@
-// NELZZON — Proyección segura de consultas clínicas (UI-3, solo lectura).
-// NUNCA devuelve clinical_notes.body ni organizationId ni UUIDs internos innecesarios.
-// Exige clinical.view. Fail-closed ante falta de tenant, actor o permiso.
+// NELZZON — Proyección segura de consultas clínicas (UI-3, solo lectura;
+// NELZZON-CLINICAL-NOTES-1B amplía a notas con autor y contenido).
+// getEncounterSafeView SÍ devuelve clinical_notes.body y authorName — es la única
+// vista autorizada para ello (exige clinical.view, fail-closed, anti-IDOR).
+// listEncountersSafeForPatient sigue sin exponer body (solo conteo/metadatos).
+// NUNCA exponer body/authorName fuera de esta vista: ni en auditoría, eventos,
+// búsqueda global ni reportes (regla NO NEGOCIABLE — datos clínicos).
 // Audita el acceso SIN contenido sensible.
 
 import { can } from "../identity/permissions.js";
+import { resolveMemberDisplayNames } from "../../auth/identity-names.js";
 import { recordAudit, recordPermissionDenied } from "../audit/record.js";
 import type { ActorContext, TenantRunner } from "../identity/authorize.js";
 import { ok, fail } from "../shared/status.js";
@@ -20,6 +25,7 @@ export interface NoteMetaItem {
   id: string;
   createdAt: string;
   authorName: string | null;
+  body: string;
 }
 
 export interface NotesSummary {
@@ -128,20 +134,29 @@ export async function getEncounterSafeView(
       professionalName = rr[0]?.name ?? null;
     }
 
-    // Metadatos de notas — NUNCA body. users no es accesible por app_user (Better Auth),
-    // por lo que authorName queda null. Solo id y fecha.
+    // Notas clínicas — vista autorizada (clinical.view ya exigido arriba).
+    // authorUserId se usa SOLO para resolver el nombre a mostrar; nunca se devuelve
+    // como UUID crudo. users no es accesible por app_user (RLS), por lo que el
+    // nombre se resuelve vía adminDb en la capa de identidad (resolveMemberDisplayNames),
+    // scoped por organizationId — anti fuga cross-tenant, en un solo lote (no N+1).
     const noteRows = await exec(
-      `SELECT "id", "createdAt"
+      `SELECT "id", "authorUserId", "body", "createdAt"
        FROM "clinical_notes"
        WHERE "encounterId" = $1
        ORDER BY "createdAt" ASC`,
       [encounterId],
     );
 
+    const authorNames = await resolveMemberDisplayNames(
+      noteRows.map((n: any) => n.authorUserId),
+      ctx.organizationId,
+    );
+
     const noteItems: NoteMetaItem[] = noteRows.map((n: any) => ({
       id: n.id,
       createdAt: toIso(n.createdAt) ?? new Date().toISOString(),
-      authorName: null,
+      authorName: authorNames.get(n.authorUserId) ?? null,
+      body: n.body,
     }));
 
     const notesSummary: NotesSummary = {
