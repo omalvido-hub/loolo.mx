@@ -2,7 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   experimental: {
-    serverActions: { allowedOrigins: ["localhost:3000", "localhost:3001"] },
+    serverActions: {
+      allowedOrigins: ["localhost:3000", "localhost:3001", "nelzzon.com", "www.nelzzon.com"],
+    },
   },
   // Paquetes de servidor (DB, auth) corren en Node.js nativo, fuera del bundle webpack.
   serverExternalPackages: [
