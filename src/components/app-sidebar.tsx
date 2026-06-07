@@ -16,7 +16,7 @@ import {
   PanelLeftOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { APP_NAME } from "@/lib/brand";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { hasPermission } from "@/lib/permissions";
 
 interface NavItem {
@@ -75,7 +75,7 @@ export function AppSidebar({ roleKey, orgName, collapsed, onToggleCollapse, onOp
     <aside className="flex flex-col min-h-screen w-64 shrink-0 border-r bg-sidebar transition-[width] duration-200 ease-out">
       <div className="flex items-center justify-between gap-2 border-b px-4 py-5">
         <div className="min-w-0">
-          <span className="text-lg font-bold text-sidebar-foreground">{APP_NAME}</span>
+          <BrandLogo size="compact" className="text-sidebar-foreground" />
           <p className="text-xs text-muted-foreground mt-0.5 truncate">{orgName}</p>
         </div>
         <button
