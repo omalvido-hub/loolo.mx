@@ -32,15 +32,21 @@ export function DashboardKpiGrid() {
         return (
           <div
             key={kpi.key}
-            className="group rounded-2xl border bg-card p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-16px_rgba(0,0,0,0.18)]"
+            className="group relative overflow-hidden rounded-2xl border bg-card p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-18px_rgba(0,0,0,0.2)]"
           >
-            <span className={cn("flex items-center justify-center size-10 rounded-2xl transition-transform group-hover:scale-105", kpi.accent)}>
+            <Icon
+              aria-hidden
+              className="pointer-events-none absolute -right-3 -bottom-3 h-16 w-16 rotate-[-12deg] text-foreground/[0.035] transition-transform duration-300 group-hover:rotate-0 group-hover:scale-110"
+              strokeWidth={1.25}
+            />
+
+            <span className={cn("relative flex items-center justify-center size-10 rounded-2xl transition-transform group-hover:scale-105", kpi.accent)}>
               <Icon className="h-[18px] w-[18px]" />
             </span>
 
-            <p className="mt-4 text-sm font-semibold tracking-tight">{kpi.label}</p>
+            <p className="relative mt-4 text-sm font-semibold tracking-tight">{kpi.label}</p>
 
-            <div className="mt-2.5 flex items-center gap-1.5">
+            <div className="relative mt-2.5 flex items-center gap-1.5">
               <span className="relative flex size-1.5">
                 <span className="absolute inline-flex size-full animate-ping rounded-full bg-foreground/20" />
                 <span className="relative inline-flex size-1.5 rounded-full bg-foreground/30" />
