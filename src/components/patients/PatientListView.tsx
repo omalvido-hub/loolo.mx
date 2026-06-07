@@ -1,8 +1,11 @@
 "use client";
 
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { PatientListResult } from "@/server/domain/patient-record/list";
+import { Search } from "lucide-react";
+import { searchPatientsAction } from "@/server/actions/patients";
+import type { PatientListItem, PatientListResult, PatientSearchItem } from "@/server/domain/patient-record/list";
 
 const FMT_DATE = new Intl.DateTimeFormat("es-MX", {
   timeZone: "America/Mexico_City",
@@ -15,6 +18,10 @@ function formatDate(iso: string): string {
   } catch {
     return "—";
   }
+}
+
+function hasFullDetails(p: PatientListItem | PatientSearchItem): p is PatientListItem {
+  return "status" in p;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -31,6 +38,29 @@ export function PatientListView({ data }: Props) {
   const router = useRouter();
   const { items, total, limit, offset } = data;
 
+  const [query, setQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<PatientSearchItem[] | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  // Búsqueda con debounce de 200ms. Con menos de 2 caracteres se vuelve a la lista normal.
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) {
+      setSearchResults(null);
+      return;
+    }
+    const t = setTimeout(() => {
+      startTransition(async () => {
+        const res = await searchPatientsAction(q);
+        setSearchResults(res.ok ? res.items : []);
+      });
+    }, 200);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const isSearching = query.trim().length >= 2;
+  const visibleItems = isSearching ? searchResults ?? [] : items;
+
   return (
     <div className="p-8">
       <div className="mb-6 flex items-center justify-between">
@@ -42,7 +72,28 @@ export function PatientListView({ data }: Props) {
         </div>
       </div>
 
-      {items.length === 0 ? (
+      <div className="mb-4 relative max-w-sm">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Buscar paciente…"
+          className="w-full rounded-md border border-input bg-background pl-8 pr-3 py-1.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          aria-label="Buscar paciente por nombre, teléfono o correo"
+          autoComplete="off"
+        />
+        {isPending && (
+          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 animate-spin rounded-full border-2 border-muted border-t-foreground" />
+        )}
+      </div>
+
+      {isSearching && visibleItems.length === 0 && !isPending ? (
+        <div className="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
+          <p className="text-lg font-medium">Sin resultados</p>
+          <p className="text-sm mt-2">No se encontraron pacientes para “{query.trim()}”.</p>
+        </div>
+      ) : items.length === 0 && !isSearching ? (
         <div className="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
           <p className="text-lg font-medium">Sin pacientes registrados</p>
           <p className="text-sm mt-2">
@@ -62,7 +113,7 @@ export function PatientListView({ data }: Props) {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {items.map((p) => (
+                {visibleItems.map((p) => (
                   <tr
                     key={p.id}
                     className="hover:bg-muted/30 transition-colors cursor-pointer"
@@ -81,12 +132,16 @@ export function PatientListView({ data }: Props) {
                       {p.phone ?? "—"}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
-                        {STATUS_LABELS[p.status] ?? p.status}
-                      </span>
+                      {hasFullDetails(p) ? (
+                        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
+                          {STATUS_LABELS[p.status] ?? p.status}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {formatDate(p.createdAt)}
+                      {hasFullDetails(p) ? formatDate(p.createdAt) : "—"}
                     </td>
                   </tr>
                 ))}
@@ -94,11 +149,15 @@ export function PatientListView({ data }: Props) {
             </table>
           </div>
 
-          {total > limit && (
+          {isSearching ? (
+            <p className="mt-4 text-sm text-muted-foreground text-center">
+              {visibleItems.length} {visibleItems.length === 1 ? "resultado" : "resultados"} para “{query.trim()}”.
+            </p>
+          ) : total > limit ? (
             <p className="mt-4 text-sm text-muted-foreground text-center">
               Mostrando {offset + 1}–{Math.min(offset + limit, total)} de {total} pacientes.
             </p>
-          )}
+          ) : null}
         </>
       )}
     </div>

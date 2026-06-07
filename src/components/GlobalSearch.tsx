@@ -7,10 +7,16 @@
 import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { searchPatientsAction } from "@/server/actions/patients";
 import type { PatientSearchItem } from "@/server/domain/patient-record/list";
 
-export function GlobalSearch() {
+interface GlobalSearchProps {
+  placeholder?: string;
+  className?: string;
+}
+
+export function GlobalSearch({ placeholder = "Buscar paciente…", className }: GlobalSearchProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PatientSearchItem[]>([]);
   const [open, setOpen] = useState(false);
@@ -67,7 +73,7 @@ export function GlobalSearch() {
   }
 
   return (
-    <div ref={containerRef} className="relative px-3 pb-2">
+    <div ref={containerRef} className={cn("relative", className)}>
       <div className="relative">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
         <input
@@ -76,7 +82,7 @@ export function GlobalSearch() {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => results.length > 0 && setOpen(true)}
-          placeholder="Buscar paciente…"
+          placeholder={placeholder}
           className="w-full rounded-md border border-input bg-background pl-8 pr-3 py-1.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           aria-label="Buscar paciente por nombre, teléfono o correo"
           autoComplete="off"
