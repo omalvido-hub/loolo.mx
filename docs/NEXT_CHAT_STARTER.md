@@ -17,10 +17,13 @@ Contexto del proyecto:
 - Producción principal: https://nelzzon.com · VPS Hostinger · PM2 (proceso `loolo`, nombre técnico temporal) · ~/Desktop/SAAS/loolo (carpeta, nombre técnico temporal)
 - Dominio anterior https://loolo.mx sigue vivo solo como respaldo temporal (NO redirigir todavía). Detalle en docs/NELZZON_PRODUCTION_BASELINE.md
 
-Estado validado al inicio de esta sesión:
-- HEAD: eded45a ("fix: type organization membership mapping")
-- Build: OK · PM2 online · HTTP 200
-- Pieza 12 validada: badge "Controlado" visible, botón "Controlado" ya no aparece.
+Estado validado al cierre de la sesión más reciente (NELZZON-CONTINUITY-1):
+- HEAD: a84e107 ("style: make personalization studio preview friendly")
+- Build: OK · PM2 online · HTTP 200 en /login · 850/850 pruebas verdes
+- Personalizar ya es un Design Studio honesto, compacto (drawer lateral) y
+  navegable — sin backend, sin guardado, sin motor real. Ver detalle completo
+  en docs/NELZZON_STATE.md y docs/NELZZON_BACKLOG.md (documentos nuevos,
+  reemplazan progresivamente a las referencias de odontología de abajo).
 
 Lo que ya está construido y probado (NO tocar sin razón):
 - Backend completo F1–F6B + F7A/7B/7C + FVO-1/1a/1c/1d: 850 pruebas verdes.
@@ -28,6 +31,10 @@ Lo que ya está construido y probado (NO tocar sin razón):
 - Lifecycle de hallazgos: voidFinding, treatFinding, resolveFinding (append-only).
 - Botones lifecycle sin duplicidad: badge + botón del mismo estado no coexisten.
 - Render odontograma: pickGlobalBorderFinding en ToothGlyph, ToothDiagram, ToothAnatomyGlyph.
+- Historial por pieza + timeline del paciente: solo lectura (commits d334155,
+  34952e5, d55ead4) — TOOTH-HISTORY-1 ya cerrado, no retomar.
+- Design Studio de Personalizar: panel honesto, compacto, sin motor real
+  (commits 3f74297 → a84e107, ver docs/NELZZON_STATE.md sección 2).
 
 Reglas permanentes (NO NEGOCIABLES):
 1. NO modificar migraciones 0001–0018. Cambios de schema = migración nueva + aprobación.
@@ -44,11 +51,20 @@ Descripción: Buscador global en la barra de navegación superior.
 Busca pacientes por nombre/teléfono/FDI. Redirige a /pacientes/[id].
 Reutilizar dominio existente en src/server/domain/ — no inventar endpoints nuevos.
 
-Documentación de estado en:
+IMPORTANTE sobre Personalizar / Design Studio:
+- NO asumir que Personalizar guarda cambios reales.
+- NO asumir que existe un motor de persistencia.
+- NO asumir que hay backend nuevo que tocar ahí.
+Es 100% presentacional — useState local, sin tablas, sin endpoints, sin RBAC nuevo.
+Detalle completo en docs/NELZZON_STATE.md.
+
+Documentación de estado en (leer primero docs/NELZZON_STATE.md y NELZZON_BACKLOG.md):
+- docs/NELZZON_STATE.md — foto del estado real al cierre de la última sesión
+- docs/NELZZON_BACKLOG.md — backlog priorizado de lo que sigue
 - docs/NELZZON_PRODUCTION_BASELINE.md (línea base de producción: dominio, PM2, env)
-- docs/LOOLO_ODONTOLOGIA_STATE.md
-- docs/LOOLO_ODONTOLOGIA_BACKLOG.md
-- docs/NEXT_CHAT_STARTER.md
+- docs/NELZZON_PERSONALIZAR_MASTER.md / NELZZON_PERSONALIZAR_WIREFRAME.md (Design Studio)
+- docs/LOOLO_ODONTOLOGIA_STATE.md / LOOLO_ODONTOLOGIA_BACKLOG.md (referencias históricas)
+- docs/NEXT_CHAT_STARTER.md (este archivo)
 
 Antes de implementar cualquier cosa: propón un plan corto y espera OK de Oscar.
 ```
