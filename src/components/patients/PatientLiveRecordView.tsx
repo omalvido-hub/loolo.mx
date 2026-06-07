@@ -60,6 +60,27 @@ function SectionCard({ title, children }: SectionCardProps) {
   );
 }
 
+/** Encabezado de grupo: agrupa varias tarjetas bajo un mismo propósito ("qué es esto"). */
+function GroupHeading({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div className="pt-2 first:pt-0">
+      <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
+        {title}
+      </h2>
+      {subtitle && <p className="text-xs text-muted-foreground/70 mt-0.5">{subtitle}</p>}
+    </div>
+  );
+}
+
+function initials(fullName: string | null | undefined): string {
+  if (!fullName) return "?";
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  const first = parts[0]?.[0] ?? "";
+  const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? "") : "";
+  return (first + last).toUpperCase();
+}
+
 interface RowProps { label: string; value: React.ReactNode }
 function Row({ label, value }: RowProps) {
   return (
@@ -69,6 +90,18 @@ function Row({ label, value }: RowProps) {
     </div>
   );
 }
+
+const PATIENT_STATUS_LABELS: Record<string, string> = {
+  NEW: "Nuevo",
+  ACTIVE: "Activo",
+  INACTIVE: "Inactivo",
+};
+
+const PATIENT_STATUS_BADGE_CLASS: Record<string, string> = {
+  NEW: "bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400",
+  ACTIVE: "bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400",
+  INACTIVE: "bg-muted text-muted-foreground",
+};
 
 const APPT_STATUS_LABELS: Record<string, string> = {
   SCHEDULED: "Programada",
@@ -139,21 +172,30 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         </Link>
       </div>
 
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">
-            {identity.fullName ?? <span className="text-muted-foreground italic">Sin nombre</span>}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {identity.phone ?? "Sin teléfono"}{identity.email ? ` · ${identity.email}` : ""}
-          </p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-4 min-w-0">
+          <span className="flex items-center justify-center size-12 shrink-0 rounded-full bg-primary/10 text-primary font-semibold text-lg">
+            {initials(identity.fullName)}
+          </span>
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold truncate">
+              {identity.fullName ?? <span className="text-muted-foreground italic">Sin nombre</span>}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {identity.phone ?? "Sin teléfono"}{identity.email ? ` · ${identity.email}` : ""}
+            </p>
+          </div>
         </div>
-        <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-muted text-muted-foreground">
-          {identity.patientStatus}
+        <span
+          className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium shrink-0 ${
+            PATIENT_STATUS_BADGE_CLASS[identity.patientStatus] ?? "bg-muted text-muted-foreground"
+          }`}
+        >
+          {PATIENT_STATUS_LABELS[identity.patientStatus] ?? identity.patientStatus}
         </span>
       </div>
 
-      {/* Estado actual del paciente */}
+      {/* Estado actual del paciente — qué sigue, de un vistazo */}
       <PatientStatusBar
         record={record}
         encounters={encounters}
@@ -176,7 +218,12 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         </div>
       )}
 
-      {/* ── Bloque clínico ─────────────────────────────────────────────────── */}
+      {/* ── Bloque clínico: qué se ha encontrado y qué se propone tratar ────── */}
+
+      <GroupHeading
+        title="Expediente clínico"
+        subtitle="Perfil médico, odontograma, consultas y plan de tratamiento."
+      />
 
       {/* Perfil clínico — alertas médicas, alergias, medicamentos, antecedentes */}
       <PatientClinicalProfileSection record={record} />
@@ -193,7 +240,10 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
           <Row label="Notas clínicas" value={clinical.notesCount} />
           <Row label="Última nota" value={fDate(clinical.lastNoteAt)} />
           {encounters !== undefined && patientId && (
-            <div className="pt-2">
+            <div className="pt-3 mt-1 border-t">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                Consultas registradas
+              </p>
               <EncounterList items={encounters} patientId={patientId} />
             </div>
           )}
@@ -211,9 +261,9 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         </SectionCard>
       )}
 
-      {/* Financiero */}
+      {/* Financiero — presupuestos, cobros y saldo derivados del plan */}
       {financial && (
-        <SectionCard title="Financiero">
+        <SectionCard title="Presupuestos y cobros">
           <Row label="Presupuestos" value={financial.quotesCount} />
           <Row label="Total propuesto" value={fCents(financial.totalProposedCents)} />
           <Row label="Total aceptado" value={fCents(financial.totalAcceptedCents)} />
@@ -232,7 +282,12 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         </SectionCard>
       )}
 
-      {/* ── Bloque operativo ───────────────────────────────────────────────── */}
+      {/* ── Bloque operativo: agenda y seguimiento del día a día ────────────── */}
+
+      <GroupHeading
+        title="Agenda y seguimiento"
+        subtitle="Citas, conversaciones abiertas y tareas pendientes con este paciente."
+      />
 
       {/* Agenda */}
       <SectionCard title="Agenda">
@@ -276,10 +331,15 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         </SectionCard>
       )}
 
-      {/* ── Bloque administrativo ──────────────────────────────────────────── */}
+      {/* ── Bloque administrativo: datos del paciente y su expediente ───────── */}
+
+      <GroupHeading
+        title="Datos del paciente"
+        subtitle="Identidad, contacto, domicilio, tutores, datos fiscales y consentimiento."
+      />
 
       {/* Identidad */}
-      <SectionCard title="Identidad">
+      <SectionCard title="Identidad y contacto">
         <Row label="ID paciente" value={<span className="font-mono text-xs">{identity.patientId}</span>} />
         <Row label="Teléfono" value={identity.phone} />
         <Row label="Correo" value={identity.email} />
@@ -298,11 +358,17 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         canManageConsent={fvoPermissions?.canManageConsent ?? false}
       />
 
-      {/* ── Actividad ─────────────────────────────────────────────────────── */}
+      {/* ── Actividad: bitácora cronológica de todo lo anterior ─────────────── */}
 
-      {/* Historial de actividad */}
+      <GroupHeading
+        title="Actividad reciente"
+        subtitle="Lo más reciente primero — útil para retomar el contexto rápido."
+      />
+
+      {/* Bitácora de eventos del sistema (versionados) — distinta del historial detallado
+          de abajo (PatientTimeline), que cruza encuentros + hallazgos + planes + cobros. */}
       {timeline.length > 0 && (
-        <SectionCard title="Historial de actividad">
+        <SectionCard title="Bitácora de eventos">
           <ul className="space-y-2">
             {timeline.slice(0, 20).map((ev, i) => (
               <li key={i} className="flex items-start gap-3 text-sm">
