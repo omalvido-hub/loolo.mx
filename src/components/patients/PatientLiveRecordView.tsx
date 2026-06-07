@@ -167,9 +167,10 @@ interface Props {
   patientId?: string;
   fvoPermissions?: FVOPermissions;
   odontogramSection?: React.ReactNode;
+  canCreateEncounter?: boolean;
 }
 
-export function PatientLiveRecordView({ record, encounters, patientId, fvoPermissions, odontogramSection }: Props) {
+export function PatientLiveRecordView({ record, encounters, patientId, fvoPermissions, odontogramSection, canCreateEncounter }: Props) {
   const { identity, operative, clinical, odontogramSummary, treatment, financial, tasks, timeline, recommendedActions, _meta } = record;
 
   return (
@@ -256,7 +257,7 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
                 Consultas registradas
               </p>
-              <EncounterList items={encounters} patientId={patientId} />
+              <EncounterList items={encounters} patientId={patientId} canCreate={canCreateEncounter} />
             </div>
           )}
         </SectionCard>

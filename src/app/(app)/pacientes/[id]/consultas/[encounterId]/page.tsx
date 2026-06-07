@@ -60,9 +60,22 @@ export default async function ConsultaDetallePage({
   const canActOnFindings = can(ctx.permissions, "odontogram.record");
   const encounterStatus = result.value.status;
 
+  // Permisos de escritura clínica — NELZZON-ENCOUNTERS-1B-UI.
+  const canEditEncounter = can(ctx.permissions, "clinical.edit");
+  const canAddNote = can(ctx.permissions, "clinical_notes.add");
+  const canFinalize = can(ctx.permissions, "clinical.finalize");
+  const canCancel = can(ctx.permissions, "clinical.cancel");
+
   return (
     <div>
-      <EncounterDetailView view={result.value} patientId={id} />
+      <EncounterDetailView
+        view={result.value}
+        patientId={id}
+        canEdit={canEditEncounter}
+        canAddNote={canAddNote}
+        canFinalize={canFinalize}
+        canCancel={canCancel}
+      />
       <div className="px-8 pb-10 max-w-3xl mx-auto mt-8">
         <div className="rounded-xl border bg-card ring-1 ring-foreground/10 overflow-hidden">
           <div className="px-4 py-3 border-b bg-muted/30">

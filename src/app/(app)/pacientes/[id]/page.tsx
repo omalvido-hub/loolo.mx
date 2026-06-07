@@ -75,6 +75,8 @@ export default async function PacienteDetallePage({
     }
   }
 
+  const canCreateEncounter = can(ctx.permissions, "clinical.create");
+
   const canVoid = can(ctx.permissions, "odontogram.void");
   const canActOnFindings = can(ctx.permissions, "odontogram.record");
 
@@ -121,6 +123,7 @@ export default async function PacienteDetallePage({
         patientId={id}
         fvoPermissions={fvoPermissions}
         odontogramSection={odontogramSection}
+        canCreateEncounter={canCreateEncounter}
       />
       <div className="px-8 pb-10 max-w-4xl mx-auto space-y-6">
         <div className="pt-2 border-t">
