@@ -11,6 +11,8 @@ import {
   FileText,
   CreditCard,
   Settings,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_NAME } from "@/lib/brand";
@@ -37,9 +39,11 @@ const NAV_ITEMS: NavItem[] = [
 interface AppSidebarProps {
   roleKey: string;
   orgName: string;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
-export function AppSidebar({ roleKey, orgName }: AppSidebarProps) {
+export function AppSidebar({ roleKey, orgName, collapsed, onToggleCollapse }: AppSidebarProps) {
   const pathname = usePathname();
 
   const visibleItems = NAV_ITEMS.filter((item) =>
@@ -47,10 +51,40 @@ export function AppSidebar({ roleKey, orgName }: AppSidebarProps) {
   );
 
   return (
-    <aside className="flex flex-col w-64 min-h-screen border-r bg-sidebar">
-      <div className="px-6 py-5 border-b">
-        <span className="text-lg font-bold text-sidebar-foreground">{APP_NAME}</span>
-        <p className="text-xs text-muted-foreground mt-0.5 truncate">{orgName}</p>
+    <aside
+      className={cn(
+        "flex flex-col min-h-screen border-r bg-sidebar shrink-0 transition-[width] duration-200 ease-out",
+        collapsed ? "w-[76px]" : "w-64"
+      )}
+    >
+      <div
+        className={cn(
+          "flex items-center gap-2 border-b px-4 py-5",
+          collapsed ? "justify-center px-2" : "justify-between"
+        )}
+      >
+        {collapsed ? (
+          <span
+            className="flex items-center justify-center size-9 rounded-lg bg-sidebar-accent text-sidebar-accent-foreground text-sm font-bold uppercase"
+            title={`${APP_NAME} — ${orgName}`}
+          >
+            {APP_NAME.slice(0, 1)}
+          </span>
+        ) : (
+          <div className="min-w-0">
+            <span className="text-lg font-bold text-sidebar-foreground">{APP_NAME}</span>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">{orgName}</p>
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
+          title={collapsed ? "Expandir menú" : "Colapsar menú"}
+          className="flex items-center justify-center size-7 rounded-md text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+        >
+          {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+        </button>
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
@@ -61,15 +95,17 @@ export function AppSidebar({ roleKey, orgName }: AppSidebarProps) {
             <Link
               key={item.href}
               href={item.href}
+              title={collapsed ? item.label : undefined}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                collapsed && "justify-center px-0",
                 active
                   ? "bg-sidebar-accent text-sidebar-accent-foreground"
                   : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              {item.label}
+              {!collapsed && item.label}
             </Link>
           );
         })}

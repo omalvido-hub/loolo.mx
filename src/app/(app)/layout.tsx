@@ -1,12 +1,8 @@
 import { redirect } from "next/navigation";
 import { getSessionWithMemberships } from "@/lib/session";
 import { selectOrganization } from "@/server/auth/organization";
-import { AppSidebar } from "@/components/app-sidebar";
-import { UserMenu } from "@/components/user-menu";
-import { GlobalSearch } from "@/components/GlobalSearch";
-import { hasPermission } from "@/lib/permissions";
+import { AppShell } from "@/components/shell/AppShell";
 import { ROLES } from "@/server/domain/identity/rbac";
-import { APP_NAME } from "@/lib/brand";
 
 export default async function AppLayout({
   children,
@@ -37,30 +33,14 @@ export default async function AppLayout({
   const roleName = roleDef?.name ?? roleKey;
 
   return (
-    <div className="flex min-h-screen">
-      <div className="flex flex-col w-64 shrink-0">
-        <AppSidebar
-          roleKey={roleKey}
-          orgName={membership.organization.name}
-        />
-        <div className="border-r border-t px-3 py-3 bg-sidebar">
-          <UserMenu
-            name={session.user.name}
-            email={session.user.email}
-            roleName={roleName}
-          />
-        </div>
-      </div>
-      <div className="flex flex-col flex-1 min-w-0">
-        {hasPermission(roleKey, "patients.view") && (
-          <header className="flex items-center border-b px-6 py-3 bg-background">
-            <GlobalSearch placeholder={`Buscar en ${APP_NAME}…`} className="w-full max-w-md" />
-          </header>
-        )}
-        <main className="flex-1 overflow-auto bg-background">
-          {children}
-        </main>
-      </div>
-    </div>
+    <AppShell
+      roleKey={roleKey}
+      orgName={membership.organization.name}
+      userName={session.user.name}
+      userEmail={session.user.email}
+      roleName={roleName}
+    >
+      {children}
+    </AppShell>
   );
 }
