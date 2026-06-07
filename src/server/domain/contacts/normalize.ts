@@ -1,4 +1,4 @@
-// LOOLO — Normalización de identificadores de contacto (Fase 3A).
+// NELZZON — Normalización de identificadores de contacto (Fase 3A).
 // Teléfono → E.164 con libphonenumber-js (MX default ahora; preparado para defaultCountry futuro).
 // Falla cerrado: si no valida, devuelve null y NO se crea identificador inválido.
 

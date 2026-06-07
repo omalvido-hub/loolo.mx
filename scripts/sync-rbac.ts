@@ -1,4 +1,4 @@
-// LOOLO — Sincronización del catálogo RBAC (permisos, roles, role_permissions).
+// NELZZON — Sincronización del catálogo RBAC (permisos, roles, role_permissions).
 // Idempotente: solo inserta filas faltantes. Nunca toca usuarios, organizaciones,
 // membresías, datos clínicos, pacientes, pagos ni ningún dato de tenant.
 // Usa app_admin (DATABASE_URL) — BYPASSRLS, solo para catálogos de identidad.

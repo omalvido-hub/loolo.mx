@@ -1,4 +1,4 @@
-// LOOLO — Selección segura de organización (servidor).
+// NELZZON — Selección segura de organización (servidor).
 // La org activa se persiste en la SESIÓN (Better Auth), no en cookie falsificable.
 // Antes de fijarla, se valida la membresía con el cliente de identidad (fail-closed).
 

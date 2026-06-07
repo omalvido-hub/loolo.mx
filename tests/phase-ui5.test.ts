@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase UI-5 (Plan de tratamiento, solo lectura).
+// NELZZON — Pruebas Fase UI-5 (Plan de tratamiento, solo lectura).
 // Postgres real + RLS + permisos. Cubre:
 // - getTreatmentPlansSafeView exige treatment.view.
 // - Respeto de RLS / multi-tenant.

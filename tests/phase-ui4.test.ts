@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase UI-4 (Odontograma dental, solo lectura).
+// NELZZON — Pruebas Fase UI-4 (Odontograma dental, solo lectura).
 // Postgres real + RLS + permisos. Cubre:
 // - getOdontogramMasterView exige odontogram.view.
 // - getOdontogramEncounterView exige odontogram.view.

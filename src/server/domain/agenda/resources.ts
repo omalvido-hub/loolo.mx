@@ -1,4 +1,4 @@
-// LOOLO — Recursos, disponibilidad y bloqueos (Fase 4A).
+// NELZZON — Recursos, disponibilidad y bloqueos (Fase 4A).
 // resources.manage / availability.manage → solo owner/admin (enforcement).
 // schedule.block → permitido a front_desk, SIEMPRE auditado (ajuste B).
 // linkedUserId validado en boundary admin (patrón 3B), opcional.

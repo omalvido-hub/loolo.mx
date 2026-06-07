@@ -1,4 +1,4 @@
-// LOOLO — Reglas de Presupuesto por clínica (Fase 7A). Una fila por org.
+// NELZZON — Reglas de Presupuesto por clínica (Fase 7A). Una fila por org.
 // defaultDepositBps en basis points (10 000 = 100%). validityDays entero positivo.
 
 import { authorize } from "../identity/authorize.js";

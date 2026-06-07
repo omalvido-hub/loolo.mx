@@ -1,4 +1,4 @@
-// LOOLO — Validadores Zod + transiciones de Presupuesto (Fase 6A). Fail-closed.
+// NELZZON — Validadores Zod + transiciones de Presupuesto (Fase 6A). Fail-closed.
 
 import { z } from "zod";
 import { ToothSurfaceZ } from "../clinical/odontogram-schemas.js";

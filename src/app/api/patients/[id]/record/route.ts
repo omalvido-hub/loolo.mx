@@ -1,4 +1,4 @@
-// LOOLO — GET /api/patients/[id]/record (7C-A). Solo lectura. Interno del consultorio.
+// NELZZON — GET /api/patients/[id]/record (7C-A). Solo lectura. Interno del consultorio.
 // Requiere sesión activa + organización activa + permiso patients.view.
 // La auditoría (patient_record.viewed / permission.denied) ocurre dentro del resolver (7B).
 

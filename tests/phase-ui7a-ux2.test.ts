@@ -1,4 +1,4 @@
-// LOOLO — Pruebas fase UI-7A-UX2 (traducción de labels técnicos).
+// NELZZON — Pruebas fase UI-7A-UX2 (traducción de labels técnicos).
 // Verificación estática por readFileSync: confirma que los estados/tipos
 // técnicos ya no se muestran crudos en la UI de ficha del paciente.
 

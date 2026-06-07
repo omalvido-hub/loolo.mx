@@ -1,4 +1,4 @@
-// LOOLO — Seed Fase 2B-1: catálogo de módulos + plantilla Odontología general.
+// NELZZON — Seed Fase 2B-1: catálogo de módulos + plantilla Odontología general.
 // Idempotente (ON CONFLICT por key). Ejecutado por app_admin.
 
 import { adminPool, closePools } from "../tests/harness.js";

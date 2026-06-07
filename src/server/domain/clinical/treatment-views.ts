@@ -1,4 +1,4 @@
-// LOOLO — Proyección segura de planes de tratamiento (UI-5, solo lectura).
+// NELZZON — Proyección segura de planes de tratamiento (UI-5, solo lectura).
 // NUNCA devuelve: notes (plan), note (ítem), createdBy, organizationId.
 // Exige treatment.view. Fail-closed ante falta de tenant, actor o permiso.
 // Audita el acceso SIN contenido clínico.

@@ -1,4 +1,4 @@
-// LOOLO — Importación inicial (Fase 7A). Dry-run + Commit + Idempotencia.
+// NELZZON — Importación inicial (Fase 7A). Dry-run + Commit + Idempotencia.
 // Pacientes: respeta F3A (Contacto → Paciente, dedup E.164). Sin eventos de dominio en 7A.
 // Servicios: idempotencia por code (skip si ya existe). Error_report sin datos sensibles.
 

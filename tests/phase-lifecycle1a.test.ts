@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Lifecycle-1A (ciclo de vida de hallazgos de odontograma). Postgres real.
+// NELZZON — Pruebas Lifecycle-1A (ciclo de vida de hallazgos de odontograma). Postgres real.
 // Cubre: voidFinding, treatFinding, resolveFinding.
 // Reglas: append-only, RBAC, aislamiento de tenant, eventos sin lifecycleReason,
 // FindingAlreadySupersededError, filtro VOIDED en master view.

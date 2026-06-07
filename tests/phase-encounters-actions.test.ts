@@ -1,4 +1,4 @@
-// LOOLO — Pruebas NELZZON-ENCOUNTERS-1A-ACTIONS (server actions de consultas clínicas).
+// NELZZON — Pruebas NELZZON-ENCOUNTERS-1A-ACTIONS (server actions de consultas clínicas).
 // Las server actions no son ejecutables en Vitest (requieren runtime Next.js).
 // Las pruebas verifican estructura y contrato del archivo por readFileSync:
 // - Sin migración 0019+.

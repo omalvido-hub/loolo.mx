@@ -1,6 +1,6 @@
 "use client";
 
-// LOOLO — Secciones extendidas FVO con formularios administrativos (UI-7A).
+// NELZZON — Secciones extendidas FVO con formularios administrativos (UI-7A).
 // Muestra las 9 secciones FVO en modo lectura para todos los roles.
 // Secciones editables en UI-7A: datos personales, domicilio, origen comercial,
 // tutor (solo agregar), contacto de emergencia (solo agregar), consentimiento.

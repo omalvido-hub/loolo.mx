@@ -1,4 +1,4 @@
-// LOOLO — Línea de tiempo general del paciente (TOOTH-HISTORY sigue siendo la fuente
+// NELZZON — Línea de tiempo general del paciente (TOOTH-HISTORY sigue siendo la fuente
 // para el detalle por pieza; esta sección combina varias proyecciones YA seguras
 // que la página de ficha del paciente ya carga, en un solo orden cronológico.
 // 100% lectura: no hace consultas nuevas, no escribe auditoría, no expone datos

@@ -1,4 +1,4 @@
-// LOOLO — Resolución de ActorContext desde identidad autenticada (7C-A).
+// NELZZON — Resolución de ActorContext desde identidad autenticada (7C-A).
 // Puente: userId + organizationId (de sesión) → ActorContext para el dominio.
 // Usa adminDb (BYPASSRLS) via resolvePermissionKeys para leer la capa RBAC fina.
 // Fail-closed: sin membresía → permisos vacíos → el resolver rechaza la operación.

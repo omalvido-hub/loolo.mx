@@ -1,4 +1,4 @@
-// LOOLO — Auditoría (trazabilidad de seguridad). APPEND-ONLY.
+// NELZZON — Auditoría (trazabilidad de seguridad). APPEND-ONLY.
 // Aquí va la metadata RICA y los hechos de seguridad (incl. permission.denied).
 // NO va a events (que se mantiene lean y operativo). Regla: no mezclar.
 

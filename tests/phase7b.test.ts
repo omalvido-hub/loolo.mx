@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase 7B (Ficha Viva interna del paciente).
+// NELZZON — Pruebas Fase 7B (Ficha Viva interna del paciente).
 // Postgres real + RLS + permisos + secciones filtradas por rol + auditoría.
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";

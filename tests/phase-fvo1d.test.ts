@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase FVO-1d (server actions FVO).
+// NELZZON — Pruebas Fase FVO-1d (server actions FVO).
 // Las server actions no son ejecutables en Vitest (requieren runtime Next.js).
 // Las pruebas verifican estructura y contrato del archivo por readFileSync:
 // - Sin migración 0018+.

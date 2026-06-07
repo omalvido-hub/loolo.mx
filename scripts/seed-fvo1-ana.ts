@@ -1,4 +1,4 @@
-// LOOLO — Seed FVO-1: datos demo extendidos de Ana García López.
+// NELZZON — Seed FVO-1: datos demo extendidos de Ana García López.
 // Idempotente: puede ejecutarse múltiples veces sin duplicar.
 // Uso: npx tsx scripts/seed-fvo1-ana.ts
 // IDs fijos de la clínica demo (clinica-demo):

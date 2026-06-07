@@ -1,4 +1,4 @@
-// LOOLO — Consultas de módulos por organización (Fase 2B-1, lectura). SOLO LECTURA.
+// NELZZON — Consultas de módulos por organización (Fase 2B-1, lectura). SOLO LECTURA.
 // Requiere modules.view. Fail-closed. RLS de organization_modules garantiza aislamiento.
 
 import { can } from "../identity/permissions.js";

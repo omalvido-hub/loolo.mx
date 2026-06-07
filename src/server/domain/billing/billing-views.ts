@@ -1,4 +1,4 @@
-// LOOLO — Proyección segura de Presupuestos y Pagos (UI-6, solo lectura).
+// NELZZON — Proyección segura de Presupuestos y Pagos (UI-6, solo lectura).
 // NUNCA devuelve: notes, reference, createdBy, organizationId.
 // Exige quote.view. Fail-closed ante falta de tenant, actor o permiso.
 // Audita el acceso sin texto libre ni montos sensibles de líneas individuales.

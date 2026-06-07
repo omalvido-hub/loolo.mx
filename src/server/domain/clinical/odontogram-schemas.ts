@@ -1,4 +1,4 @@
-// LOOLO — Validadores Zod de Odontograma (Fase 5B + Lifecycle). Fail-closed.
+// NELZZON — Validadores Zod de Odontograma (Fase 5B + Lifecycle). Fail-closed.
 // FDI permanentes 11-48. Matriz surface↔findingType conservadora y documentada.
 
 import { z } from "zod";

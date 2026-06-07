@@ -1,4 +1,4 @@
-// LOOLO — Catálogo RBAC (global del sistema, sin RLS de tenant).
+// NELZZON — Catálogo RBAC (global del sistema, sin RLS de tenant).
 // Convención ÚNICA: "recurso.accion" (punto). Estandarizado en Fase 2A.
 // Fase 2B EXTIENDE PERMISSIONS con claves operativas (patients.*, agenda.*, billing.*, etc.).
 // El vínculo por organización ocurre en membership_roles.

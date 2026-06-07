@@ -1,4 +1,4 @@
-// LOOLO — Seed Fase 2B-2: catalogo minimo de widgets (placeholders, sin datos reales).
+// NELZZON — Seed Fase 2B-2: catalogo minimo de widgets (placeholders, sin datos reales).
 // Idempotente (ON CONFLICT por key). Ejecutado por app_admin.
 
 import { adminPool, closePools } from "../tests/harness.js";

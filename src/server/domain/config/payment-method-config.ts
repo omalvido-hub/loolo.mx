@@ -1,4 +1,4 @@
-// LOOLO — Configuración de Formas de Pago (Fase 7A).
+// NELZZON — Configuración de Formas de Pago (Fase 7A).
 // Solo habilita/deshabilita métodos del enum PaymentMethod existente. No inventa métodos.
 
 import { authorize } from "../identity/authorize.js";

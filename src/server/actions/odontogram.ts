@@ -1,6 +1,6 @@
 "use server";
 
-// LOOLO — Server Actions de Odontograma (UI-7B-B + Lifecycle 1A).
+// NELZZON — Server Actions de Odontograma (UI-7B-B + Lifecycle 1A).
 // Wrapper 1:1 sobre el dominio odontogram.ts.
 // Patrón: sesión → actor context → dominio → revalidatePath → ActionResult.
 

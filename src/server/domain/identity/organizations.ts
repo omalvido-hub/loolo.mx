@@ -1,4 +1,4 @@
-// LOOLO — Selección de organización (lógica pura del guard).
+// NELZZON — Selección de organización (lógica pura del guard).
 // Regla central de seguridad: un usuario solo puede operar en organizaciones donde es
 // miembro activo. NUNCA debe poder fijar un organization_id arbitrario por URL/cookie/body.
 // La persistencia real (session.activeOrganizationId) la hace src/server/auth/organization.ts.

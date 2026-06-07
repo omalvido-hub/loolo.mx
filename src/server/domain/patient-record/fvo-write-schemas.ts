@@ -1,4 +1,4 @@
-// LOOLO — Schemas Zod de entrada para escritura FVO-1c. Fail-closed.
+// NELZZON — Schemas Zod de entrada para escritura FVO-1c. Fail-closed.
 // Validan antes de tocar la BD. No incluyen campos calculados ni createdAt/updatedAt.
 // Sin campos de auditoría en los schemas de entrada.
 

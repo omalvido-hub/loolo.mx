@@ -1,4 +1,4 @@
-// LOOLO — Aplicar plantilla a una organizacion (Fase 2B-1).
+// NELZZON — Aplicar plantilla a una organizacion (Fase 2B-1).
 // ENFORCEMENT: requiere templates.apply (authorize() antes de escribir nada).
 // Idempotente y NO destructivo: solo siembra los modulos faltantes (ON CONFLICT DO NOTHING).
 // Emite template.applied (evento operativo) y lo audita. Executor tenant-scoped (RLS).

@@ -1,4 +1,4 @@
-// LOOLO — Schemas Zod de salida para PatientLiveRecord (Fase 7B + FVO-1).
+// NELZZON — Schemas Zod de salida para PatientLiveRecord (Fase 7B + FVO-1).
 // Solo lectura. Agregado de metadatos; NUNCA contenido clínico libre ni body de notas.
 // Montos en centavos MXN (number integer). Fechas ISO 8601.
 // FVO-1: agrega secciones extendidas de perfil del paciente (datos demográficos, clínicos, fiscales, etc.).

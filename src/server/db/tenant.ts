@@ -1,4 +1,4 @@
-// LOOLO — Cliente RUNTIME tenant-scoped (app_user, SIN bypass).
+// NELZZON — Cliente RUNTIME tenant-scoped (app_user, SIN bypass).
 // Todo el dominio servido a usuarios finales pasa por aquí.
 // La variable app.current_tenant_id se fija LOCAL a la transacción (3er arg = true):
 // muere al cerrar la transacción → seguro con connection pooling, sin fugas entre requests.

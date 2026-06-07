@@ -1,4 +1,4 @@
-// LOOLO — Catálogo de Servicios Dentales (Fase 7A). Tenant-scoped (RLS).
+// NELZZON — Catálogo de Servicios Dentales (Fase 7A). Tenant-scoped (RLS).
 // Soft-delete (active=false). Precios en centavos. Auditoría en escritura.
 
 import { authorize } from "../identity/authorize.js";

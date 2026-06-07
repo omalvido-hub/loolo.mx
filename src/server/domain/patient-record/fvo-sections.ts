@@ -1,4 +1,4 @@
-// LOOLO — Secciones extendidas FVO-1 (Ficha Viva Odontológica). SOLO LECTURA.
+// NELZZON — Secciones extendidas FVO-1 (Ficha Viva Odontológica). SOLO LECTURA.
 // Funciones de lectura pura. Sin escritura, sin auditoría, sin eventos.
 // El llamador (resolver.ts) verifica permisos ANTES de invocar estas funciones.
 // Reglas: no SELECT *, no datos clínicos en secciones sin permiso clínico.

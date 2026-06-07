@@ -1,4 +1,4 @@
-// LOOLO — Verificación de permisos (lógica pura, testeable sin DB).
+// NELZZON — Verificación de permisos (lógica pura, testeable sin DB).
 // El enforcement REAL ocurre en servidor/dominio (no en UI ni solo middleware).
 // La resolución membership→roles→permisos vive en src/server/auth/permissions.ts
 // (cliente de identidad). Aquí solo la decisión pura sobre un set ya resuelto.

@@ -1,4 +1,4 @@
-// LOOLO — Resolver de navegacion/dashboard (Fase 2B-2). PURO, testeable sin DB.
+// NELZZON — Resolver de navegacion/dashboard (Fase 2B-2). PURO, testeable sin DB.
 // ORDEN OBLIGATORIO: permisos → configuracion de organizacion → preferencia personal.
 // La preferencia personal NUNCA puede exponer un modulo/widget negado por permiso u organizacion;
 // solo puede ocultar y reordenar lo que ya esta permitido y habilitado.

@@ -1,4 +1,4 @@
-// LOOLO — Validadores Zod de Pagos (Fase 6B). Fail-closed.
+// NELZZON — Validadores Zod de Pagos (Fase 6B). Fail-closed.
 // reference opcional ≤60, con validación anti-PAN (sin 13–19 dígitos seguidos).
 
 import { z } from "zod";

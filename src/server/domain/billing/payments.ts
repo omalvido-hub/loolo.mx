@@ -1,4 +1,4 @@
-// LOOLO — Operaciones de Pagos (Fase 6B). Tenant-scoped (app_user/RLS).
+// NELZZON — Operaciones de Pagos (Fase 6B). Tenant-scoped (app_user/RLS).
 // Ledger append-only. recordPayment con lock pesimista del quote (anti sobrepago concurrente).
 // Reversa total, una por pago. Eventos sin montos; auditoría con metadata financiera (sin texto libre).
 

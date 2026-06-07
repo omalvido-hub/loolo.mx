@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase FVO-1c (capa de escritura del dominio patient-record).
+// NELZZON — Pruebas Fase FVO-1c (capa de escritura del dominio patient-record).
 // Verifica:
 // - Sin migración 0018+ (FVO-1c no requiere schema changes).
 // - Gates de permiso fail-closed por función de escritura.

@@ -1,4 +1,4 @@
-// LOOLO — Configuracion de modulos por organizacion (Fase 2B-1).
+// NELZZON — Configuracion de modulos por organizacion (Fase 2B-1).
 // ENFORCEMENT: cada operacion exige modules.configure (authorize() antes de escribir).
 // enableModule/disableModule emiten eventos operativos; visibility_changed solo se audita.
 // Guard: un modulo REQUERIDO por la plantilla de la org NO se puede deshabilitar.

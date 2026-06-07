@@ -1,4 +1,4 @@
-// LOOLO — Reglas de Notificaciones (Fase 7A). Define reglas; NO envía mensajes.
+// NELZZON — Reglas de Notificaciones (Fase 7A). Define reglas; NO envía mensajes.
 // Upsert por (org, eventKey, channel). maxPerDay y quietHours son parámetros anti-spam.
 
 import { authorize } from "../identity/authorize.js";

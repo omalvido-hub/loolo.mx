@@ -1,4 +1,4 @@
-// LOOLO — Plantilla "Odontología general" (fuente de verdad del seed).
+// NELZZON — Plantilla "Odontología general" (fuente de verdad del seed).
 // Mapea módulos del catálogo con su rol en la plantilla y defaults de superficie.
 // El vocabulario dental vive en labelOverride (el sistema NO queda hardcodeado a odontología).
 

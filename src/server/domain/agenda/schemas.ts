@@ -1,4 +1,4 @@
-// LOOLO — Validadores Zod de Agenda (Fase 4A). Enums + payloads. Falla cerrado.
+// NELZZON — Validadores Zod de Agenda (Fase 4A). Enums + payloads. Falla cerrado.
 
 import { z } from "zod";
 

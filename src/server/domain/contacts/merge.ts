@@ -1,4 +1,4 @@
-// LOOLO — Fusion de contactos (Fase 3A). Manual, con permiso DEDICADO (contacts.merge),
+// NELZZON — Fusion de contactos (Fase 3A). Manual, con permiso DEDICADO (contacts.merge),
 // transaccional, auditada. Atomicidad: el throw provoca ROLLBACK y NO mueve nada parcial.
 // Bloqueos (politica v1 conservadora): paciente en el absorbido, o conflicto ACTIVO de
 // prospect/opportunity en ambos → MergeBlockedError. El bloqueo se audita de forma DURABLE

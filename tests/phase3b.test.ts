@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase 3B (Follow operativo). Postgres real.
+// NELZZON — Pruebas Fase 3B (Follow operativo). Postgres real.
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { adminPool, forTenantPg, closePools } from "./harness.js";

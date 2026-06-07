@@ -1,4 +1,4 @@
-// LOOLO — Pruebas ODONTO-BUGFIX-RENDER-VOID-1.
+// NELZZON — Pruebas ODONTO-BUGFIX-RENDER-VOID-1.
 // 1. pickGlobalBorderFinding: hallazgo global de pieza selecciona color de borde correcto.
 // 2. getOdontogramEncounterView: VOIDED no pinta color en teeth, aparece en findingsPanel.
 // 3. voidFinding con encounterId: la fila VOIDED queda ligada al encounter.

@@ -1,4 +1,4 @@
-// LOOLO — Mapeo de Result<PatientLiveRecord> → respuesta HTTP (7C-A).
+// NELZZON — Mapeo de Result<PatientLiveRecord> → respuesta HTTP (7C-A).
 // Función pura sin dependencias de Next.js. Importable desde tests y desde el route handler.
 
 import type { Result } from "../shared/status.js";

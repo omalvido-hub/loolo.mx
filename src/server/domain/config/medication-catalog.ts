@@ -1,4 +1,4 @@
-// LOOLO — Catálogo de Medicamentos (Fase 7A). Tenant-scoped (RLS). Soft-delete.
+// NELZZON — Catálogo de Medicamentos (Fase 7A). Tenant-scoped (RLS). Soft-delete.
 
 import { authorize } from "../identity/authorize.js";
 import type { Exec, ActorContext } from "../identity/authorize.js";

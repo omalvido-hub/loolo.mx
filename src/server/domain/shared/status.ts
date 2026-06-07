@@ -1,4 +1,4 @@
-// LOOLO — Estado compartido del dominio.
+// NELZZON — Estado compartido del dominio.
 // Regla 13: si falta un dato crítico → MISSING_DATA / REQUIRES_HUMAN / BLOCKED.
 // El dominio NUNCA inventa: ante la duda, marca el estado y se detiene.
 

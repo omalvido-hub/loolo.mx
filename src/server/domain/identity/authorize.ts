@@ -1,4 +1,4 @@
-// LOOLO — Gate de autorizacion de dominio.
+// NELZZON — Gate de autorizacion de dominio.
 // authorize() es PURO: si falta el permiso, lanza ANTES de cualquier escritura
 // (garantiza "no se modifica nada sin permiso"). NO escribe auditoria aqui:
 // si lo hiciera dentro de la transaccion de la operacion, el ROLLBACK por el throw

@@ -1,4 +1,4 @@
-// LOOLO — Acceso temporal de soporte.
+// NELZZON — Acceso temporal de soporte.
 // support_restricted NO es rol de organización. El acceso se concede como un grant
 // justificado, expirable, revocable y auditado. Aquí: estado efectivo (puro) + lifecycle
 // sobre un executor genérico (funciona con pg en pruebas y Prisma $queryRaw en producción).

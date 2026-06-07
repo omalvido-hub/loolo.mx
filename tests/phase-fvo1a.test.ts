@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase FVO-1a (correcciones al modelo de datos FVO-1).
+// NELZZON — Pruebas Fase FVO-1a (correcciones al modelo de datos FVO-1).
 // Verifica:
 // - Migración 0017 existe y 0018+ no.
 // - patient_demographics.curp nullable.

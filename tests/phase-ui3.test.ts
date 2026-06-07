@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase UI-3 (Consulta clínica, solo lectura).
+// NELZZON — Pruebas Fase UI-3 (Consulta clínica, solo lectura).
 // Postgres real + RLS + permisos. Cubre:
 // - listEncountersSafeForPatient no expone clinical_notes.body.
 // - getEncounterSafeView exige clinical.view.

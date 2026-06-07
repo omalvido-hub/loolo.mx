@@ -1,4 +1,4 @@
-// LOOLO — Pruebas de estabilidad demo (UI-7A-STABILIZE).
+// NELZZON — Pruebas de estabilidad demo (UI-7A-STABILIZE).
 // Verificación estática por readFileSync: asegura que seed-demo-user.ts
 // asigna el rol owner de forma idempotente sin UUIDs hardcodeados,
 // y que PatientListView ya tiene navegación a /pacientes/[id].

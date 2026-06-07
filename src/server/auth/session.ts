@@ -1,4 +1,4 @@
-// LOOLO — Utilidades de sesión (servidor). Better Auth es la fuente de verdad.
+// NELZZON — Utilidades de sesión (servidor). Better Auth es la fuente de verdad.
 // NO usuario mock. NO bypass de desarrollo. La protección NO depende del frontend.
 // NOTA: la validación end-to-end requiere un servidor Next corriendo (no ejecutable en el
 // sandbox de construcción); la lógica de guard SÍ está probada en tests/phase2a.test.ts.

@@ -1,4 +1,4 @@
-// LOOLO — Follow: planificación del mensaje entrante (núcleo del flujo de entrada).
+// NELZZON — Follow: planificación del mensaje entrante (núcleo del flujo de entrada).
 // Función PURA: decide QUÉ escribir, no escribe. El adaptador (Prisma/pg) ejecuta el plan.
 // Reglas:
 //   8  — toda conversación/mensaje se guarda.

@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase UI-7A (formularios administrativos FVO).
+// NELZZON — Pruebas Fase UI-7A (formularios administrativos FVO).
 // Verificación estructural por readFileSync: no se ejecutan componentes React
 // ni server actions. Se valida contrato, imports y patrones de seguridad.
 

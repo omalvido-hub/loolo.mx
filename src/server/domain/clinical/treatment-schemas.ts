@@ -1,4 +1,4 @@
-// LOOLO — Validadores Zod + transiciones de Plan de tratamiento (Fase 5C). Fail-closed.
+// NELZZON — Validadores Zod + transiciones de Plan de tratamiento (Fase 5C). Fail-closed.
 // Transiciones explícitas (ajustes A/B), puras y testeables.
 
 import { z } from "zod";

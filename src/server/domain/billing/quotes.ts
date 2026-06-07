@@ -1,4 +1,4 @@
-// LOOLO — Operaciones de Presupuestos (Fase 6A). Tenant-scoped (app_user/RLS).
+// NELZZON — Operaciones de Presupuestos (Fase 6A). Tenant-scoped (app_user/RLS).
 // Dinero recalculado SIEMPRE en servidor (motor puro). Editable solo en DRAFT.
 // Snapshot por línea. Eventos sin montos; auditoría con totalCents+status (sin texto libre).
 

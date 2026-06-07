@@ -1,4 +1,4 @@
-// LOOLO — Perfil Fiscal de la Clínica (Fase 7A). SENSIBLE.
+// NELZZON — Perfil Fiscal de la Clínica (Fase 7A). SENSIBLE.
 // Auditar TODA lectura y escritura. Permiso separado tax_profile.view / tax_profile.manage.
 // Una fila por organización. Sin DELETE (el UPDATE reemplaza).
 

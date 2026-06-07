@@ -1,4 +1,4 @@
-// LOOLO — Cliente PRIVILEGIADO (app_admin, BYPASSRLS).
+// NELZZON — Cliente PRIVILEGIADO (app_admin, BYPASSRLS).
 // USO RESTRINGIDO: resolución de identidad (¿a qué orgs pertenece este usuario?),
 // migraciones y operaciones cross-tenant legítimas y auditadas.
 // NUNCA usar este cliente para servir datos de dominio a un usuario final.

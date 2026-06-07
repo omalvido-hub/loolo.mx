@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase 7A (Configuración / Catálogos / Onboarding).
+// NELZZON — Pruebas Fase 7A (Configuración / Catálogos / Onboarding).
 // Postgres real + RLS + permisos + importación + integridad financiera.
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";

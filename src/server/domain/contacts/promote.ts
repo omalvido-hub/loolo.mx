@@ -1,4 +1,4 @@
-// LOOLO — Promoción y oportunidad (Fase 3A). Promoción explícita (reglas 7 y 9), nunca automática.
+// NELZZON — Promoción y oportunidad (Fase 3A). Promoción explícita (reglas 7 y 9), nunca automática.
 // Idempotente: si ya existe paciente/prospecto ACTIVE para el contacto, devuelve el existente.
 
 import { validateEvent } from "../events/schemas.js";

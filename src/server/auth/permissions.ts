@@ -1,4 +1,4 @@
-// LOOLO — Resolución y enforcement de permisos (servidor).
+// NELZZON — Resolución y enforcement de permisos (servidor).
 // REGLA: la resolución membership→roles→permisos usa el CLIENTE DE IDENTIDAD (adminDb),
 // porque app_user no puede leer organization_memberships (probado en Fase 1).
 // Los DATOS de dominio siguen yendo por el cliente tenant-scoped (RLS). No se mezcla.

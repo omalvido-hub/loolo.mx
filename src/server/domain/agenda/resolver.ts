@@ -1,4 +1,4 @@
-// LOOLO — Resolver de disponibilidad (Fase 4A). PURO, determinista, testeable sin DB.
+// NELZZON — Resolver de disponibilidad (Fase 4A). PURO, determinista, testeable sin DB.
 // Dado el día (en minutos locales) de un recurso, sus reglas, citas activas y bloqueos,
 // devuelve los huecos LIBRES. No consulta BD; la verdad transaccional vive en la operación + EXCLUDE.
 

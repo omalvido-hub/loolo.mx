@@ -1,4 +1,4 @@
-// LOOLO — Proyección segura de odontograma (UI-4, solo lectura).
+// NELZZON — Proyección segura de odontograma (UI-4, solo lectura).
 // NUNCA devuelve note ni recordedByUserId ni organizationId ni IDs internos innecesarios.
 // Exige odontogram.view. Fail-closed ante falta de tenant, actor o permiso.
 // Audita el acceso SIN contenido sensible.

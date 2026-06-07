@@ -1,4 +1,4 @@
-// LOOLO — Listado de pacientes del tenant (UI-1). SOLO LECTURA.
+// NELZZON — Listado de pacientes del tenant (UI-1). SOLO LECTURA.
 // Requiere patients.view. Exige tenant y actor. Fail-closed.
 // RLS (app_user + set_config tenant) garantiza aislamiento multi-tenant.
 // No incluye datos clínicos ni financieros — solo campos de identificación mínimos.

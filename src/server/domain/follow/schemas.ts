@@ -1,4 +1,4 @@
-// LOOLO — Validadores Zod de Follow operativo (Fase 3B).
+// NELZZON — Validadores Zod de Follow operativo (Fase 3B).
 // Enums cerrados + payloads de operaciones. Falla cerrado.
 
 import { z } from "zod";

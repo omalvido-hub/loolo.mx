@@ -1,4 +1,4 @@
-// LOOLO — Motor de cálculo de presupuestos (Fase 6A). PURO, determinista, testeable.
+// NELZZON — Motor de cálculo de presupuestos (Fase 6A). PURO, determinista, testeable.
 // Dinero en CENTAVOS enteros (MXN). Redondeo half-up POR LÍNEA. Encabezado = suma de líneas.
 // El servidor SIEMPRE recalcula; nunca confía en montos del cliente.
 

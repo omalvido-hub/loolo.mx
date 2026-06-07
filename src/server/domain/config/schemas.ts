@@ -1,4 +1,4 @@
-// LOOLO — Validadores Zod 7A (Configuración / Catálogos / Onboarding). Fail-closed.
+// NELZZON — Validadores Zod 7A (Configuración / Catálogos / Onboarding). Fail-closed.
 // Precios en centavos (enteros). Porcentajes en basis points (0–10000). Fail-closed en todo.
 
 import { z } from "zod";

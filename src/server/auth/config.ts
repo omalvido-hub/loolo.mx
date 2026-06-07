@@ -1,4 +1,4 @@
-// LOOLO — Configuración de Better Auth.
+// NELZZON — Configuración de Better Auth.
 // Better Auth es dueño de la lógica de autenticación, sesiones, organizaciones y membresías.
 // Usa las tablas ya definidas en Prisma (users, sessions, accounts, organizations,
 // organization_memberships, invitations). La capa de permisos finos de LOOLO

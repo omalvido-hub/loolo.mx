@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase UI-6A (correcciones puntuales de Presupuestos y Cobros).
+// NELZZON — Pruebas Fase UI-6A (correcciones puntuales de Presupuestos y Cobros).
 // Postgres real + RLS + permisos. Cubre:
 // - Cancelar DRAFT con setQuoteStatus(CANCELED).
 // - Descuento por línea en DRAFT (updateLine con discountCents).

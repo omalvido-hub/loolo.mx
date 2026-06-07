@@ -1,4 +1,4 @@
-// LOOLO — Resolver de Odontograma (Fase 5B). PURO, determinista, testeable sin DB.
+// NELZZON — Resolver de Odontograma (Fase 5B). PURO, determinista, testeable sin DB.
 // Colapsa cadenas de supersesión: el estado VIGENTE = hallazgos no superseded por otro.
 
 export interface Finding {

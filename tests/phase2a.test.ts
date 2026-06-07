@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase 2A (seguridad operativa). Corre contra Postgres real.
+// NELZZON — Pruebas Fase 2A (seguridad operativa). Corre contra Postgres real.
 // Resolución de permisos vía adminPool (cliente de identidad), igual que en producción.
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";

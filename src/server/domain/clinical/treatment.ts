@@ -1,4 +1,4 @@
-// LOOLO — Operaciones de Plan de tratamiento (Fase 5C). Tenant-scoped (app_user/RLS).
+// NELZZON — Operaciones de Plan de tratamiento (Fase 5C). Tenant-scoped (app_user/RLS).
 // Mutable por estado con transiciones controladas (ajustes A/B). Sin texto clínico en eventos/auditoría (D).
 // Same-org fail-closed (E). Un plan ACTIVE por paciente (índice único parcial). Completar sin ítems vivos (C).
 

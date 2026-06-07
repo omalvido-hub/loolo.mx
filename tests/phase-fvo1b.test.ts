@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase FVO-1b (estabilización: seed idempotente + lecturas deterministas).
+// NELZZON — Pruebas Fase FVO-1b (estabilización: seed idempotente + lecturas deterministas).
 // Verifica:
 // - No existe migración 0018 ni superior.
 // - INSERT sin ON CONFLICT en patient_guardian y patient_emergency_contact (1:N post-0017).

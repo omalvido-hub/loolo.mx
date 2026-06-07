@@ -1,4 +1,4 @@
-// LOOLO — Seed demo: consulta activa para Ana García López.
+// NELZZON — Seed demo: consulta activa para Ana García López.
 // Uso: npx tsx scripts/seed-active-encounter-ana.ts
 
 import { config } from "dotenv";

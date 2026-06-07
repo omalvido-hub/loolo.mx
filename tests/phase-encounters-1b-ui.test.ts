@@ -1,4 +1,4 @@
-// LOOLO — Pruebas NELZZON-ENCOUNTERS-1B-UI (UI núcleo de consultas clínicas).
+// NELZZON — Pruebas NELZZON-ENCOUNTERS-1B-UI (UI núcleo de consultas clínicas).
 // Verificación estática por readFileSync (igual que UI-7B-A): los componentes
 // cliente no se ejecutan en Vitest (requieren runtime Next.js + sesión).
 // Cubre:

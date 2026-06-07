@@ -1,4 +1,4 @@
-// LOOLO — Operaciones de dashboard/preferencias (Fase 2B-2).
+// NELZZON — Operaciones de dashboard/preferencias (Fase 2B-2).
 // Widgets org: exigen dashboard.configure_org; enable/disable emiten evento + audit;
 //   config solo audita (no es evento operativo).
 // Preferencia de usuario: exige user_preferences.update; SOLO el mismo userId (RLS lo fuerza);

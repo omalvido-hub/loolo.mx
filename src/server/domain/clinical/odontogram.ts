@@ -1,4 +1,4 @@
-// LOOLO — Operaciones de Odontograma (Fase 5B). Tenant-scoped (app_user/RLS).
+// NELZZON — Operaciones de Odontograma (Fase 5B). Tenant-scoped (app_user/RLS).
 // Append-only (sin UPDATE/DELETE). Datos de salud: acceso estrecho, eventos/auditoría sin note.
 // Hallazgos solo en consulta DRAFT/IN_PROGRESS (decisión 9). Corrección = supersede (decisión 4).
 

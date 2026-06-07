@@ -1,4 +1,4 @@
-// LOOLO — Escritura de Ficha Viva Odontológica (FVO-1c). SOLO ESCRITURA.
+// NELZZON — Escritura de Ficha Viva Odontológica (FVO-1c). SOLO ESCRITURA.
 // Patrón por función: authorize → parseOrThrow → SQL exec → recordAudit → return id.
 // Reglas de auditoría (NO NEGOCIABLE):
 //   - upsertClinicalProfile: metadata vacía (sin texto clínico libre).

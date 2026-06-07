@@ -1,6 +1,6 @@
 "use server";
 
-// LOOLO — Server Actions de Consulta clínica (NELZZON-ENCOUNTERS-1A-ACTIONS).
+// NELZZON — Server Actions de Consulta clínica (NELZZON-ENCOUNTERS-1A-ACTIONS).
 // Wrappers 1:1 sobre el dominio encounters.ts (Fase 5A). Sin lógica clínica propia:
 // la validación (Zod), las transiciones de estado y el enforcement de permisos
 // (clinical.create/edit/finalize/cancel/clinical_notes.add) viven en el dominio.

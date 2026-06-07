@@ -1,4 +1,4 @@
-// LOOLO — Ficha Viva interna del paciente (Fase 7B). SOLO LECTURA.
+// NELZZON — Ficha Viva interna del paciente (Fase 7B). SOLO LECTURA.
 // Agrega metadatos de tablas existentes. NO crea tablas. NO es fuente de verdad paralela.
 // Filtrado por sección según permisos del rol. Audita cada apertura con patient_record.viewed.
 // Denegación de patients.view: auditada en transacción propia (patrón guardConfigOperation).

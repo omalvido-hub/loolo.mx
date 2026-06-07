@@ -1,4 +1,4 @@
-// LOOLO — Ingesta de mensaje entrante + deduplicación de contacto (Fase 3A).
+// NELZZON — Ingesta de mensaje entrante + deduplicación de contacto (Fase 3A).
 // Idempotencia por (org, channelId, externalId). Dedup por contact_identifiers (match EXACTO
 // normalizado, sin fuzzy). NO crea paciente ni oportunidad (reglas 7 y 9). Sin IA.
 // `conversationMessages` es el nombre conceptual; la tabla real es "messages".

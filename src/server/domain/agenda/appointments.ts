@@ -1,4 +1,4 @@
-// LOOLO — Operaciones de Agenda (Fase 4A). Tenant-scoped (app_user/RLS).
+// NELZZON — Operaciones de Agenda (Fase 4A). Tenant-scoped (app_user/RLS).
 // Anti-solapamiento real lo garantiza la BD (EXCLUDE gist); aquí mapeamos el error a OverlapError.
 // Disponibilidad: dentro de availability_rules del profesional (en su timezone) y sin schedule_blocks.
 // Same-org (ajuste F): toda referencia debe existir bajo RLS de la org actual (fail-closed).

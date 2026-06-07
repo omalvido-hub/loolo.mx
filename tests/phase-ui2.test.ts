@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase UI-2 (Agenda, solo lectura).
+// NELZZON — Pruebas Fase UI-2 (Agenda, solo lectura).
 // Postgres real + RLS + permisos. Cubre: listAppointmentsByRange, listResources,
 // aislamiento multi-tenant, rango acotado, RBAC fail-closed, integridad estructural.
 // NO existe tests/phase7d.test.ts. NO existen endpoints REST de agenda.

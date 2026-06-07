@@ -1,4 +1,4 @@
-// LOOLO — Datos de catálogo de módulos (fuente de verdad del seed).
+// NELZZON — Datos de catálogo de módulos (fuente de verdad del seed).
 // functional_status realista: programmed_now = ya construido; prepared_for_later = estructura lista.
 // Keys GENÉRICAS (no hardcodean odontología); el vocabulario dental va en labelOverride de la plantilla.
 

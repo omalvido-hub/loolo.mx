@@ -1,4 +1,4 @@
-// LOOLO — Pruebas fase UI-7B-A (odontograma interactivo visual, sin escritura).
+// NELZZON — Pruebas fase UI-7B-A (odontograma interactivo visual, sin escritura).
 // Verificación estática por readFileSync. No crea escritura, no server actions, sin migración.
 // Cubre:
 // - ToothGlyph acepta isSelected, onClick, overflowCount.

@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase 7C-A (capa segura dominio → request).
+// NELZZON — Pruebas Fase 7C-A (capa segura dominio → request).
 // Cubre: getActorContext, makeTenantRunner, integración end-to-end, mapRecordResult.
 // NO requiere servidor Next. Usa Postgres real + RLS.
 

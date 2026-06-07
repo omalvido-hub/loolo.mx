@@ -1,4 +1,4 @@
-// LOOLO — Prueba de aislamiento multi-tenant y garantías de la columna vertebral.
+// NELZZON — Prueba de aislamiento multi-tenant y garantías de la columna vertebral.
 // Corre como app_user (SIN bypass) contra el Postgres real con RLS + FORCE activos.
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";

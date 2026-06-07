@@ -1,4 +1,4 @@
-// LOOLO — Validadores Zod de dashboard/preferencias (Fase 2B-2).
+// NELZZON — Validadores Zod de dashboard/preferencias (Fase 2B-2).
 // preferenceValueJson: set CERRADO de claves. configJson: por configSchemaKey/widgetType.
 // Falla cerrado: clave/forma desconocida o inválida → NO se persiste.
 

@@ -1,4 +1,4 @@
-// LOOLO — Seed Fase 3B: catálogo de acciones sugeridas (INERTE, sin efecto automático).
+// NELZZON — Seed Fase 3B: catálogo de acciones sugeridas (INERTE, sin efecto automático).
 import { adminPool, closePools } from "../tests/harness.js";
 
 export const SEED_ACTIONS = [

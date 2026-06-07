@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase 2B-2 (dashboard/widgets/preferencias/resolver). Postgres real.
+// NELZZON — Pruebas Fase 2B-2 (dashboard/widgets/preferencias/resolver). Postgres real.
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { adminPool, forTenantPg, forTenantPgAsUser, closePools } from "./harness.js";

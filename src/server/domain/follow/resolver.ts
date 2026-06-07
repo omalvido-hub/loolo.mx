@@ -1,4 +1,4 @@
-// LOOLO — Resolver de bandeja Follow (Fase 3B). PURO, testeable sin DB.
+// NELZZON — Resolver de bandeja Follow (Fase 3B). PURO, testeable sin DB.
 // Visibilidad por PERMISO (conversations.view) y filtros operativos. Determinista.
 
 import type { InboxFilter } from "./schemas.js";

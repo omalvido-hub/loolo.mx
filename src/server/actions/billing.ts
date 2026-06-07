@@ -1,6 +1,6 @@
 "use server";
 
-// LOOLO — Server Actions de Billing (UI-6).
+// NELZZON — Server Actions de Billing (UI-6).
 // Mutaciones: crear presupuesto, editar precio de línea, cambiar estado, registrar pago.
 // Cada acción: sesión → actor context → dominio → revalidatePath.
 // Fail-closed: errores de sesión/permisos devuelven { ok: false, error }.

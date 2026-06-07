@@ -1,4 +1,4 @@
-// LOOLO — Repara filas VOIDED con encounterId=null cuando el hallazgo original
+// NELZZON — Repara filas VOIDED con encounterId=null cuando el hallazgo original
 // sí tiene encounterId. Ocurre cuando voidFinding se llamó sin pasar encounterId
 // (versión pre-fix de ODONTO-BUGFIX-RENDER-VOID-1).
 //

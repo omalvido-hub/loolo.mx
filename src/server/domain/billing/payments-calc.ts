@@ -1,4 +1,4 @@
-// LOOLO — Motor de saldo de pagos (Fase 6B). PURO, determinista, testeable.
+// NELZZON — Motor de saldo de pagos (Fase 6B). PURO, determinista, testeable.
 // Ledger: PAYMENT suma, REVERSAL resta. Centavos enteros (MXN). Sin float.
 
 export interface PaymentEntry {

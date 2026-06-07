@@ -1,4 +1,4 @@
-// LOOLO — Plantillas de Documentos (Fase 7A). kind ∈ enum cerrado. Variables en allowlist.
+// NELZZON — Plantillas de Documentos (Fase 7A). kind ∈ enum cerrado. Variables en allowlist.
 // No colisiona con BusinessTemplate/TemplateModule (onboarding de verticales).
 
 import { authorize } from "../identity/authorize.js";

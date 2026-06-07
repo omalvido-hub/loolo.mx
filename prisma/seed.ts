@@ -1,4 +1,4 @@
-// LOOLO — Seed Fase 1: prueba mínima del flujo de entrada.
+// NELZZON — Seed Fase 1: prueba mínima del flujo de entrada.
 // Usa app_admin para catálogos/orgs/identidad y app_user (forTenantPg) para el dominio.
 // Demuestra: mensaje entra → contacto + conversación + mensaje + eventos, SIN paciente ni oportunidad.
 

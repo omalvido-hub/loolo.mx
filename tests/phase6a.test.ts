@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase 6A (Presupuestos). Postgres real + motor puro.
+// NELZZON — Pruebas Fase 6A (Presupuestos). Postgres real + motor puro.
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { adminPool, forTenantPg, closePools } from "./harness.js";

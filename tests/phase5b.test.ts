@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase 5B (Odontograma). Postgres real.
+// NELZZON — Pruebas Fase 5B (Odontograma). Postgres real.
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { adminPool, forTenantPg, closePools } from "./harness.js";

@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase FVO-1 (Ficha Viva Odontológica Completa base).
+// NELZZON — Pruebas Fase FVO-1 (Ficha Viva Odontológica Completa base).
 // Postgres real + RLS + permisos. Cubre:
 // - Secciones FVO visibles con los permisos correctos (owner, clinician, admin).
 // - owner ve demographics, address, clinicalProfile, tax, emergencyContact, consent, commercialOrigin.

@@ -1,4 +1,4 @@
-// LOOLO — Eventos de dominio TIPADOS y VERSIONADOS (regla 21).
+// NELZZON — Eventos de dominio TIPADOS y VERSIONADOS (regla 21).
 // Un evento solo se emite si su payload valida contra el esquema Zod registrado.
 // Esto evita "JSON libre" que corrompe reportes. events != audit_logs.
 

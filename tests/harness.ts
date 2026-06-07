@@ -1,4 +1,4 @@
-// LOOLO — Arnés de prueba (node-postgres).
+// NELZZON — Arnés de prueba (node-postgres).
 // Replica el patrón de src/server/db/tenant.ts conectando como app_user (SIN bypass),
 // para validar las garantías de RLS a nivel de motor. El runtime de producción usa Prisma
 // con el MISMO rol y las MISMAS políticas, así que esta prueba aplica igual.

@@ -1,4 +1,4 @@
-// LOOLO — Seed demo: Ana González Medina en cualquier entorno.
+// NELZZON — Seed demo: Ana González Medina en cualquier entorno.
 // Seguro, idempotente, transaccional. Sin UUIDs hardcodeados de local.
 // Uso: npx tsx scripts/seed-demo-paciente-ana.ts
 //

@@ -1,4 +1,4 @@
-// LOOLO — Operaciones de Consulta clínica (Fase 5A). Tenant-scoped (app_user/RLS).
+// NELZZON — Operaciones de Consulta clínica (Fase 5A). Tenant-scoped (app_user/RLS).
 // Datos de SALUD: acceso estrecho (authorize antes de escribir/leer), notas append-only,
 // FINALIZED inmutable (ajuste A), eventos sin contenido (B), auditoría sin contenido (C),
 // coherencia appointment↔paciente (D), profesional same-org (E), lectura auditada (decisión 5).

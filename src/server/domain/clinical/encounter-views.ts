@@ -1,4 +1,4 @@
-// LOOLO — Proyección segura de consultas clínicas (UI-3, solo lectura).
+// NELZZON — Proyección segura de consultas clínicas (UI-3, solo lectura).
 // NUNCA devuelve clinical_notes.body ni organizationId ni UUIDs internos innecesarios.
 // Exige clinical.view. Fail-closed ante falta de tenant, actor o permiso.
 // Audita el acceso SIN contenido sensible.

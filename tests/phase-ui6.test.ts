@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase UI-6 (Presupuestos y Cobros, flujo completo).
+// NELZZON — Pruebas Fase UI-6 (Presupuestos y Cobros, flujo completo).
 // Postgres real + RLS + permisos. Cubre:
 // - getQuotesSafeView exige quote.view.
 // - Crear presupuesto desde plan activo con líneas conectadas.

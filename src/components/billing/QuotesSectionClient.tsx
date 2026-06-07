@@ -1,6 +1,6 @@
 "use client";
 
-// LOOLO — Sección interactiva de Presupuestos y Cobros (UI-6 / UI-6A).
+// NELZZON — Sección interactiva de Presupuestos y Cobros (UI-6 / UI-6A).
 // Gestiona: crear presupuesto desde plan activo, editar precios y descuentos en DRAFT,
 // transiciones de estado, cancelar borradores, registro de pagos, reverso de cobros.
 // Todo fluye por Server Actions → revalidatePath → re-render del servidor.

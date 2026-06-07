@@ -1,4 +1,4 @@
-// LOOLO — Consultas de solo lectura de Agenda (UI-2).
+// NELZZON — Consultas de solo lectura de Agenda (UI-2).
 // Requiere appointments.view / resources.view. Fail-closed. RLS/multi-tenant.
 // NO contiene funciones de escritura. NO importa appointments.ts ni resources.ts.
 

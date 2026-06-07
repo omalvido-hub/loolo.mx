@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase 2B-1 (configuracion). Contra Postgres real.
+// NELZZON — Pruebas Fase 2B-1 (configuracion). Contra Postgres real.
 // Incluye ENFORCEMENT real: las operaciones rechazan sin permiso ANTES de tocar datos.
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";

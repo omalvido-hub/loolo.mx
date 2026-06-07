@@ -1,4 +1,4 @@
-// LOOLO — Asignación con validación de membresía en el LÍMITE (Opción A aprobada).
+// NELZZON — Asignación con validación de membresía en el LÍMITE (Opción A aprobada).
 // La identidad (membresía) se valida con cliente ADMIN/identidad, NO con app_user
 // (que no tiene acceso a organization_memberships). Los datos tenant se escriben con
 // app_user/RLS dentro de `run`. Denegados auditados de forma DURABLE (tx propia).

@@ -1,4 +1,4 @@
-// LOOLO — Pruebas Fase UI-1 (Pacientes + Ficha Viva, solo lectura).
+// NELZZON — Pruebas Fase UI-1 (Pacientes + Ficha Viva, solo lectura).
 // Postgres real + RLS + permisos. Cubre: listPatientsForOrg, aislamiento multi-tenant,
 // archivados/eliminados, paginación, secciones Ficha Viva por rol, integridad estructural.
 // NO existe tests/phase7d.test.ts ni src/app/api/patients/route.ts.

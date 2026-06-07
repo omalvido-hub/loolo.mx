@@ -1,4 +1,4 @@
-// LOOLO — Validadores Zod de Consulta clínica (Fase 5A). Fail-closed.
+// NELZZON — Validadores Zod de Consulta clínica (Fase 5A). Fail-closed.
 // Longitudes acotadas. NO se valida contenido semántico clínico (fuera de alcance).
 
 import { z } from "zod";

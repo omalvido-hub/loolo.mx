@@ -1,4 +1,4 @@
-// LOOLO — Operaciones Follow operativo (Fase 3B). Tenant-scoped (app_user/RLS).
+// NELZZON — Operaciones Follow operativo (Fase 3B). Tenant-scoped (app_user/RLS).
 // Enforcement antes de escribir. Sin IA, sin automatismos, sin canal real.
 // Tres bitácoras: events (reportable) / audit_logs (sensible) / conversation_action_log (humana).
 
