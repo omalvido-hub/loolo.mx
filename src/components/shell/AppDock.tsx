@@ -25,6 +25,10 @@ const DOCK_ITEMS: DockItem[] = [
   { label: "Cobros",      href: "/cobros",       icon: CreditCard,  permission: "payment.view" },
 ];
 
+// Hrefs presentes en el dock por defecto — el catálogo de módulos los usa para
+// mostrar "Ya en tu dock" en vez de un control de "agregar" contradictorio.
+export const DOCK_HREFS: string[] = DOCK_ITEMS.map((item) => item.href);
+
 interface AppDockProps {
   roleKey: string;
   open: boolean;

@@ -58,9 +58,15 @@ export function PersonalizationPanel({ mode, onChange, onClose, className }: Per
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold tracking-tight">Personalizar tu espacio</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold tracking-tight">Personalizar tu espacio</p>
+              <span className="rounded-full bg-muted/70 px-2 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground">
+                Vista previa
+              </span>
+            </div>
             <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-              Una vista previa de hacia dónde va nelzzon — nada de esto se guarda todavía.
+              Prueba cómo se sentiría tu espacio de trabajo — estos controles son visuales,
+              nada se guarda todavía.
             </p>
           </div>
           <button
@@ -85,8 +91,8 @@ export function PersonalizationPanel({ mode, onChange, onClose, className }: Per
         </div>
 
         <p className="mt-5 border-t pt-3 text-[11px] leading-snug text-muted-foreground">
-          El motor real de personalización — guardar tu propio estilo, acomodar módulos
-          y mucho más — llega en una fase futura.
+          Guardar tu propio estilo, acomodar módulos y mucho más llega con el motor de
+          personalización — esto es un adelanto de hacia dónde vamos.
         </p>
       </div>
     </div>
