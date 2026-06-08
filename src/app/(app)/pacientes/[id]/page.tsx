@@ -7,6 +7,7 @@ import { listEncountersSafeForPatient } from "@/server/domain/clinical/encounter
 import { getOdontogramMasterView } from "@/server/domain/clinical/odontogram-views";
 import { getTreatmentPlansSafeView } from "@/server/domain/clinical/treatment-views";
 import { getQuotesSafeView } from "@/server/domain/billing/billing-views";
+import { listPatientDocumentsSafeForPatient } from "@/server/domain/clinical/patient-documents-views";
 import { can } from "@/server/domain/identity/permissions";
 import { PatientLiveRecordView, GroupHeading } from "@/components/patients/PatientLiveRecordView";
 import { OdontogramMasterSection } from "@/components/odontogram/OdontogramMasterSection";
@@ -16,6 +17,8 @@ import { TreatmentNoPermission } from "@/components/treatment/TreatmentNoPermiss
 import { QuotesSectionClient } from "@/components/billing/QuotesSectionClient";
 import { BillingNoPermission } from "@/components/billing/BillingNoPermission";
 import { PatientTimeline } from "@/components/patients/PatientTimeline";
+import { PatientDocumentsSection } from "@/components/patients/PatientDocumentsSection";
+import { PatientDocumentsNoPermission } from "@/components/patients/PatientDocumentsNoPermission";
 import type { EncounterListItem } from "@/server/domain/clinical/encounter-views";
 
 export default async function PacienteDetallePage({
@@ -89,6 +92,9 @@ export default async function PacienteDetallePage({
   // Presupuestos y cobros — UI-6.
   const quotesResult = await getQuotesSafeView(run, ctx, id);
 
+  // Documentos del paciente — PATIENT-DOCUMENTS-3A, solo lectura.
+  const documentsResult = await listPatientDocumentsSafeForPatient(run, ctx, id);
+
   // Plan activo + sus ítems (para crear presupuesto desde él).
   const activePlanForBilling =
     treatmentResult.ok && treatmentResult.value.activePlan
@@ -159,6 +165,11 @@ export default async function PacienteDetallePage({
           />
         ) : quotesResult.reason === "FORBIDDEN" ? (
           <BillingNoPermission />
+        ) : null}
+        {documentsResult.ok ? (
+          <PatientDocumentsSection items={documentsResult.value.items} />
+        ) : documentsResult.reason === "FORBIDDEN" ? (
+          <PatientDocumentsNoPermission />
         ) : null}
       </div>
     </div>
