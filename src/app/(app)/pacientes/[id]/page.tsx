@@ -167,7 +167,11 @@ export default async function PacienteDetallePage({
           <BillingNoPermission />
         ) : null}
         {documentsResult.ok ? (
-          <PatientDocumentsSection items={documentsResult.value.items} />
+          <PatientDocumentsSection
+            items={documentsResult.value.items}
+            patientId={id}
+            canUpload={can(ctx.permissions, "patient_documents.upload")}
+          />
         ) : documentsResult.reason === "FORBIDDEN" ? (
           <PatientDocumentsNoPermission />
         ) : null}

@@ -5,20 +5,10 @@
 // — por eso esta vista jamás puede mostrarlos. Sin carga/descarga real todavía.
 
 import type { PatientDocumentSafeItem } from "@/server/domain/clinical/patient-documents-views";
+import { PatientDocumentUploadForm } from "./PatientDocumentUploadForm";
+import { KIND_LABEL, SENSITIVITY_LABEL, RETENTION_LABEL } from "./patient-document-labels";
 
-const KIND_LABEL: Record<string, string> = {
-  CLINICAL: "Clínico",
-  RADIOGRAPH: "Radiografía",
-  INTRAORAL_IMAGE: "Imagen intraoral",
-  EXTERNAL_STUDY: "Estudio externo",
-  CLINICAL_EVIDENCE: "Evidencia clínica",
-  ADMINISTRATIVE: "Administrativo",
-  CONSENT: "Consentimiento",
-  PRESCRIPTION: "Receta / indicación",
-  FINANCIAL: "Financiero",
-  GENERATED: "Generado por el sistema",
-  OTHER: "Otro",
-};
+export { KIND_LABEL, SENSITIVITY_LABEL, RETENTION_LABEL };
 
 const STATUS_LABEL: Record<string, string> = {
   QUARANTINED: "En revisión",
@@ -39,21 +29,6 @@ const PORTAL_LABEL: Record<string, string> = {
   SHARED_TO_PORTAL: "Compartido con el paciente",
   HIDDEN_FROM_PORTAL: "Oculto del portal",
   REVOKED: "Acceso revocado",
-};
-
-const SENSITIVITY_LABEL: Record<string, string> = {
-  NORMAL: "Normal",
-  SENSITIVE_CLINICAL: "Clínico sensible",
-  SENSITIVE_FINANCIAL: "Financiero sensible",
-  SENSITIVE_PERSONAL: "Personal sensible",
-};
-
-const RETENTION_LABEL: Record<string, string> = {
-  CLINICAL_RECORD: "Expediente clínico",
-  FINANCIAL_RECORD: "Registro financiero",
-  ADMINISTRATIVE: "Administrativo",
-  CONSENT: "Consentimiento",
-  TEMPORARY: "Temporal",
 };
 
 const LINK_LABEL: Record<string, string> = {
@@ -138,9 +113,11 @@ function DocumentRow({ item }: { item: PatientDocumentSafeItem }) {
 
 interface Props {
   items: PatientDocumentSafeItem[];
+  patientId: string;
+  canUpload: boolean;
 }
 
-export function PatientDocumentsSection({ items }: Props) {
+export function PatientDocumentsSection({ items, patientId, canUpload }: Props) {
   return (
     <div className="rounded-xl border bg-card ring-1 ring-foreground/10 overflow-hidden">
       <div className="px-4 py-3 border-b bg-muted/30 flex items-center justify-between gap-3">
@@ -154,9 +131,9 @@ export function PatientDocumentsSection({ items }: Props) {
         </div>
         <span
           className="shrink-0 inline-flex items-center rounded-full border border-dashed px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
-          title="La carga y descarga de documentos estarán disponibles en una fase posterior"
+          title="La descarga de documentos estará disponible en una fase posterior"
         >
-          Carga y descarga próximamente
+          Descarga próximamente
         </span>
       </div>
       <div className="px-4 py-4">
@@ -174,6 +151,7 @@ export function PatientDocumentsSection({ items }: Props) {
           </div>
         )}
       </div>
+      {canUpload && <PatientDocumentUploadForm patientId={patientId} />}
     </div>
   );
 }
