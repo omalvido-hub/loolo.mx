@@ -117,6 +117,16 @@ export const PERMISSIONS: { key: string; description: string }[] = [
   { key: "patient.guardian.edit", description: "Crear/editar tutores o responsables legales del paciente" },
   { key: "patient.emergency_contact.edit", description: "Crear/editar contactos de emergencia del paciente" },
   { key: "patient.consent.manage", description: "Registrar y revocar consentimientos de tratamiento de datos (LFPDPPP)" },
+  // PATIENT-DOCUMENTS-2A: Documentos/archivos del paciente (metadatos; sin contenido binario)
+  { key: "patient_documents.view", description: "Ver metadatos de documentos del paciente (sin contenido ni enlaces de descarga)" },
+  { key: "patient_documents.download", description: "Descargar el contenido de un documento del paciente" },
+  { key: "patient_documents.upload", description: "Subir un nuevo documento del paciente" },
+  { key: "patient_documents.replace", description: "Reemplazar un documento por una nueva versión (append-only)" },
+  { key: "patient_documents.void", description: "Anular un documento por error de registro (requiere motivo)" },
+  { key: "patient_documents.portal_share", description: "Compartir un documento con el portal del paciente" },
+  { key: "patient_documents.portal_revoke", description: "Ocultar o revocar el acceso de un documento desde el portal del paciente" },
+  { key: "patient_documents.sensitive_clinical_view", description: "Ver documentos clínicos sensibles del paciente (datos de salud, acceso estrecho)" },
+  { key: "patient_documents.financial_view", description: "Ver documentos financieros del paciente (comprobantes, facturas, estados de cuenta)" },
 ];
 
 export interface RoleDef {
@@ -148,6 +158,7 @@ export const ROLES: RoleDef[] = [
       "patient.demographics.view", "patient.clinical_profile.view", "patient.tax.view",
       "patient.demographics.edit", "patient.clinical_profile.edit", "patient.tax.edit",
       "patient.guardian.edit", "patient.emergency_contact.edit", "patient.consent.manage",
+      "patient_documents.view", "patient_documents.download", "patient_documents.upload", "patient_documents.replace", "patient_documents.void", "patient_documents.portal_share", "patient_documents.portal_revoke", "patient_documents.sensitive_clinical_view", "patient_documents.financial_view",
     ],
   },
   {
@@ -169,6 +180,7 @@ export const ROLES: RoleDef[] = [
       "patient.demographics.view", "patient.clinical_profile.view", "patient.tax.view",
       "patient.demographics.edit", "patient.clinical_profile.edit", "patient.tax.edit",
       "patient.guardian.edit", "patient.emergency_contact.edit", "patient.consent.manage",
+      "patient_documents.view", "patient_documents.download", "patient_documents.upload", "patient_documents.replace", "patient_documents.void", "patient_documents.portal_share", "patient_documents.portal_revoke", "patient_documents.sensitive_clinical_view", "patient_documents.financial_view",
     ],
   },
   {
@@ -180,6 +192,7 @@ export const ROLES: RoleDef[] = [
       "config.view",
       "patient.demographics.view",
       "patient.demographics.edit", "patient.guardian.edit", "patient.emergency_contact.edit", "patient.consent.manage",
+      "patient_documents.view", "patient_documents.upload",
     ]
   },
   {
@@ -191,6 +204,7 @@ export const ROLES: RoleDef[] = [
       "config.view",
       "patient.demographics.view", "patient.clinical_profile.view",
       "patient.clinical_profile.edit",
+      "patient_documents.view", "patient_documents.sensitive_clinical_view",
     ]
   },
   {
@@ -202,6 +216,7 @@ export const ROLES: RoleDef[] = [
       "config.view", "tax_profile.view",
       "patient.demographics.view", "patient.tax.view",
       "patient.tax.edit",
+      "patient_documents.view", "patient_documents.financial_view",
     ]
   },
   {
@@ -213,6 +228,7 @@ export const ROLES: RoleDef[] = [
       "config.view", "tax_profile.view", "tax_profile.manage",
       "patient.tax.view",
       "patient.tax.edit",
+      "patient_documents.view", "patient_documents.financial_view",
     ]
   },
   {
