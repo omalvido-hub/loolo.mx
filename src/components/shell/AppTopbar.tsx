@@ -36,7 +36,7 @@ export function AppTopbar({
       <div className="flex flex-1 min-w-0">
         {showSearch ? (
           <GlobalSearch
-            placeholder="Buscar pacientes…"
+            placeholder="Buscar..."
             className="w-full max-w-xl mx-auto lg:mx-0"
           />
         ) : (

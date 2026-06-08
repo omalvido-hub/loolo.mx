@@ -16,7 +16,7 @@ interface GlobalSearchProps {
   className?: string;
 }
 
-export function GlobalSearch({ placeholder = "Buscar pacientes…", className }: GlobalSearchProps) {
+export function GlobalSearch({ placeholder = "Buscar...", className }: GlobalSearchProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PatientSearchItem[]>([]);
   const [error, setError] = useState<string | null>(null);
