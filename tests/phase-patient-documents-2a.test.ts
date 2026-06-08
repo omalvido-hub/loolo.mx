@@ -13,6 +13,7 @@ import type { ActorContext } from "../src/server/domain/identity/authorize.js";
 import {
   listPatientDocumentsSafeForPatient,
   listPatientDocumentLinksSafeByEntity,
+  canSeeDocumentSensitivity,
 } from "../src/server/domain/clinical/patient-documents-views.js";
 import { makeTenantRunner } from "../src/server/db/tenant.js";
 
@@ -22,6 +23,8 @@ let orgA: string, orgB: string;
 let ownerA: ActorContext;
 let clinicianA: ActorContext;
 let frontA: ActorContext;
+let billingA: ActorContext;
+let accountantA: ActorContext;
 let noPermsA: ActorContext;
 let ownerB: ActorContext;
 
@@ -33,6 +36,8 @@ let docStaffActiveId: string;
 let docPortalQuarantinedId: string;
 let docVoidedId: string;
 let docComplianceId: string;
+let docFinancialId: string;
+let docPersonalId: string;
 let docBId: string;
 
 // IDs de actores "secretos" usados solo en columnas internas de compliance —
@@ -138,6 +143,8 @@ beforeAll(async () => {
   ownerA = await member(orgA, "owner");
   clinicianA = await member(orgA, "clinician");
   frontA = await member(orgA, "front_desk");
+  billingA = await member(orgA, "billing");
+  accountantA = await member(orgA, "accountant");
   noPermsA = await noPerms(orgA);
   ownerB = await member(orgB, "owner");
 
@@ -226,6 +233,28 @@ beforeAll(async () => {
     )
   ).rows[0].id;
 
+  // Documento financiero sensible — solo visible con patient_documents.financial_view.
+  docFinancialId = (
+    await adminPool.query(
+      `INSERT INTO "patient_documents"
+         ("organizationId","patientId","kind","fileName","mimeType","sizeBytes","storageKey","uploadedByUserId","uploadedVia","sensitivityLevel","retentionCategory","status")
+       VALUES ($1,$2,'FINANCIAL','estado-cuenta.pdf','application/pdf',81920,$3,$4,'STAFF','SENSITIVE_FINANCIAL','FINANCIAL_RECORD','ACTIVE')
+       RETURNING id`,
+      [orgA, patientAId, "s3://nelzzon-docs/financial-" + rnd() + ".pdf", ownerA.userId],
+    )
+  ).rows[0].id;
+
+  // Documento personal sensible — solo visible con patient_documents.sensitive_personal_view (owner/admin).
+  docPersonalId = (
+    await adminPool.query(
+      `INSERT INTO "patient_documents"
+         ("organizationId","patientId","kind","fileName","mimeType","sizeBytes","storageKey","uploadedByUserId","uploadedVia","sensitivityLevel","retentionCategory","status")
+       VALUES ($1,$2,'ADMINISTRATIVE','identificacion-oficial.pdf','application/pdf',40960,$3,$4,'STAFF','SENSITIVE_PERSONAL','ADMINISTRATIVE','ACTIVE')
+       RETURNING id`,
+      [orgA, patientAId, "s3://nelzzon-docs/personal-" + rnd() + ".pdf", ownerA.userId],
+    )
+  ).rows[0].id;
+
   // Vincular el documento clínico a la consulta (módulo ENCOUNTER).
   await adminPool.query(
     `INSERT INTO "patient_document_links"("organizationId","documentId","linkType","linkedEntityId")
@@ -236,6 +265,13 @@ beforeAll(async () => {
     `INSERT INTO "patient_document_links"("organizationId","documentId","linkType","linkedEntityId")
      VALUES ($1,$2,'PATIENT',$3)`,
     [orgA, docStaffActiveId, patientAId],
+  );
+  // Vincular el documento clínico sensible a la misma consulta — para probar que
+  // el filtro de sensibilidad también aplica en listPatientDocumentLinksSafeByEntity.
+  await adminPool.query(
+    `INSERT INTO "patient_document_links"("organizationId","documentId","linkType","linkedEntityId")
+     VALUES ($1,$2,'ENCOUNTER',$3)`,
+    [orgA, docComplianceId, encounterAId],
   );
 
   // Documento de orgB — para probar aislamiento de tenant.
@@ -412,6 +448,127 @@ describe("listPatientDocumentsSafeForPatient — DTO seguro", () => {
 });
 
 // ══════════════════════════════════════════════════════════════════════
+// 3b. Filtro de visibilidad por sensitivityLevel (PATIENT-DOCUMENTS-4A-3)
+// ══════════════════════════════════════════════════════════════════════
+
+describe("canSeeDocumentSensitivity — función pura, fail-closed", () => {
+  it("NORMAL: visible con solo patient_documents.view", () => {
+    expect(canSeeDocumentSensitivity(new Set(["patient_documents.view"]), "NORMAL")).toBe(true);
+  });
+
+  it("SENSITIVE_CLINICAL: requiere view + sensitive_clinical_view", () => {
+    expect(canSeeDocumentSensitivity(new Set(["patient_documents.view"]), "SENSITIVE_CLINICAL")).toBe(false);
+    expect(
+      canSeeDocumentSensitivity(
+        new Set(["patient_documents.view", "patient_documents.sensitive_clinical_view"]),
+        "SENSITIVE_CLINICAL",
+      ),
+    ).toBe(true);
+  });
+
+  it("SENSITIVE_FINANCIAL: requiere view + financial_view", () => {
+    expect(canSeeDocumentSensitivity(new Set(["patient_documents.view"]), "SENSITIVE_FINANCIAL")).toBe(false);
+    expect(
+      canSeeDocumentSensitivity(
+        new Set(["patient_documents.view", "patient_documents.financial_view"]),
+        "SENSITIVE_FINANCIAL",
+      ),
+    ).toBe(true);
+  });
+
+  it("SENSITIVE_PERSONAL: requiere view + sensitive_personal_view", () => {
+    expect(canSeeDocumentSensitivity(new Set(["patient_documents.view"]), "SENSITIVE_PERSONAL")).toBe(false);
+    expect(
+      canSeeDocumentSensitivity(
+        new Set(["patient_documents.view", "patient_documents.sensitive_personal_view"]),
+        "SENSITIVE_PERSONAL",
+      ),
+    ).toBe(true);
+  });
+
+  it("nivel desconocido/futuro se oculta por defecto (fail-closed)", () => {
+    const allPerms = new Set([
+      "patient_documents.view",
+      "patient_documents.sensitive_clinical_view",
+      "patient_documents.financial_view",
+      "patient_documents.sensitive_personal_view",
+    ]);
+    expect(canSeeDocumentSensitivity(allPerms, "SENSITIVE_FUTURE_LEVEL")).toBe(false);
+    expect(canSeeDocumentSensitivity(allPerms, "")).toBe(false);
+  });
+});
+
+describe("listPatientDocumentsSafeForPatient — filtro por sensitivityLevel", () => {
+  it("front_desk (view + upload, sin permisos finos) solo ve documentos NORMAL", async () => {
+    const run = makeTenantRunner(orgA);
+    const result = await listPatientDocumentsSafeForPatient(run, frontA, patientAId);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const ids = result.value.items.map((i) => i.documentId);
+    const levels = new Set(result.value.items.map((i) => i.sensitivityLevel));
+    expect(ids).not.toContain(docComplianceId);
+    expect(ids).not.toContain(docFinancialId);
+    expect(ids).not.toContain(docPersonalId);
+    expect(levels).toEqual(new Set(["NORMAL"]));
+  });
+
+  it("clinician ve NORMAL + SENSITIVE_CLINICAL, pero no FINANCIAL ni PERSONAL", async () => {
+    const run = makeTenantRunner(orgA);
+    const result = await listPatientDocumentsSafeForPatient(run, clinicianA, patientAId);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const ids = result.value.items.map((i) => i.documentId);
+    expect(ids).toContain(docComplianceId);
+    expect(ids).not.toContain(docFinancialId);
+    expect(ids).not.toContain(docPersonalId);
+  });
+
+  it("billing y accountant ven NORMAL + SENSITIVE_FINANCIAL, pero no CLINICAL ni PERSONAL", async () => {
+    const run = makeTenantRunner(orgA);
+    for (const actor of [billingA, accountantA]) {
+      const result = await listPatientDocumentsSafeForPatient(run, actor, patientAId);
+      expect(result.ok).toBe(true);
+      if (!result.ok) continue;
+      const ids = result.value.items.map((i) => i.documentId);
+      expect(ids).toContain(docFinancialId);
+      expect(ids).not.toContain(docComplianceId);
+      expect(ids).not.toContain(docPersonalId);
+    }
+  });
+
+  it("owner y admin ven los 4 niveles, incluido SENSITIVE_PERSONAL", async () => {
+    const run = makeTenantRunner(orgA);
+    const result = await listPatientDocumentsSafeForPatient(run, ownerA, patientAId);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const ids = result.value.items.map((i) => i.documentId);
+    expect(ids).toContain(docStaffActiveId); // NORMAL
+    expect(ids).toContain(docComplianceId); // SENSITIVE_CLINICAL
+    expect(ids).toContain(docFinancialId); // SENSITIVE_FINANCIAL
+    expect(ids).toContain(docPersonalId); // SENSITIVE_PERSONAL
+  });
+
+  it("el conteo de auditoría refleja solo los documentos visibles para el actor (no delata documentos ocultos)", async () => {
+    const run = makeTenantRunner(orgA);
+    const result = await listPatientDocumentsSafeForPatient(run, frontA, patientAId);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const { rows } = await adminPool.query(
+      `SELECT "metadata" FROM "audit_logs"
+       WHERE "action"='patient_documents.viewed' AND "entityId"=$1 AND "actorUserId"=$2
+       ORDER BY "id" DESC LIMIT 1`,
+      [patientAId, frontA.userId],
+    );
+    expect(rows.length).toBeGreaterThan(0);
+    const meta = rows[0].metadata as { count: number };
+    // front_desk solo ve documentos NORMAL — el conteo auditado debe ser el filtrado, no el total bruto.
+    expect(meta.count).toBe(result.value.items.length);
+    expect(meta.count).toBeLessThan(5);
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════
 // 4. listPatientDocumentLinksSafeByEntity — listar por módulo (anti-IDOR)
 // ══════════════════════════════════════════════════════════════════════
 
@@ -430,6 +587,26 @@ describe("listPatientDocumentLinksSafeByEntity — listado por módulo", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.items.map((i) => i.documentId)).toContain(docStaffActiveId);
+  });
+
+  it("respeta el filtro de sensitivityLevel: front_desk no ve el documento SENSITIVE_CLINICAL vinculado a la consulta", async () => {
+    const run = makeTenantRunner(orgA);
+    const result = await listPatientDocumentLinksSafeByEntity(run, frontA, patientAId, "ENCOUNTER", encounterAId);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const ids = result.value.items.map((i) => i.documentId);
+    expect(ids).toContain(docStaffActiveId);
+    expect(ids).not.toContain(docComplianceId);
+  });
+
+  it("respeta el filtro de sensitivityLevel: clinician sí ve el documento SENSITIVE_CLINICAL vinculado a la consulta", async () => {
+    const run = makeTenantRunner(orgA);
+    const result = await listPatientDocumentLinksSafeByEntity(run, clinicianA, patientAId, "ENCOUNTER", encounterAId);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const ids = result.value.items.map((i) => i.documentId);
+    expect(ids).toContain(docStaffActiveId);
+    expect(ids).toContain(docComplianceId);
   });
 
   it("anti-IDOR: si el patientId no coincide con el dueño real del documento, no lo devuelve", async () => {

@@ -9,7 +9,8 @@
 // dedicadas (descarga, revisión, portal) con sus propios permisos y vistas.
 // Audita el acceso SIN contenido sensible.
 
-import { can } from "../identity/permissions.js";
+import { can, canAll } from "../identity/permissions.js";
+import type { PermissionSet } from "../identity/permissions.js";
 import { recordAudit, recordPermissionDenied } from "../audit/record.js";
 import type { ActorContext, TenantRunner } from "../identity/authorize.js";
 import { ok, fail } from "../shared/status.js";
@@ -42,6 +43,29 @@ export interface PatientDocumentSafeItem {
   voidedAt: string | null;
   createdAt: string;
   links: PatientDocumentLinkItem[];
+}
+
+// ─── Filtro de visibilidad por sensibilidad (PATIENT-DOCUMENTS-4A-3) ───────
+
+/**
+ * Decide si el actor puede ver un documento dado su sensitivityLevel.
+ * patient_documents.view ya fue verificado por el caller — esta función
+ * decide el acceso ADICIONAL que exige cada nivel sensible. Fail-closed:
+ * cualquier nivel desconocido (presente o futuro) se oculta por defecto.
+ */
+export function canSeeDocumentSensitivity(perms: PermissionSet, sensitivityLevel: string): boolean {
+  switch (sensitivityLevel) {
+    case "NORMAL":
+      return true;
+    case "SENSITIVE_CLINICAL":
+      return canAll(perms, ["patient_documents.view", "patient_documents.sensitive_clinical_view"]);
+    case "SENSITIVE_FINANCIAL":
+      return canAll(perms, ["patient_documents.view", "patient_documents.financial_view"]);
+    case "SENSITIVE_PERSONAL":
+      return canAll(perms, ["patient_documents.view", "patient_documents.sensitive_personal_view"]);
+    default:
+      return false;
+  }
 }
 
 // ─── listPatientDocumentsSafeForPatient ────────────────────────────────────
@@ -96,7 +120,12 @@ export async function listPatientDocumentsSafeForPatient(
       [patientId],
     );
 
-    const documentIds: string[] = rows.map((r: any) => r.id);
+    // Filtro de visibilidad por sensibilidad — fail-closed ante niveles desconocidos.
+    const visibleRows = (rows as any[]).filter((r) =>
+      canSeeDocumentSensitivity(ctx.permissions, r.sensitivityLevel),
+    );
+
+    const documentIds: string[] = visibleRows.map((r: any) => r.id);
     const linksByDocument = new Map<string, PatientDocumentLinkItem[]>();
     if (documentIds.length > 0) {
       const linkRows = await exec(
@@ -120,11 +149,11 @@ export async function listPatientDocumentsSafeForPatient(
       action: "patient_documents.viewed",
       entityType: "patient",
       entityId: patientId,
-      metadata: { accessType: "listPatientDocumentsSafeForPatient", count: rows.length },
+      metadata: { accessType: "listPatientDocumentsSafeForPatient", count: visibleRows.length },
     });
 
     return ok({
-      items: rows.map((r: any) => ({
+      items: visibleRows.map((r: any) => ({
         documentId: r.id,
         kind: r.kind,
         fileName: r.fileName,
@@ -200,7 +229,10 @@ export async function listPatientDocumentLinksSafeByEntity(
     );
 
     // Anti-IDOR: solo documentos del paciente solicitado.
-    const ownRows = (rows as any[]).filter((r) => r.patientId === patientId);
+    // Filtro de visibilidad por sensibilidad — fail-closed ante niveles desconocidos.
+    const ownRows = (rows as any[]).filter(
+      (r) => r.patientId === patientId && canSeeDocumentSensitivity(ctx.permissions, r.sensitivityLevel),
+    );
 
     await recordAudit(exec, {
       organizationId: ctx.organizationId,
