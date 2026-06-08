@@ -19,6 +19,7 @@ import { BillingNoPermission } from "@/components/billing/BillingNoPermission";
 import { PatientTimeline } from "@/components/patients/PatientTimeline";
 import { PatientDocumentsSection } from "@/components/patients/PatientDocumentsSection";
 import { PatientDocumentsNoPermission } from "@/components/patients/PatientDocumentsNoPermission";
+import { isDocumentStorageConfigured } from "@/server/storage/document-storage";
 import type { EncounterListItem } from "@/server/domain/clinical/encounter-views";
 
 export default async function PacienteDetallePage({
@@ -171,6 +172,7 @@ export default async function PacienteDetallePage({
             items={documentsResult.value.items}
             patientId={id}
             canUpload={can(ctx.permissions, "patient_documents.upload")}
+            storageConfigured={isDocumentStorageConfigured()}
           />
         ) : documentsResult.reason === "FORBIDDEN" ? (
           <PatientDocumentsNoPermission />

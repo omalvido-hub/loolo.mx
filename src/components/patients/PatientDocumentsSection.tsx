@@ -115,9 +115,10 @@ interface Props {
   items: PatientDocumentSafeItem[];
   patientId: string;
   canUpload: boolean;
+  storageConfigured: boolean;
 }
 
-export function PatientDocumentsSection({ items, patientId, canUpload }: Props) {
+export function PatientDocumentsSection({ items, patientId, canUpload, storageConfigured }: Props) {
   return (
     <div className="rounded-xl border bg-card ring-1 ring-foreground/10 overflow-hidden">
       <div className="px-4 py-3 border-b bg-muted/30 flex items-center justify-between gap-3">
@@ -151,7 +152,20 @@ export function PatientDocumentsSection({ items, patientId, canUpload }: Props) 
           </div>
         )}
       </div>
-      {canUpload && <PatientDocumentUploadForm patientId={patientId} />}
+      {canUpload && (
+        storageConfigured ? (
+          <PatientDocumentUploadForm patientId={patientId} />
+        ) : (
+          <div className="px-4 pb-4">
+            <div className="rounded-lg border border-dashed px-3.5 py-3">
+              <p className="text-sm font-medium">Carga de documentos próximamente</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                El almacenamiento seguro aún no está configurado.
+              </p>
+            </div>
+          </div>
+        )
+      )}
     </div>
   );
 }

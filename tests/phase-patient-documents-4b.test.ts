@@ -67,6 +67,9 @@ class FailingDocumentStorage implements DocumentStorage {
   async putObject(_input: PutObjectInput): Promise<Result<void>> {
     return fail("BLOCKED", "Storage simulado caído (prueba).");
   }
+  isConfigured(): boolean {
+    return true;
+  }
 }
 
 class RecordingDocumentStorage implements DocumentStorage {
@@ -74,6 +77,9 @@ class RecordingDocumentStorage implements DocumentStorage {
   async putObject(input: PutObjectInput): Promise<Result<void>> {
     this.calls.push(input);
     return ok(undefined);
+  }
+  isConfigured(): boolean {
+    return true;
   }
 }
 

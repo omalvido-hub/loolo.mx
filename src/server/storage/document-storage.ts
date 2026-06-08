@@ -23,6 +23,13 @@ export interface PutObjectInput {
 
 export interface DocumentStorage {
   putObject(input: PutObjectInput): Promise<Result<void>>;
+  /**
+   * Indica si este storage está listo para recibir archivos reales.
+   * NO expone nombres de variables, credenciales ni detalles internos —
+   * es una señal booleana para que la UI decida si mostrar el formulario
+   * de carga (ver isDocumentStorageConfigured / getDocumentStorageStatus).
+   */
+  isConfigured(): boolean;
 }
 
 /** Almacenamiento en memoria — SOLO pruebas/desarrollo. Se pierde al reiniciar el proceso. */
@@ -32,6 +39,10 @@ export class InMemoryDocumentStorage implements DocumentStorage {
   async putObject({ storageKey, body, mimeType }: PutObjectInput): Promise<Result<void>> {
     this.objects.set(storageKey, { body, mimeType });
     return ok(undefined);
+  }
+
+  isConfigured(): boolean {
+    return true;
   }
 
   has(storageKey: string): boolean {
@@ -56,6 +67,10 @@ class UnconfiguredDocumentStorage implements DocumentStorage {
         "No se guardó ningún archivo ni se creó ningún registro.",
     );
   }
+
+  isConfigured(): boolean {
+    return false;
+  }
 }
 
 let activeStorage: DocumentStorage = new UnconfiguredDocumentStorage();
@@ -67,6 +82,23 @@ let activeStorage: DocumentStorage = new UnconfiguredDocumentStorage();
  */
 export function getDocumentStorage(): DocumentStorage {
   return activeStorage;
+}
+
+/**
+ * Señal segura para la UI: ¿el storage activo está listo para recibir archivos
+ * reales? NUNCA expone nombres de variables, credenciales, bucket ni detalles
+ * internos — solo un booleano. Mientras sea UnconfiguredDocumentStorage,
+ * devuelve false y la UI debe ocultar el formulario de carga.
+ */
+export function isDocumentStorageConfigured(): boolean {
+  return activeStorage.isConfigured();
+}
+
+export type DocumentStorageStatus = "configured" | "unconfigured";
+
+/** Variante en forma de estado legible, por si la UI prefiere distinguir casos a futuro. */
+export function getDocumentStorageStatus(): DocumentStorageStatus {
+  return activeStorage.isConfigured() ? "configured" : "unconfigured";
 }
 
 /** SOLO pruebas: inyecta un storage fake (p.ej. InMemoryDocumentStorage) o lo restablece con null. */
