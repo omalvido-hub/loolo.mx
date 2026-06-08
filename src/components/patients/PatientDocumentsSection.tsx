@@ -73,17 +73,7 @@ function Badge({ label, className }: { label: string; className: string }) {
   );
 }
 
-function DocumentRow({
-  item,
-  patientId,
-  canDownload,
-}: {
-  item: PatientDocumentSafeItem;
-  patientId: string;
-  canDownload: boolean;
-}) {
-  const downloadHref = `/api/patients/${patientId}/documents/${item.documentId}/download`;
-  const isActive = item.status === "ACTIVE";
+function DocumentRow({ item }: { item: PatientDocumentSafeItem }) {
   return (
     <div className="border rounded-lg px-3.5 py-3 space-y-2">
       <div className="flex items-start justify-between gap-3">
@@ -93,21 +83,10 @@ function DocumentRow({
             {KIND_LABEL[item.kind] ?? item.kind} · {fSize(item.sizeBytes)} · {fDateTime(item.createdAt)}
           </p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {canDownload && isActive && (
-            <a
-              href={downloadHref}
-              download
-              className="inline-flex items-center rounded-md border border-input bg-background px-2.5 py-1 text-xs font-medium hover:bg-muted transition-colors"
-            >
-              Descargar
-            </a>
-          )}
-          <Badge
-            label={STATUS_LABEL[item.status] ?? item.status}
-            className={STATUS_COLOR[item.status] ?? "bg-gray-100 text-gray-600"}
-          />
-        </div>
+        <Badge
+          label={STATUS_LABEL[item.status] ?? item.status}
+          className={STATUS_COLOR[item.status] ?? "bg-gray-100 text-gray-600"}
+        />
       </div>
       <div className="flex flex-wrap gap-1.5">
         <Badge
@@ -136,20 +115,27 @@ interface Props {
   items: PatientDocumentSafeItem[];
   patientId: string;
   canUpload: boolean;
-  canDownload: boolean;
   storageConfigured: boolean;
 }
 
-export function PatientDocumentsSection({ items, patientId, canUpload, canDownload, storageConfigured }: Props) {
+export function PatientDocumentsSection({ items, patientId, canUpload, storageConfigured }: Props) {
   return (
     <div className="rounded-xl border bg-card ring-1 ring-foreground/10 overflow-hidden">
-      <div className="px-4 py-3 border-b bg-muted/30">
-        <h2 className="font-medium text-base">Documentos del paciente</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          {items.length === 0
-            ? "Sin documentos registrados"
-            : `${items.length} documento${items.length !== 1 ? "s" : ""} registrado${items.length !== 1 ? "s" : ""}`}
-        </p>
+      <div className="px-4 py-3 border-b bg-muted/30 flex items-center justify-between gap-3">
+        <div>
+          <h2 className="font-medium text-base">Documentos del paciente</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {items.length === 0
+              ? "Sin documentos registrados"
+              : `${items.length} documento${items.length !== 1 ? "s" : ""} registrado${items.length !== 1 ? "s" : ""}`}
+          </p>
+        </div>
+        <span
+          className="shrink-0 inline-flex items-center rounded-full border border-dashed px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
+          title="La descarga de documentos estará disponible en una fase posterior"
+        >
+          Descarga próximamente
+        </span>
       </div>
       <div className="px-4 py-4">
         {items.length === 0 ? (
@@ -161,7 +147,7 @@ export function PatientDocumentsSection({ items, patientId, canUpload, canDownlo
         ) : (
           <div className="space-y-2.5">
             {items.map((item) => (
-              <DocumentRow key={item.documentId} item={item} patientId={patientId} canDownload={canDownload} />
+              <DocumentRow key={item.documentId} item={item} />
             ))}
           </div>
         )}

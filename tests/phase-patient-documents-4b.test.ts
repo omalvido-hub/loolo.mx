@@ -67,9 +67,6 @@ class FailingDocumentStorage implements DocumentStorage {
   async putObject(_input: PutObjectInput): Promise<Result<void>> {
     return fail("BLOCKED", "Storage simulado caído (prueba).");
   }
-  async getObject(_storageKey: string): Promise<Result<import("../src/server/storage/document-storage.js").GetObjectOutput>> {
-    return fail("BLOCKED", "Storage simulado caído (prueba).");
-  }
   isConfigured(): boolean {
     return true;
   }
@@ -80,9 +77,6 @@ class RecordingDocumentStorage implements DocumentStorage {
   async putObject(input: PutObjectInput): Promise<Result<void>> {
     this.calls.push(input);
     return ok(undefined);
-  }
-  async getObject(_storageKey: string): Promise<Result<import("../src/server/storage/document-storage.js").GetObjectOutput>> {
-    return fail("NOT_FOUND", "getObject no implementado en RecordingDocumentStorage.");
   }
   isConfigured(): boolean {
     return true;

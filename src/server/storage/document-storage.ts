@@ -31,21 +31,10 @@ export interface PutObjectInput {
   mimeType: string;
 }
 
-export interface GetObjectOutput {
-  bytes: Buffer;
-  contentType: string | null;
-  contentLength: number;
-}
-
 export interface DocumentStorage {
   putObject(input: PutObjectInput): Promise<Result<void>>;
   /**
-   * Lee un objeto ya almacenado por su storageKey opaco. NUNCA expone la clave
-   * al cliente — la decide y la pasa el dominio en servidor.
-   */
-  getObject(storageKey: string): Promise<Result<GetObjectOutput>>;
-  /**
-   * Indica si este storage está listo para recibir/leer archivos reales.
+   * Indica si este storage está listo para recibir archivos reales.
    * NO expone nombres de variables, credenciales ni detalles internos —
    * es una señal booleana para que la UI decida si mostrar el formulario
    * de carga (ver isDocumentStorageConfigured / getDocumentStorageStatus).
@@ -60,14 +49,6 @@ export class InMemoryDocumentStorage implements DocumentStorage {
   async putObject({ storageKey, body, mimeType }: PutObjectInput): Promise<Result<void>> {
     this.objects.set(storageKey, { body, mimeType });
     return ok(undefined);
-  }
-
-  async getObject(storageKey: string): Promise<Result<GetObjectOutput>> {
-    const entry = this.objects.get(storageKey);
-    if (!entry) {
-      return fail("NOT_FOUND", "Objeto no encontrado en el almacenamiento (in-memory).");
-    }
-    return ok({ bytes: entry.body, contentType: entry.mimeType, contentLength: entry.body.length });
   }
 
   isConfigured(): boolean {
@@ -85,7 +66,8 @@ export class InMemoryDocumentStorage implements DocumentStorage {
 
 /**
  * Storage real S3/R2-compatible — pendiente de credenciales reales.
- * Falla cerrado: ninguna escritura/lectura en patient_documents ocurre si esto falla.
+ * Falla cerrado: ninguna escritura en patient_documents ocurre si esto falla,
+ * porque el dominio llama putObject ANTES del INSERT.
  */
 class UnconfiguredDocumentStorage implements DocumentStorage {
   async putObject(): Promise<Result<void>> {
@@ -93,13 +75,6 @@ class UnconfiguredDocumentStorage implements DocumentStorage {
       "BLOCKED",
       "Almacenamiento de documentos no configurado todavía (faltan credenciales reales de S3/R2). " +
         "No se guardó ningún archivo ni se creó ningún registro.",
-    );
-  }
-
-  async getObject(): Promise<Result<GetObjectOutput>> {
-    return fail(
-      "BLOCKED",
-      "Almacenamiento de documentos no configurado todavía. No se puede descargar el archivo.",
     );
   }
 
