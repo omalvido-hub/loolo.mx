@@ -1,6 +1,6 @@
 // NELZZON — Pruebas Fase FVO-1b (estabilización: seed idempotente + lecturas deterministas).
 // Verifica:
-// - No existe migración 0018 ni superior.
+// - No existe migración 0020 ni superior (snapshot: 0018-0019 son de fases posteriores legítimas).
 // - INSERT sin ON CONFLICT en patient_guardian y patient_emergency_contact (1:N post-0017).
 // - DELETE + INSERT es idempotente en ambas tablas.
 // - fetchGuardianSection retorna el más reciente cuando existen 2 filas.
@@ -68,9 +68,9 @@ afterAll(async () => {
 // ══════════════════════════════════════════════════════════════════════
 
 describe("integridad de archivos FVO-1b", () => {
-  it("no existe migración 0018 ni superior", () => {
+  it("no existe migración 0020 ni superior (snapshot: 0018-0019 son de fases posteriores legítimas)", () => {
     const files = readdirSync(resolve("prisma/migrations"));
-    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 19)).toBe(false);
+    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 20)).toBe(false);
   });
 });
 

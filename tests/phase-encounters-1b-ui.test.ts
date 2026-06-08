@@ -25,9 +25,9 @@ const ENCOUNTERS_ACTIONS_PATH = resolve("src/server/actions/encounters.ts");
 // ══════════════════════════════════════════════════════════════════════════════
 
 describe("ENCOUNTERS-1B-UI — integridad y límites de alcance", () => {
-  it("no existe migración 0019 ni superior", () => {
+  it("no existe migración 0020 ni superior (snapshot: 0019 es la última legítima conocida)", () => {
     const files = readdirSync(resolve("prisma/migrations"));
-    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 19)).toBe(false);
+    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 20)).toBe(false);
   });
 
   it("los archivos de la fase existen", () => {

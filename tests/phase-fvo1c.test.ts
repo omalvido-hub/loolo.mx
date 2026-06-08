@@ -163,9 +163,9 @@ afterAll(async () => {
 // ══════════════════════════════════════════════════════════════════════════════
 
 describe("FVO-1c — integridad de archivos y schema", () => {
-  it("no existe migración 0018 ni superior", () => {
+  it("no existe migración 0020 ni superior (snapshot: 0018-0019 son de fases posteriores legítimas)", () => {
     const files = readdirSync(resolve("prisma/migrations"));
-    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 19)).toBe(false);
+    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 20)).toBe(false);
   });
 
   it("fvo-write.ts existe", () => {

@@ -30,9 +30,9 @@ const EXPECTED_ACTIONS = [
 // ══════════════════════════════════════════════════════════════════════════════
 
 describe("ENCOUNTERS-1A-ACTIONS — integridad de archivos", () => {
-  it("no existe migración 0019 ni superior", () => {
+  it("no existe migración 0020 ni superior (snapshot: 0019 es la última legítima conocida)", () => {
     const files = readdirSync(resolve("prisma/migrations"));
-    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 19)).toBe(false);
+    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 20)).toBe(false);
   });
 
   it("src/server/actions/encounters.ts existe", () => {
