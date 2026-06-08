@@ -19,6 +19,7 @@ interface GlobalSearchProps {
 export function GlobalSearch({ placeholder = "Buscar pacientes…", className }: GlobalSearchProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PatientSearchItem[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -27,9 +28,9 @@ export function GlobalSearch({ placeholder = "Buscar pacientes…", className }:
   // Búsqueda con debounce de 200ms al cambiar el query.
   useEffect(() => {
     const q = query.trim();
+    setError(null);
     if (q.length < 2) {
       setResults([]);
-      setOpen(false);
       return;
     }
     const t = setTimeout(() => {
@@ -37,10 +38,9 @@ export function GlobalSearch({ placeholder = "Buscar pacientes…", className }:
         const res = await searchPatientsAction(q);
         if (res.ok) {
           setResults(res.items);
-          setOpen(true);
         } else {
           setResults([]);
-          setOpen(false);
+          setError("No se pudo completar la búsqueda. Intenta de nuevo.");
         }
       });
     }, 200);
@@ -61,6 +61,7 @@ export function GlobalSearch({ placeholder = "Buscar pacientes…", className }:
   function handleSelect(id: string) {
     setQuery("");
     setResults([]);
+    setError(null);
     setOpen(false);
     router.push(`/pacientes/${id}`);
   }
@@ -81,7 +82,7 @@ export function GlobalSearch({ placeholder = "Buscar pacientes…", className }:
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={() => query.trim().length >= 2 && setOpen(true)}
+          onFocus={() => setOpen(true)}
           placeholder={placeholder}
           className="w-full rounded-md border border-input bg-background pl-8 pr-3 py-1.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           aria-label="Buscar paciente por nombre, teléfono o correo"
@@ -94,7 +95,11 @@ export function GlobalSearch({ placeholder = "Buscar pacientes…", className }:
 
       {open && (
         <div className="absolute left-3 right-3 top-full mt-1 z-50 rounded-md border bg-popover shadow-md overflow-hidden">
-          {results.length > 0 ? (
+          {error ? (
+            <p className="px-3 py-2 text-sm text-destructive">{error}</p>
+          ) : query.trim().length < 2 ? (
+            <p className="px-3 py-2 text-sm text-muted-foreground">Busca por nombre, teléfono o correo</p>
+          ) : results.length > 0 ? (
             results.map((r) => (
               <button
                 key={r.id}
@@ -116,7 +121,7 @@ export function GlobalSearch({ placeholder = "Buscar pacientes…", className }:
               </button>
             ))
           ) : (
-            <p className="px-3 py-2 text-sm text-muted-foreground">Sin resultados</p>
+            <p className="px-3 py-2 text-sm text-muted-foreground">Sin pacientes encontrados</p>
           )}
         </div>
       )}
