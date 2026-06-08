@@ -172,6 +172,7 @@ export default async function PacienteDetallePage({
             items={documentsResult.value.items}
             patientId={id}
             canUpload={can(ctx.permissions, "patient_documents.upload")}
+            canDownload={can(ctx.permissions, "patient_documents.download")}
             storageConfigured={isDocumentStorageConfigured()}
           />
         ) : documentsResult.reason === "FORBIDDEN" ? (
