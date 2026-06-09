@@ -4,6 +4,7 @@
 // conectará más adelante. Cuando esas consultas existan, esta cuadrícula recibe
 // props reales en vez de MOCK_KPIS.
 
+import Link from "next/link";
 import { Users, CalendarCheck, AlertCircle, Wallet, ListChecks, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -11,17 +12,18 @@ interface KpiItem {
   key: string;
   label: string;
   source: string;
+  href: string;
   icon: React.ElementType;
   accent: string;
 }
 
 const MOCK_KPIS: KpiItem[] = [
-  { key: "patients",  label: "Pacientes",   source: "Se conectará con Pacientes",   icon: Users,         accent: "bg-blue-500/10 text-blue-600" },
-  { key: "today",     label: "Citas hoy",   source: "Se conectará con Agenda",      icon: CalendarCheck, accent: "bg-emerald-500/10 text-emerald-600" },
-  { key: "pending",   label: "Pendientes",  source: "Se conectará con Seguimiento", icon: AlertCircle,   accent: "bg-amber-500/10 text-amber-600" },
-  { key: "billing",   label: "Cobros",      source: "Se conectará con Cobros",      icon: Wallet,        accent: "bg-violet-500/10 text-violet-600" },
-  { key: "follow-up", label: "Seguimiento", source: "Se conectará con Seguimiento", icon: ListChecks,    accent: "bg-cyan-500/10 text-cyan-600" },
-  { key: "alerts",    label: "Alertas",     source: "Se conectará con Avisos",      icon: Bell,          accent: "bg-rose-500/10 text-rose-600" },
+  { key: "patients",  label: "Pacientes",   source: "Se conectará con Pacientes",   href: "/pacientes", icon: Users,         accent: "bg-blue-500/10 text-blue-600" },
+  { key: "today",     label: "Citas hoy",   source: "Se conectará con Agenda",      href: "/agenda",    icon: CalendarCheck, accent: "bg-emerald-500/10 text-emerald-600" },
+  { key: "pending",   label: "Pendientes",  source: "Se conectará con Seguimiento", href: "/agenda",    icon: AlertCircle,   accent: "bg-amber-500/10 text-amber-600" },
+  { key: "billing",   label: "Cobros",      source: "Se conectará con Cobros",      href: "/cobros",    icon: Wallet,        accent: "bg-violet-500/10 text-violet-600" },
+  { key: "follow-up", label: "Seguimiento", source: "Se conectará con Seguimiento", href: "/agenda",    icon: ListChecks,    accent: "bg-cyan-500/10 text-cyan-600" },
+  { key: "alerts",    label: "Alertas",     source: "Se conectará con Avisos",      href: "/pacientes", icon: Bell,          accent: "bg-rose-500/10 text-rose-600" },
 ];
 
 export function DashboardKpiGrid() {
@@ -30,9 +32,10 @@ export function DashboardKpiGrid() {
       {MOCK_KPIS.map((kpi) => {
         const Icon = kpi.icon;
         return (
-          <div
+          <Link
             key={kpi.key}
-            className="group relative overflow-hidden rounded-2xl border bg-card p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-18px_rgba(0,0,0,0.2)]"
+            href={kpi.href}
+            className="group relative overflow-hidden rounded-2xl border bg-card p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-18px_rgba(0,0,0,0.2)] hover:ring-foreground/10 cursor-pointer"
           >
             <Icon
               aria-hidden
@@ -53,7 +56,7 @@ export function DashboardKpiGrid() {
               </span>
               <p className="text-[11px] leading-snug text-muted-foreground">{kpi.source}</p>
             </div>
-          </div>
+          </Link>
         );
       })}
     </div>
