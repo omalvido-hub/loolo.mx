@@ -14,12 +14,14 @@ Contexto del proyecto:
 - LOOLO es un SaaS multi-tenant para clínicas dentales (y futuras verticales).
 - Backend: Next.js 15 + TypeScript + PostgreSQL 16 + Prisma 7 + Better Auth 1.6 + Zod 4.
 - Pruebas: Vitest corriendo contra PostgreSQL real (no mocks). Total actual: 850/850.
-- Producción principal: https://nelzzon.com · VPS Hostinger · PM2 (proceso `loolo`, nombre técnico temporal) · ~/Desktop/SAAS/loolo (carpeta, nombre técnico temporal)
-- Dominio anterior https://loolo.mx sigue vivo solo como respaldo temporal (NO redirigir todavía). Detalle en docs/NELZZON_PRODUCTION_BASELINE.md
+- Producción principal: https://nelzzon.com · VPS Hostinger · PM2 (proceso `nelzzon`) · `/root/Desktop/SAAS/nelzzon`
+- Dominio anterior https://loolo.mx puede seguir vivo como respaldo. Ver docs/NELZZON_PRODUCTION_BASELINE.md
 
-Estado validado al cierre de la sesión más reciente (NELZZON-CONTINUITY-1):
-- HEAD: a84e107 ("style: make personalization studio preview friendly")
+Estado validado al cierre de la sesión más reciente (SECURITY-1):
+- HEAD: 792ebc9 ("fix: validate patient search and record route inputs")
 - Build: OK · PM2 online · HTTP 200 en /login · 850/850 pruebas verdes
+- SECURITY-1 completado: env.example sanitizado, Better Auth prioriza cf-connecting-ip,
+  validación defensiva de inputs (query max 200 chars + UUID en route handler).
 - Personalizar ya es un Design Studio honesto, compacto (drawer lateral) y
   navegable — sin backend, sin guardado, sin motor real. Ver detalle completo
   en docs/NELZZON_STATE.md y docs/NELZZON_BACKLOG.md (documentos nuevos,
@@ -110,19 +112,20 @@ npm test
 npm run build
 
 # Ver estado de producción (en VPS)
-cd ~/Desktop/SAAS/loolo
+cd /root/Desktop/SAAS/nelzzon
 git rev-parse --short HEAD
-pm2 status
-pm2 logs loolo --lines 50 --nostream
+pm2 status nelzzon
+pm2 logs nelzzon --lines 50 --nostream
 curl -sI http://127.0.0.1:3000/login | head -5
 
-# Deploy normal al VPS (solo con autorización)
-git pull
+# Deploy normal al VPS (solo con autorización — ver docs/DEPLOY_RUNBOOK.md)
+git pull --ff-only origin main
 npm run build
-pm2 restart loolo
+pm2 restart nelzzon --update-env
 
 # Si PM2 entra en loop EADDRINUSE
-pm2 stop loolo && pm2 delete loolo && fuser -k 3000/tcp
+pm2 stop nelzzon && pm2 delete nelzzon && fuser -k 3000/tcp
+sleep 2
 pm2 start ecosystem.config.cjs
 
 # Reparación pieza 41 (dry-run — NO ejecutar --apply sin autorización)
