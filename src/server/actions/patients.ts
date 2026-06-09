@@ -14,10 +14,12 @@ type SearchResult =
 
 export async function searchPatientsAction(query: string): Promise<SearchResult> {
   try {
+    const sanitized =
+      typeof query === "string" ? query.trim().slice(0, 200) : "";
     const org = await requireOrganization();
     const ctx = await getActorContext(org.user.id, org.organizationId);
     const run = makeTenantRunner(org.organizationId);
-    const result = await searchPatients(run, ctx, query);
+    const result = await searchPatients(run, ctx, sanitized);
     if (!result.ok) return { ok: false, error: result.detail ?? result.reason };
     return { ok: true, items: result.value };
   } catch (e: any) {
