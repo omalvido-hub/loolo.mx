@@ -30,6 +30,11 @@ export const auth = betterAuth({
     database: {
       generateId: "uuid",
     },
+    // Detrás de Cloudflare, cf-connecting-ip es la IP real del visitante (no falsificable
+    // por el cliente). x-forwarded-for queda como fallback para desarrollo local.
+    ipAddress: {
+      ipAddressHeaders: ["cf-connecting-ip", "x-forwarded-for"],
+    },
   },
 });
 
