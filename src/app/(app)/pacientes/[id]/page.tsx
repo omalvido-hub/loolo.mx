@@ -122,6 +122,8 @@ export default async function PacienteDetallePage({
     <OdontogramNoPermission />
   ) : null;
 
+  const documentsCount = documentsResult.ok ? documentsResult.value.items.length : undefined;
+
   return (
     <div>
       <PatientLiveRecordView
@@ -131,6 +133,7 @@ export default async function PacienteDetallePage({
         fvoPermissions={fvoPermissions}
         odontogramSection={odontogramSection}
         canCreateEncounter={canCreateEncounter}
+        documentsCount={documentsCount}
       />
       <div className="px-8 pb-10 max-w-4xl mx-auto space-y-6">
         <div className="pt-2 border-t">

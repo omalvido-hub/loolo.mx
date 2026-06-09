@@ -141,7 +141,15 @@ export function PatientStatusBar({ record, encounters, patientId }: Props) {
             )}
           </>
         ) : (
-          <span className="text-sm text-muted-foreground">Sin cita próxima</span>
+          <>
+            <span className="text-sm text-muted-foreground">Sin cita próxima</span>
+            <Link
+              href="/agenda"
+              className="mt-0.5 inline-flex items-center text-xs font-medium text-primary/70 hover:text-primary transition-colors"
+            >
+              Ir a agenda →
+            </Link>
+          </>
         )}
       </StatusCard>
 

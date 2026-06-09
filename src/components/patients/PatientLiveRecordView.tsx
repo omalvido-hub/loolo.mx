@@ -3,6 +3,7 @@ import type { PatientLiveRecord } from "@/server/domain/patient-record/schemas";
 import { EncounterList } from "@/components/clinical/EncounterList";
 import { PatientFVOSectionsClient, PatientClinicalProfileSection } from "@/components/patients/PatientFVOSectionsClient";
 import { PatientStatusBar } from "@/components/patients/PatientStatusBar";
+import { PatientCareChain } from "@/components/patients/PatientCareChain";
 import type { EncounterListItem } from "@/server/domain/clinical/encounter-views";
 
 interface FVOPermissions {
@@ -168,9 +169,10 @@ interface Props {
   fvoPermissions?: FVOPermissions;
   odontogramSection?: React.ReactNode;
   canCreateEncounter?: boolean;
+  documentsCount?: number;
 }
 
-export function PatientLiveRecordView({ record, encounters, patientId, fvoPermissions, odontogramSection, canCreateEncounter }: Props) {
+export function PatientLiveRecordView({ record, encounters, patientId, fvoPermissions, odontogramSection, canCreateEncounter, documentsCount }: Props) {
   const { identity, operative, clinical, odontogramSummary, treatment, financial, tasks, timeline, recommendedActions, _meta } = record;
 
   return (
@@ -187,25 +189,58 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
 
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-4 min-w-0">
-          <span className="flex items-center justify-center size-12 shrink-0 rounded-full bg-primary/10 text-primary font-semibold text-lg">
+          <span className="flex items-center justify-center size-14 shrink-0 rounded-full bg-primary/10 text-primary font-semibold text-xl ring-2 ring-background">
             {initials(identity.fullName)}
           </span>
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold truncate">
-              {identity.fullName ?? <span className="text-muted-foreground italic">Sin nombre</span>}
-            </h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-bold">
+                {identity.fullName ?? <span className="text-muted-foreground italic">Sin nombre</span>}
+              </h1>
+              <span
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                  PATIENT_STATUS_BADGE_CLASS[identity.patientStatus] ?? "bg-muted text-muted-foreground"
+                }`}
+              >
+                {PATIENT_STATUS_LABELS[identity.patientStatus] ?? identity.patientStatus}
+              </span>
+            </div>
             <p className="text-sm text-muted-foreground mt-0.5">
               {identity.phone ?? "Sin teléfono"}{identity.email ? ` · ${identity.email}` : ""}
             </p>
+            {/* Chips contextuales: estado clínico-financiero a primera vista */}
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {treatment?.activePlanId && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400 border border-purple-200/60 dark:border-purple-800/40">
+                  <span className="size-1.5 rounded-full bg-purple-500" />
+                  Plan activo
+                </span>
+              )}
+              {financial && financial.balanceCents > 0 && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/40">
+                  <span className="size-1.5 rounded-full bg-amber-400" />
+                  Saldo {fCents(financial.balanceCents)}
+                </span>
+              )}
+              {financial && financial.balanceCents === 0 && financial.paidCents > 0 && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border border-green-200/60 dark:border-green-800/40">
+                  <span className="size-1.5 rounded-full bg-green-500" />
+                  Al corriente
+                </span>
+              )}
+              {!operative.nextAppointment && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
+                  Sin cita próxima
+                </span>
+              )}
+              {odontogramSummary && odontogramSummary.totalFindings > 0 && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
+                  {odontogramSummary.totalFindings} hallazgo{odontogramSummary.totalFindings !== 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
           </div>
         </div>
-        <span
-          className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium shrink-0 ${
-            PATIENT_STATUS_BADGE_CLASS[identity.patientStatus] ?? "bg-muted text-muted-foreground"
-          }`}
-        >
-          {PATIENT_STATUS_LABELS[identity.patientStatus] ?? identity.patientStatus}
-        </span>
       </div>
 
       {/* Estado actual del paciente — qué sigue, de un vistazo */}
@@ -215,20 +250,23 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         patientId={patientId ?? ""}
       />
 
-      {/* Acciones recomendadas — se omite "schedule_appointment" porque la barra ya lo muestra */}
+      {/* Cadena de atención — qué módulos ya tienen datos */}
+      <PatientCareChain record={record} documentsCount={documentsCount} />
+
+      {/* Próximos pasos — acciones recomendadas como lista limpia */}
       {recommendedActions.filter(a => a.code !== "schedule_appointment").length > 0 && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900/40 dark:bg-amber-950/20 px-4 py-3 space-y-1">
-          <p className="text-xs font-medium text-amber-800 dark:text-amber-300 uppercase tracking-wide">
-            Sugerencias
-          </p>
-          {recommendedActions
-            .filter(a => a.code !== "schedule_appointment")
-            .map((a) => (
-              <p key={a.code} className="text-sm text-amber-700 dark:text-amber-400">
-                {a.reason}
-              </p>
-            ))}
-        </div>
+        <SectionCard title="Próximos pasos">
+          <ul className="space-y-2">
+            {recommendedActions
+              .filter(a => a.code !== "schedule_appointment")
+              .map((a) => (
+                <li key={a.code} className="flex items-start gap-2 text-sm">
+                  <span className="mt-1.5 size-1.5 rounded-full bg-primary/50 shrink-0" />
+                  <span className="text-foreground/80">{a.reason}</span>
+                </li>
+              ))}
+          </ul>
+        </SectionCard>
       )}
 
       {/* ── Bloque clínico: qué se ha encontrado y qué se propone tratar ────── */}
