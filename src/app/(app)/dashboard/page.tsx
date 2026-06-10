@@ -9,8 +9,7 @@ import { listPatientsForOrg } from "@/server/domain/patient-record/list";
 import type { AppointmentListItem } from "@/server/domain/agenda/queries";
 import { DashboardTodayHeader } from "@/components/dashboard/DashboardTodayHeader";
 import { DashboardKpiGrid } from "@/components/dashboard/DashboardKpiGrid";
-import { AgendaPanel, MoneyPanel, ActionsPanel } from "@/components/dashboard/DashboardWidgetGrid";
-import { DraggableDashboardLayout } from "@/components/dashboard/DraggableDashboardLayout";
+import { DashboardWidgetGrid } from "@/components/dashboard/DashboardWidgetGrid";
 
 function greetingFor(date: Date): string {
   const hour = Number(
@@ -87,30 +86,10 @@ export default async function DashboardPage() {
           <DashboardTodayHeader appointmentsToday={appointmentsToday} />
         </div>
 
-        <DraggableDashboardLayout
-          storageKey="nelzzon.dashboard.layout.v1.top"
-          defaultOrder={["agenda", "side", "kpis"]}
-          items={{
-            agenda: <AgendaPanel appointmentsToday={appointmentsToday} />,
-            side: (
-              <DraggableDashboardLayout
-                storageKey="nelzzon.dashboard.layout.v1.side"
-                defaultOrder={["dinero", "acciones"]}
-                items={{ dinero: <MoneyPanel />, acciones: <ActionsPanel /> }}
-                className="flex flex-col gap-2.5"
-              />
-            ),
-            kpis: <DashboardKpiGrid appointmentsToday={appointmentsToday} patientsTotal={patientsTotal} />,
-          }}
-          className="grid grid-cols-1 gap-2.5 lg:grid-cols-3 lg:items-start"
-          itemClassName={(id) =>
-            id === "agenda" || id === "kpis"
-              ? "lg:col-span-2"
-              : id === "side"
-                ? "lg:row-span-2"
-                : undefined
-          }
-        />
+        <div className="space-y-3">
+          <DashboardWidgetGrid appointmentsToday={appointmentsToday} />
+          <DashboardKpiGrid appointmentsToday={appointmentsToday} patientsTotal={patientsTotal} />
+        </div>
       </div>
     </div>
   );

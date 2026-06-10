@@ -80,86 +80,83 @@ function CompactHint({ icon: Icon, accent, children }: { icon: React.ElementType
   );
 }
 
-interface AgendaPanelProps {
+interface Props {
   appointmentsToday: AppointmentListItem[] | null;
 }
 
-// A) Agenda de hoy — REAL, panel principal.
-export function AgendaPanel({ appointmentsToday }: AgendaPanelProps) {
+export function DashboardWidgetGrid({ appointmentsToday }: Props) {
   return (
-    <PanelCard title="Agenda de hoy" accentBar="from-emerald-400 to-emerald-300">
-      {appointmentsToday === null || appointmentsToday.length === 0 ? (
-        <div className="flex items-center justify-between gap-2 rounded-xl bg-gradient-to-b from-muted/40 to-transparent px-3 py-2 transition-colors group-hover:from-muted/60">
-          <div className="flex items-center gap-2">
-            <span className="flex shrink-0 items-center justify-center size-7 rounded-lg bg-emerald-500/10 text-emerald-600 transition-transform group-hover:scale-105">
-              <CalendarClock className="h-3.5 w-3.5" />
-            </span>
-            <p className="text-xs leading-snug text-muted-foreground">
-              {appointmentsToday === null ? "Conecta tu agenda" : "Sin citas hoy"}
-            </p>
-          </div>
-          <Link href="/agenda" className="shrink-0 text-xs font-medium text-primary/80 hover:text-primary transition-colors">
-            Ver agenda →
-          </Link>
-        </div>
-      ) : (
-        <>
-          <ul className="divide-y">
-            {appointmentsToday.map((a) => (
-              <li key={a.id} className="flex items-center justify-between gap-3 py-1.5 first:pt-0 last:pb-0">
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-sm font-medium tabular-nums text-foreground/80 shrink-0">
-                    {fTime(a.startAt)}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {a.displayName ?? "Paciente sin nombre"}
-                    </p>
-                    {a.professionalName && (
-                      <p className="text-xs text-muted-foreground truncate">{a.professionalName}</p>
-                    )}
-                  </div>
-                </div>
-                <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium", APPT_STATUS_CLASS[a.status] ?? "bg-muted text-muted-foreground")}>
-                  {APPT_STATUS_LABELS[a.status] ?? a.status}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-2 flex justify-end">
-            <Link href="/agenda" className="text-xs font-medium text-primary/80 hover:text-primary transition-colors">
+    <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-3 lg:items-start">
+      {/* A) Agenda de hoy — REAL, panel principal */}
+      <PanelCard title="Agenda de hoy" accentBar="from-emerald-400 to-emerald-300" className="lg:col-span-2">
+        {appointmentsToday === null || appointmentsToday.length === 0 ? (
+          <div className="flex items-center justify-between gap-2 rounded-xl bg-gradient-to-b from-muted/40 to-transparent px-3 py-2 transition-colors group-hover:from-muted/60">
+            <div className="flex items-center gap-2">
+              <span className="flex shrink-0 items-center justify-center size-7 rounded-lg bg-emerald-500/10 text-emerald-600 transition-transform group-hover:scale-105">
+                <CalendarClock className="h-3.5 w-3.5" />
+              </span>
+              <p className="text-xs leading-snug text-muted-foreground">
+                {appointmentsToday === null ? "Conecta tu agenda" : "Sin citas hoy"}
+              </p>
+            </div>
+            <Link href="/agenda" className="shrink-0 text-xs font-medium text-primary/80 hover:text-primary transition-colors">
               Ver agenda →
             </Link>
           </div>
-        </>
-      )}
-    </PanelCard>
-  );
-}
+        ) : (
+          <>
+            <ul className="divide-y">
+              {appointmentsToday.map((a) => (
+                <li key={a.id} className="flex items-center justify-between gap-3 py-1.5 first:pt-0 last:pb-0">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-sm font-medium tabular-nums text-foreground/80 shrink-0">
+                      {fTime(a.startAt)}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {a.displayName ?? "Paciente sin nombre"}
+                      </p>
+                      {a.professionalName && (
+                        <p className="text-xs text-muted-foreground truncate">{a.professionalName}</p>
+                      )}
+                    </div>
+                  </div>
+                  <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium", APPT_STATUS_CLASS[a.status] ?? "bg-muted text-muted-foreground")}>
+                    {APPT_STATUS_LABELS[a.status] ?? a.status}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-2 flex justify-end">
+              <Link href="/agenda" className="text-xs font-medium text-primary/80 hover:text-primary transition-colors">
+                Ver agenda →
+              </Link>
+            </div>
+          </>
+        )}
+      </PanelCard>
 
-// B) Dinero por atender — honesto, pendiente.
-export function MoneyPanel() {
-  return (
-    <PanelCard title="Dinero por atender" accentBar="from-violet-400 to-violet-300" badge="Por conectar">
-      <CompactHint icon={Wallet2} accent="bg-violet-500/10 text-violet-600">
-        Por conectar
-      </CompactHint>
-      <div className="mt-2 flex justify-end">
-        <Link href="/cobros" className="text-xs font-medium text-primary/80 hover:text-primary transition-colors">
-          Ver cobros →
-        </Link>
+      {/* Columna lateral: Dinero por atender + Acciones sugeridas */}
+      <div className="flex flex-col gap-2.5">
+        {/* B) Dinero por atender — honesto, pendiente */}
+        <PanelCard title="Dinero por atender" accentBar="from-violet-400 to-violet-300" badge="Por conectar">
+          <CompactHint icon={Wallet2} accent="bg-violet-500/10 text-violet-600">
+            Por conectar
+          </CompactHint>
+          <div className="mt-2 flex justify-end">
+            <Link href="/cobros" className="text-xs font-medium text-primary/80 hover:text-primary transition-colors">
+              Ver cobros →
+            </Link>
+          </div>
+        </PanelCard>
+
+        {/* C) Acciones sugeridas — honesto, pendiente */}
+        <PanelCard title="Acciones sugeridas" accentBar="from-amber-400 to-amber-300" badge="Próximamente">
+          <CompactHint icon={Compass} accent="bg-amber-500/10 text-amber-600">
+            Se activará al conectar Agenda, Cobros y Seguimiento
+          </CompactHint>
+        </PanelCard>
       </div>
-    </PanelCard>
-  );
-}
-
-// C) Acciones sugeridas — honesto, pendiente.
-export function ActionsPanel() {
-  return (
-    <PanelCard title="Acciones sugeridas" accentBar="from-amber-400 to-amber-300" badge="Próximamente">
-      <CompactHint icon={Compass} accent="bg-amber-500/10 text-amber-600">
-        Se activará al conectar Agenda, Cobros y Seguimiento
-      </CompactHint>
-    </PanelCard>
+    </div>
   );
 }
