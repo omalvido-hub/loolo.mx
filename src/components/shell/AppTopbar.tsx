@@ -9,6 +9,15 @@ import { cn } from "@/lib/utils";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { UserMenu } from "@/components/user-menu";
 
+function greetingFor(date: Date): string {
+  const hour = Number(
+    new Intl.DateTimeFormat("es-MX", { hour: "numeric", hour12: false, timeZone: "America/Mexico_City" }).format(date)
+  );
+  if (hour < 12) return "Buenos días";
+  if (hour < 19) return "Buenas tardes";
+  return "Buenas noches";
+}
+
 interface AppTopbarProps {
   showSearch: boolean;
   orgName: string;
@@ -30,9 +39,14 @@ export function AppTopbar({
   onTogglePersonalization,
   menuTrigger,
 }: AppTopbarProps) {
+  const firstName = userName.split(" ")[0];
+
   return (
     <header className="flex items-center gap-3 border-b bg-background/80 px-6 py-3.5 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       {menuTrigger}
+      <span className="hidden shrink-0 text-sm font-medium text-foreground sm:inline" suppressHydrationWarning>
+        {greetingFor(new Date())}, {firstName}
+      </span>
       <div className="flex flex-1 min-w-0">
         {showSearch ? (
           <GlobalSearch
