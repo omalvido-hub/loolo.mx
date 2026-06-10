@@ -25,6 +25,14 @@ const APPT_STATUS_ES: Record<string, string> = {
   RESCHEDULED: "reagendadas",
 };
 
+type KpiStatus = "Activo" | "Pendiente" | "Configurable";
+
+const STATUS_CHIP_CLASS: Record<KpiStatus, string> = {
+  Activo: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400",
+  Pendiente: "bg-muted/60 text-muted-foreground",
+  Configurable: "bg-cyan-50 text-cyan-700 dark:bg-cyan-950/30 dark:text-cyan-400",
+};
+
 interface KpiCardProps {
   icon: React.ElementType;
   accent: string;
@@ -34,31 +42,29 @@ interface KpiCardProps {
   detail: string;
   href?: string;
   actionLabel: string;
-  pending?: boolean;
+  status: KpiStatus;
 }
 
-function KpiCard({ icon: Icon, accent, label, value, meaning, detail, href, actionLabel, pending }: KpiCardProps) {
+function KpiCard({ icon: Icon, accent, label, value, meaning, detail, href, actionLabel, status }: KpiCardProps) {
   const content = (
     <>
-      <div className="flex items-center justify-between">
+      <div className="flex w-full items-center justify-between">
         <span className={cn("flex items-center justify-center size-7 rounded-lg transition-transform group-hover:scale-105", accent)}>
           <Icon className="h-3.5 w-3.5" />
         </span>
-        {pending && (
-          <span className="rounded-full bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground">
-            Pendiente
-          </span>
-        )}
+        <span className={cn("rounded-full px-1.5 py-0.5 text-[9px] font-medium tracking-wide", STATUS_CHIP_CLASS[status])}>
+          {status}
+        </span>
       </div>
 
       <p className="mt-1.5 text-lg font-semibold tracking-tight">{value}</p>
-      <p className="mt-0.5 text-sm font-medium text-foreground/80">{label}</p>
-      <p className="mt-0.5 text-xs text-muted-foreground">{meaning}</p>
+      <p className="mt-0.5 text-xs font-medium text-foreground/80">{label}</p>
+      <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-muted-foreground">{meaning}</p>
 
-      <div className="mt-1.5 flex items-center justify-between gap-2 border-t pt-1.5">
-        <p className="text-[11px] leading-snug text-muted-foreground">{detail}</p>
+      <div className="mt-1.5 w-full border-t pt-1.5">
+        <p className="line-clamp-2 text-[10px] leading-snug text-muted-foreground">{detail}</p>
         {href && (
-          <span className="shrink-0 text-[11px] font-medium text-primary/80 group-hover:text-primary transition-colors">
+          <span className="mt-1 inline-block text-[11px] font-medium text-primary/80 group-hover:text-primary transition-colors">
             {actionLabel} →
           </span>
         )}
@@ -66,7 +72,7 @@ function KpiCard({ icon: Icon, accent, label, value, meaning, detail, href, acti
     </>
   );
 
-  const className = "group relative flex flex-col rounded-xl border bg-card p-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-18px_rgba(0,0,0,0.2)]";
+  const className = "group relative flex flex-col items-start rounded-xl border bg-card p-3 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-18px_rgba(0,0,0,0.2)]";
 
   if (!href) {
     return <div className={cn(className, "opacity-80")}>{content}</div>;
@@ -108,20 +114,21 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
   // el cálculo de "requieren atención" llega en una fase futura).
   const pacientesDetail =
     patientsTotal !== null
-      ? `Tienes ${patientsTotal} ${patientsTotal === 1 ? "paciente registrado" : "pacientes registrados"}. Próximamente: saldos, tratamientos, citas y documentos.`
-      : "Próximamente: saldos, tratamientos, citas y documentos.";
+      ? `${patientsTotal} ${patientsTotal === 1 ? "paciente registrado" : "pacientes registrados"}. Próximamente: saldos y seguimiento.`
+      : "Próximamente: saldos y seguimiento.";
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
       <KpiCard
         icon={CalendarCheck}
         accent="bg-emerald-500/10 text-emerald-600"
         label="Citas de hoy"
         value={citasValue}
-        meaning="Citas programadas para hoy en tu agenda"
+        meaning="Citas programadas para hoy"
         detail={citasDetail}
         href="/agenda"
         actionLabel="Ver agenda"
+        status="Activo"
       />
 
       <KpiCard
@@ -129,11 +136,11 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
         accent="bg-violet-500/10 text-violet-600"
         label="Cobrado este mes"
         value="—"
-        meaning="Ingresos confirmados en lo que va del mes"
+        meaning="Ingresos confirmados del mes"
         detail="Pendiente de conectar con Cobros."
         href="/cobros"
         actionLabel="Ver cobros"
-        pending
+        status="Pendiente"
       />
 
       <KpiCard
@@ -145,7 +152,7 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
         detail="Pendiente de conectar con Cobros."
         href="/cobros"
         actionLabel="Ver cobros"
-        pending
+        status="Pendiente"
       />
 
       <KpiCard
@@ -153,11 +160,11 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
         accent="bg-blue-500/10 text-blue-600"
         label="Presupuestos por cerrar"
         value="—"
-        meaning="Presupuestos enviados sin respuesta del paciente"
+        meaning="Presupuestos sin respuesta"
         detail="Pendiente de conectar con Presupuestos."
         href="/presupuestos"
         actionLabel="Ver presupuestos"
-        pending
+        status="Pendiente"
       />
 
       <KpiCard
@@ -169,7 +176,7 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
         detail={pacientesDetail}
         href="/pacientes"
         actionLabel="Ver pacientes"
-        pending
+        status="Pendiente"
       />
 
       <KpiCard
@@ -177,10 +184,10 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
         accent="bg-cyan-500/10 text-cyan-600"
         label="Meta / break-even"
         value="—"
-        meaning="Punto de equilibrio mensual de tu clínica"
+        meaning="Punto de equilibrio mensual"
         detail="Configura tus gastos para calcular tu break-even."
         actionLabel="Próximamente"
-        pending
+        status="Configurable"
       />
     </div>
   );

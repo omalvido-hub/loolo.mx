@@ -58,7 +58,7 @@ function WidgetCard({
   return (
     <div className={`group relative overflow-hidden rounded-2xl border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all hover:shadow-[0_12px_32px_-16px_rgba(0,0,0,0.16)] ${className ?? ""}`}>
       <span aria-hidden className={cn("absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r opacity-70", accentBar)} />
-      <div className="flex items-start justify-between gap-3 px-4 pt-3 pb-1.5">
+      <div className="flex items-start justify-between gap-3 px-4 pt-2.5 pb-1">
         <div>
           <h3 className="text-sm font-semibold tracking-tight">{title}</h3>
           {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
@@ -76,11 +76,11 @@ function WidgetCard({
 
 function EmptyHint({ icon: Icon, accent, children }: { icon: React.ElementType; accent: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl bg-gradient-to-b from-muted/40 to-transparent px-4 py-4 text-center transition-colors group-hover:from-muted/60">
-      <span className={cn("flex items-center justify-center size-8 rounded-lg transition-transform group-hover:scale-105", accent)}>
+    <div className="flex flex-col items-center justify-center gap-1 rounded-xl bg-gradient-to-b from-muted/40 to-transparent px-3 py-3 text-center transition-colors group-hover:from-muted/60">
+      <span className={cn("flex items-center justify-center size-7 rounded-lg transition-transform group-hover:scale-105", accent)}>
         <Icon className="h-3.5 w-3.5" />
       </span>
-      <p className="max-w-[230px] text-xs leading-relaxed text-muted-foreground">{children}</p>
+      <p className="max-w-[200px] text-xs leading-snug text-muted-foreground">{children}</p>
     </div>
   );
 }
@@ -91,13 +91,12 @@ interface Props {
 
 export function DashboardWidgetGrid({ appointmentsToday }: Props) {
   return (
-    <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
       {/* A) Agenda viva de hoy — REAL */}
       <WidgetCard
         title="Agenda viva de hoy"
         subtitle="Tus próximas citas, en orden"
         accentBar="from-emerald-400 to-emerald-300"
-        className="lg:col-span-2"
       >
         {appointmentsToday === null ? (
           <EmptyHint icon={CalendarClock} accent="bg-emerald-500/10 text-emerald-600">
@@ -131,7 +130,7 @@ export function DashboardWidgetGrid({ appointmentsToday }: Props) {
             ))}
           </ul>
         )}
-        <div className="mt-3 flex justify-end">
+        <div className="mt-2 flex justify-end">
           <Link href="/agenda" className="text-xs font-medium text-primary/80 hover:text-primary transition-colors">
             Ver agenda completa →
           </Link>
@@ -141,16 +140,16 @@ export function DashboardWidgetGrid({ appointmentsToday }: Props) {
       {/* B) Próximas acciones — honesto, pendiente */}
       <WidgetCard title="Próximas acciones" accentBar="from-amber-400 to-amber-300" badge="Próximamente">
         <EmptyHint icon={Compass} accent="bg-amber-500/10 text-amber-600">
-          Las acciones inteligentes se activarán al conectar Cobros, Agenda y Seguimiento.
+          Se activarán al conectar Cobros, Agenda y Seguimiento.
         </EmptyHint>
       </WidgetCard>
 
       {/* C) Radar de dinero atorado — honesto, pendiente */}
-      <WidgetCard title="Radar de dinero atorado" subtitle="Pacientes con saldo pendiente" accentBar="from-violet-400 to-violet-300" badge="Próximamente" className="lg:col-span-3">
+      <WidgetCard title="Radar de dinero atorado" subtitle="Saldos pendientes" accentBar="from-violet-400 to-violet-300" badge="Próximamente">
         <EmptyHint icon={Wallet2} accent="bg-violet-500/10 text-violet-600">
-          Pendiente de conectar con Cobros y Presupuestos.
+          Pendiente de conectar con Cobros.
         </EmptyHint>
-        <div className="mt-3 flex justify-end">
+        <div className="mt-2 flex justify-end">
           <Link href="/cobros" className="text-xs font-medium text-primary/80 hover:text-primary transition-colors">
             Ir a cobros →
           </Link>
