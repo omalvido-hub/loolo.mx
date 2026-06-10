@@ -41,21 +41,21 @@ function KpiCard({ icon: Icon, accent, label, value, meaning, detail, href, acti
   const content = (
     <>
       <div className="flex items-center justify-between">
-        <span className={cn("flex items-center justify-center size-10 rounded-2xl transition-transform group-hover:scale-105", accent)}>
-          <Icon className="h-[18px] w-[18px]" />
+        <span className={cn("flex items-center justify-center size-7 rounded-lg transition-transform group-hover:scale-105", accent)}>
+          <Icon className="h-3.5 w-3.5" />
         </span>
         {pending && (
-          <span className="rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground">
+          <span className="rounded-full bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground">
             Pendiente
           </span>
         )}
       </div>
 
-      <p className="mt-4 text-2xl font-semibold tracking-tight">{value}</p>
+      <p className="mt-1.5 text-lg font-semibold tracking-tight">{value}</p>
       <p className="mt-0.5 text-sm font-medium text-foreground/80">{label}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{meaning}</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">{meaning}</p>
 
-      <div className="mt-3 flex items-center justify-between gap-2 border-t pt-2.5">
+      <div className="mt-1.5 flex items-center justify-between gap-2 border-t pt-1.5">
         <p className="text-[11px] leading-snug text-muted-foreground">{detail}</p>
         {href && (
           <span className="shrink-0 text-[11px] font-medium text-primary/80 group-hover:text-primary transition-colors">
@@ -66,7 +66,7 @@ function KpiCard({ icon: Icon, accent, label, value, meaning, detail, href, acti
     </>
   );
 
-  const className = "group relative flex flex-col rounded-2xl border bg-card p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-18px_rgba(0,0,0,0.2)]";
+  const className = "group relative flex flex-col rounded-xl border bg-card p-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-18px_rgba(0,0,0,0.2)]";
 
   if (!href) {
     return <div className={cn(className, "opacity-80")}>{content}</div>;
@@ -112,7 +112,7 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
       : "Próximamente: saldos, tratamientos, citas y documentos.";
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
       <KpiCard
         icon={CalendarCheck}
         accent="bg-emerald-500/10 text-emerald-600"

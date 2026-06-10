@@ -58,7 +58,7 @@ function WidgetCard({
   return (
     <div className={`group relative overflow-hidden rounded-2xl border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all hover:shadow-[0_12px_32px_-16px_rgba(0,0,0,0.16)] ${className ?? ""}`}>
       <span aria-hidden className={cn("absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r opacity-70", accentBar)} />
-      <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-3.5">
+      <div className="flex items-start justify-between gap-3 px-4 pt-3 pb-1.5">
         <div>
           <h3 className="text-sm font-semibold tracking-tight">{title}</h3>
           {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
@@ -69,16 +69,16 @@ function WidgetCard({
           </span>
         )}
       </div>
-      <div className="px-5 pb-5">{children}</div>
+      <div className="px-4 pb-3">{children}</div>
     </div>
   );
 }
 
 function EmptyHint({ icon: Icon, accent, children }: { icon: React.ElementType; accent: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl bg-gradient-to-b from-muted/40 to-transparent px-4 py-9 text-center transition-colors group-hover:from-muted/60">
-      <span className={cn("flex items-center justify-center size-11 rounded-2xl transition-transform group-hover:scale-105", accent)}>
-        <Icon className="h-[18px] w-[18px]" />
+    <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl bg-gradient-to-b from-muted/40 to-transparent px-4 py-4 text-center transition-colors group-hover:from-muted/60">
+      <span className={cn("flex items-center justify-center size-8 rounded-lg transition-transform group-hover:scale-105", accent)}>
+        <Icon className="h-3.5 w-3.5" />
       </span>
       <p className="max-w-[230px] text-xs leading-relaxed text-muted-foreground">{children}</p>
     </div>
@@ -91,7 +91,7 @@ interface Props {
 
 export function DashboardWidgetGrid({ appointmentsToday }: Props) {
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-3">
       {/* A) Agenda viva de hoy — REAL */}
       <WidgetCard
         title="Agenda viva de hoy"
@@ -110,7 +110,7 @@ export function DashboardWidgetGrid({ appointmentsToday }: Props) {
         ) : (
           <ul className="divide-y">
             {appointmentsToday.map((a) => (
-              <li key={a.id} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
+              <li key={a.id} className="flex items-center justify-between gap-3 py-1.5 first:pt-0 last:pb-0">
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="text-sm font-medium tabular-nums text-foreground/80 shrink-0">
                     {fTime(a.startAt)}

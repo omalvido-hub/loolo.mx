@@ -62,21 +62,21 @@ export default async function DashboardPage() {
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[28rem] bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(0,0,0,0.035),transparent)]"
       />
 
-      <div className="mx-auto max-w-7xl space-y-6 px-6 pt-8 pb-32 sm:px-8 sm:pb-36 lg:pt-10">
-        <div className="relative overflow-hidden rounded-3xl border bg-card px-6 py-7 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] sm:px-8 sm:py-9">
+      <div className="mx-auto max-w-7xl space-y-3 px-6 pt-4 pb-10 sm:px-8 lg:pt-6">
+        <div className="relative overflow-hidden rounded-2xl border bg-card px-4 py-3 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] sm:px-5">
           <div
             aria-hidden
             className="pointer-events-none absolute -right-16 -top-24 size-64 rounded-full bg-[conic-gradient(from_140deg,theme(colors.sky.300/.25),theme(colors.violet.300/.2),theme(colors.fuchsia.200/.2),transparent_70%)] blur-2xl"
           />
-          <div className="relative space-y-2">
+          <div className="relative flex flex-wrap items-center gap-x-3 gap-y-1">
+            <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
+              Bienvenido, {firstName}
+            </h1>
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               {greeting} · tu espacio de trabajo
             </p>
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-              Bienvenido, {firstName}
-            </h1>
             {org && (
-              <span className="inline-flex items-center gap-1.5 rounded-full border bg-background/60 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur-sm">
+              <span className="inline-flex items-center gap-1.5 rounded-full border bg-background/60 px-2.5 py-0.5 text-xs font-medium text-muted-foreground backdrop-blur-sm">
                 <span className="size-1.5 rounded-full bg-emerald-500" />
                 {org.name}
               </span>
@@ -86,7 +86,7 @@ export default async function DashboardPage() {
 
         <DashboardTodayHeader appointmentsToday={appointmentsToday} />
 
-        <div className="space-y-6">
+        <div className="space-y-3">
           <DashboardKpiGrid appointmentsToday={appointmentsToday} patientsTotal={patientsTotal} />
           <DashboardWidgetGrid appointmentsToday={appointmentsToday} />
         </div>
