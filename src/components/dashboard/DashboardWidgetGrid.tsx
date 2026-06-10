@@ -4,7 +4,7 @@
 // agregaciones de Cobros/Presupuestos/Seguimiento. Sin datos inventados.
 
 import Link from "next/link";
-import { CalendarClock, Compass, Wallet2 } from "lucide-react";
+import { CalendarClock, Compass, HeartPulse, Stethoscope, Wallet2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AppointmentListItem } from "@/server/domain/agenda/queries";
 
@@ -161,5 +161,100 @@ export function ActionsPanel() {
         Se activará al conectar Agenda, Cobros y Seguimiento
       </CompactHint>
     </PanelCard>
+  );
+}
+
+function OperationItem({
+  icon: Icon,
+  accent,
+  title,
+  text,
+  href,
+  cta,
+}: {
+  icon: React.ElementType;
+  accent: string;
+  title: string;
+  text: string;
+  href: string;
+  cta: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5 rounded-xl bg-gradient-to-b from-muted/40 to-transparent p-2.5">
+      <div className="flex items-center gap-2">
+        <span className={cn("flex shrink-0 items-center justify-center size-6 rounded-lg", accent)}>
+          <Icon className="h-3.5 w-3.5" />
+        </span>
+        <p className="text-xs font-semibold tracking-tight">{title}</p>
+      </div>
+      <p className="text-[11px] leading-snug text-muted-foreground">{text}</p>
+      <Link href={href} className="mt-auto text-[11px] font-medium text-primary/80 hover:text-primary transition-colors">
+        {cta} →
+      </Link>
+    </div>
+  );
+}
+
+interface OperationStripProps {
+  appointmentsToday: AppointmentListItem[] | null;
+  patientsTotal: number | null;
+}
+
+// Franja inferior — cierra el lienzo del dashboard con resumen honesto
+// usando solo datos ya cargados en la página (sin queries nuevas).
+export function OperationStrip({ appointmentsToday, patientsTotal }: OperationStripProps) {
+  const agendaText =
+    appointmentsToday === null
+      ? "Conecta tu agenda"
+      : appointmentsToday.length === 0
+        ? "Sin citas programadas"
+        : `${appointmentsToday.length} ${appointmentsToday.length === 1 ? "cita" : "citas"} hoy`;
+
+  const pacientesText =
+    patientsTotal !== null
+      ? `${patientsTotal} ${patientsTotal === 1 ? "paciente registrado" : "pacientes registrados"}`
+      : "Conecta tu base de pacientes";
+
+  return (
+    <div className="rounded-2xl border bg-card p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] sm:p-5">
+      <h3 className="text-sm font-semibold tracking-tight">Centro de operación</h3>
+      <p className="mt-0.5 text-xs text-muted-foreground">
+        Tu flujo clínico se alimenta desde pacientes, agenda, consultas y cobros.
+      </p>
+      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <OperationItem
+          icon={CalendarClock}
+          accent="bg-emerald-500/10 text-emerald-600"
+          title="Agenda"
+          text={agendaText}
+          href="/agenda"
+          cta="Ver agenda"
+        />
+        <OperationItem
+          icon={HeartPulse}
+          accent="bg-rose-500/10 text-rose-600"
+          title="Pacientes"
+          text={pacientesText}
+          href="/pacientes"
+          cta="Ver pacientes"
+        />
+        <OperationItem
+          icon={Stethoscope}
+          accent="bg-blue-500/10 text-blue-600"
+          title="Clínica"
+          text="Consultas y odontograma se trabajan desde la ficha del paciente"
+          href="/pacientes"
+          cta="Abrir pacientes"
+        />
+        <OperationItem
+          icon={Wallet2}
+          accent="bg-violet-500/10 text-violet-600"
+          title="Finanzas"
+          text="Presupuestos y cobros se operan desde la ficha del paciente"
+          href="/pacientes"
+          cta="Ir a pacientes"
+        />
+      </div>
+    </div>
   );
 }

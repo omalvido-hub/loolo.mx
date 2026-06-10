@@ -9,7 +9,7 @@ import { listPatientsForOrg } from "@/server/domain/patient-record/list";
 import type { AppointmentListItem } from "@/server/domain/agenda/queries";
 import { DashboardTodayHeader } from "@/components/dashboard/DashboardTodayHeader";
 import { DashboardKpiGrid } from "@/components/dashboard/DashboardKpiGrid";
-import { AgendaPanel, MoneyPanel, ActionsPanel } from "@/components/dashboard/DashboardWidgetGrid";
+import { AgendaPanel, MoneyPanel, ActionsPanel, OperationStrip } from "@/components/dashboard/DashboardWidgetGrid";
 
 function greetingFor(date: Date): string {
   const hour = Number(
@@ -97,6 +97,8 @@ export default async function DashboardPage() {
             <ActionsPanel />
           </div>
         </div>
+
+        <OperationStrip appointmentsToday={appointmentsToday} patientsTotal={patientsTotal} />
       </div>
     </div>
   );
