@@ -60,8 +60,8 @@ export function VerticalKpiCard({ cardId, icon: Icon, accent, label, value, stat
       </div>
 
       <div>
-        <p className="text-2xl font-semibold tracking-tight">{value}</p>
-        <p className="mt-0.5 text-xs font-medium text-foreground/70">{label}</p>
+        <p className="text-3xl font-semibold tracking-tight">{value}</p>
+        <p className="mt-1 text-xs font-medium text-foreground/70">{label}</p>
       </div>
 
       <p className={cn("text-[11px] font-medium", href ? "text-primary/80 group-hover:text-primary transition-colors" : "text-muted-foreground")}>
@@ -70,7 +70,7 @@ export function VerticalKpiCard({ cardId, icon: Icon, accent, label, value, stat
     </>
   );
 
-  const className = "group relative flex aspect-[3/4] w-full flex-col justify-between rounded-3xl border bg-card p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-16px_rgba(0,0,0,0.18)]";
+  const className = "group relative flex h-[260px] sm:h-[310px] w-full flex-col justify-between rounded-3xl border bg-card p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-16px_rgba(0,0,0,0.18)]";
 
   if (!href) {
     return (
@@ -97,10 +97,10 @@ export function HorizontalKpiCard({ cardId, icon: Icon, accent, label, value, st
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs font-medium text-foreground/70">{label}</p>
-        <p className="text-lg font-semibold tracking-tight">{value}</p>
+        <p className="mt-1 text-xl font-semibold tracking-tight">{value}</p>
       </div>
 
-      <div className="flex shrink-0 flex-col items-end gap-1">
+      <div className="flex shrink-0 flex-col items-end gap-1.5">
         <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium tracking-wide", STATUS_CHIP_CLASS[status])}>
           {status}
         </span>
@@ -111,7 +111,7 @@ export function HorizontalKpiCard({ cardId, icon: Icon, accent, label, value, st
     </>
   );
 
-  const className = "group relative flex w-full items-center gap-3 rounded-2xl border bg-card px-4 py-3 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-16px_rgba(0,0,0,0.18)]";
+  const className = "group relative flex h-[124px] sm:h-[150px] w-full items-center gap-3 rounded-2xl border bg-card px-5 py-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-16px_rgba(0,0,0,0.18)]";
 
   if (!href) {
     return (
