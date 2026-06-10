@@ -12,7 +12,7 @@ import {
   CreditCard,
   Settings,
   Sparkles,
-  PanelLeftClose,
+  ChevronLeft,
   PanelLeftOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -83,9 +83,9 @@ export function AppSidebar({ roleKey, orgName, collapsed, onToggleCollapse, onOp
           onClick={onToggleCollapse}
           aria-label="Colapsar menú"
           title="Colapsar menú"
-          className="flex items-center justify-center size-8 shrink-0 rounded-full border bg-card text-sidebar-foreground/60 shadow-sm ring-1 ring-foreground/[0.06] transition-colors hover:text-sidebar-accent-foreground"
+          className="inline-flex shrink-0 items-center justify-center rounded-full border bg-card p-1.5 text-muted-foreground shadow-sm ring-1 ring-foreground/[0.06] transition-colors hover:text-foreground"
         >
-          <PanelLeftClose className="h-4 w-4" />
+          <ChevronLeft className="h-3.5 w-3.5" />
         </button>
       </div>
 
