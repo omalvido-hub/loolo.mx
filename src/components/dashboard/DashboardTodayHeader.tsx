@@ -1,6 +1,6 @@
-// Header inteligente del dashboard: resumen honesto del día.
+// Resumen "hoy" integrado en el header del dashboard.
 // Solo usa datos ya disponibles (citas de hoy). Sin permiso o sin citas,
-// muestra un estado claro en vez de inventar cifras.
+// muestra un estado claro y corto en vez de inventar cifras.
 
 import Link from "next/link";
 import type { AppointmentListItem } from "@/server/domain/agenda/queries";
@@ -10,25 +10,18 @@ interface Props {
 }
 
 function buildMessage(appointmentsToday: AppointmentListItem[] | null): string {
-  if (appointmentsToday === null) {
-    return "Conecta tu agenda para ver el resumen de tu día.";
-  }
+  if (appointmentsToday === null) return "Conecta tu agenda";
   const n = appointmentsToday.length;
-  if (n === 0) return "Aún no hay citas para hoy.";
-  return `Hoy tienes ${n} ${n === 1 ? "cita programada" : "citas programadas"}.`;
+  if (n === 0) return "Sin citas hoy";
+  return `Hoy: ${n} ${n === 1 ? "cita" : "citas"}`;
 }
 
 export function DashboardTodayHeader({ appointmentsToday }: Props) {
   const message = buildMessage(appointmentsToday);
 
   return (
-    <div className="rounded-2xl border bg-card px-4 py-2 ring-1 ring-foreground/[0.04] flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-center gap-2">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Hoy en tu clínica
-        </p>
-        <p className="text-sm font-medium text-foreground">{message}</p>
-      </div>
+    <div className="relative mt-2 flex flex-col gap-1.5 border-t pt-2 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm font-medium text-foreground">{message}</p>
       <div className="flex flex-wrap gap-1.5">
         <Link
           href="/agenda"

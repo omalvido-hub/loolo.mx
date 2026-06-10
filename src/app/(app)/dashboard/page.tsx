@@ -82,13 +82,13 @@ export default async function DashboardPage() {
               </span>
             )}
           </div>
+
+          <DashboardTodayHeader appointmentsToday={appointmentsToday} />
         </div>
 
-        <DashboardTodayHeader appointmentsToday={appointmentsToday} />
-
         <div className="space-y-3">
-          <DashboardKpiGrid appointmentsToday={appointmentsToday} patientsTotal={patientsTotal} />
           <DashboardWidgetGrid appointmentsToday={appointmentsToday} />
+          <DashboardKpiGrid appointmentsToday={appointmentsToday} patientsTotal={patientsTotal} />
         </div>
       </div>
     </div>
