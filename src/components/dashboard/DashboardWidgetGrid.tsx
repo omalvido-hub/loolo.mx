@@ -4,7 +4,7 @@
 // agregaciones de Cobros/Presupuestos/Seguimiento. Sin datos inventados.
 
 import Link from "next/link";
-import { CalendarClock, History, Scale, Wallet2 } from "lucide-react";
+import { CalendarClock, History, Target, Wallet2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AppointmentListItem } from "@/server/domain/agenda/queries";
 
@@ -58,7 +58,7 @@ function PanelCard({
   return (
     <div
       data-dashboard-card={cardId}
-      className={cn("group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-16px_rgba(0,0,0,0.16)]", className)}
+      className={cn("group relative flex h-full flex-col overflow-hidden rounded-3xl border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-16px_rgba(0,0,0,0.16)]", className)}
     >
       <span aria-hidden className={cn("absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r opacity-70", accentBar)} />
       <div className="flex items-center justify-between gap-3 px-4 pt-2.5 pb-1">
@@ -109,7 +109,7 @@ export function AgendaPanel({ appointmentsToday }: AgendaPanelProps) {
         </div>
       ) : (
         <>
-          <ul className="divide-y">
+          <ul className="max-h-40 divide-y overflow-y-auto">
             {appointmentsToday.map((a) => (
               <li key={a.id} className="flex items-center justify-between gap-3 py-1.5 first:pt-0 last:pb-0">
                 <div className="flex items-center gap-3 min-w-0">
@@ -158,12 +158,12 @@ export function IncomeSummaryPanel() {
   );
 }
 
-// C) Punto de equilibrio — honesto, configurable.
-export function BreakEvenPanel() {
+// C) Meta mensual — honesto, configurable.
+export function MetaMensualPanel() {
   return (
-    <PanelCard cardId="widget-punto-equilibrio" title="Punto de equilibrio" accentBar="from-cyan-400 to-cyan-300" badge="Configurable">
-      <CompactHint icon={Scale} accent="bg-cyan-500/10 text-cyan-600">
-        Define tus costos fijos y meta mensual para ver tu punto de equilibrio aquí
+    <PanelCard cardId="widget-meta-mensual" title="Meta mensual" accentBar="from-cyan-400 to-cyan-300" badge="Configurable">
+      <CompactHint icon={Target} accent="bg-cyan-500/10 text-cyan-600">
+        Define tu meta de ingresos del mes para ver tu avance aquí
       </CompactHint>
     </PanelCard>
   );

@@ -7,8 +7,8 @@ import { can } from "@/server/domain/identity/permissions";
 import { listAppointmentsByRange } from "@/server/domain/agenda/queries";
 import type { AppointmentListItem } from "@/server/domain/agenda/queries";
 import { DashboardTodayHeader } from "@/components/dashboard/DashboardTodayHeader";
-import { DashboardKpiGrid } from "@/components/dashboard/DashboardKpiGrid";
-import { AgendaPanel, IncomeSummaryPanel, BreakEvenPanel, RecentActivityPanel } from "@/components/dashboard/DashboardWidgetGrid";
+import { CitasHoyKpi, CobradoMesKpi, TratamientosActivosKpi, PuntoEquilibrioKpi } from "@/components/dashboard/DashboardKpiGrid";
+import { AgendaPanel, IncomeSummaryPanel, MetaMensualPanel, RecentActivityPanel } from "@/components/dashboard/DashboardWidgetGrid";
 
 function greetingFor(date: Date): string {
   const hour = Number(
@@ -79,13 +79,24 @@ export default async function DashboardPage() {
           <DashboardTodayHeader appointmentsToday={appointmentsToday} />
         </div>
 
-        <DashboardKpiGrid appointmentsToday={appointmentsToday} />
+        {/* Bloque 1: 2 KPIs verticales + 2 widgets horizontales */}
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+          <CitasHoyKpi appointmentsToday={appointmentsToday} />
+          <CobradoMesKpi />
+          <div className="col-span-2 space-y-2.5 sm:col-span-2">
+            <AgendaPanel appointmentsToday={appointmentsToday} />
+            <IncomeSummaryPanel />
+          </div>
+        </div>
 
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-          <AgendaPanel appointmentsToday={appointmentsToday} />
-          <IncomeSummaryPanel />
-          <BreakEvenPanel />
-          <RecentActivityPanel />
+        {/* Bloque 2: 2 KPIs verticales + 2 widgets horizontales */}
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+          <TratamientosActivosKpi />
+          <PuntoEquilibrioKpi />
+          <div className="col-span-2 space-y-2.5 sm:col-span-2">
+            <MetaMensualPanel />
+            <RecentActivityPanel />
+          </div>
         </div>
       </div>
     </div>
