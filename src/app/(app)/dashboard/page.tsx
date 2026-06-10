@@ -1,7 +1,16 @@
 import { getSessionWithMemberships } from "@/lib/session";
 import { redirect } from "next/navigation";
+import { requireOrganization, UnauthorizedError, NoOrganizationError } from "@/server/auth/session";
+import { getActorContext } from "@/server/auth/context";
+import { makeTenantRunner } from "@/server/db/tenant";
+import { can } from "@/server/domain/identity/permissions";
+import { listAppointmentsByRange } from "@/server/domain/agenda/queries";
+import { listPatientsForOrg } from "@/server/domain/patient-record/list";
+import type { AppointmentListItem } from "@/server/domain/agenda/queries";
+import { DashboardTodayHeader } from "@/components/dashboard/DashboardTodayHeader";
 import { DashboardKpiGrid } from "@/components/dashboard/DashboardKpiGrid";
 import { DashboardWidgetGrid } from "@/components/dashboard/DashboardWidgetGrid";
+import { DashboardQuickAccess } from "@/components/dashboard/DashboardQuickAccess";
 
 function greetingFor(date: Date): string {
   const hour = Number(
@@ -21,6 +30,32 @@ export default async function DashboardPage() {
   const greeting = greetingFor(new Date());
   const firstName = session.user.name.split(" ")[0];
 
+  let organizationId: string;
+  let userId: string;
+  try {
+    const orgCtx = await requireOrganization();
+    organizationId = orgCtx.organizationId;
+    userId = orgCtx.user.id;
+  } catch (e) {
+    if (e instanceof UnauthorizedError || e instanceof NoOrganizationError) redirect("/login");
+    throw e;
+  }
+
+  const ctx = await getActorContext(userId, organizationId);
+  const run = makeTenantRunner(organizationId);
+
+  let appointmentsToday: AppointmentListItem[] | null = null;
+  if (can(ctx.permissions, "appointments.view")) {
+    const result = await listAppointmentsByRange(run, ctx, {});
+    if (result.ok) appointmentsToday = result.value.items;
+  }
+
+  let patientsTotal: number | null = null;
+  if (can(ctx.permissions, "patients.view")) {
+    const result = await listPatientsForOrg(run, ctx, { limit: 1 });
+    if (result.ok) patientsTotal = result.value.total;
+  }
+
   return (
     <div className="relative">
       <div
@@ -28,7 +63,7 @@ export default async function DashboardPage() {
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[28rem] bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(0,0,0,0.035),transparent)]"
       />
 
-      <div className="mx-auto max-w-7xl space-y-8 px-6 pt-8 pb-32 sm:px-8 sm:pb-36 lg:pt-10">
+      <div className="mx-auto max-w-7xl space-y-6 px-6 pt-8 pb-32 sm:px-8 sm:pb-36 lg:pt-10">
         <div className="relative overflow-hidden rounded-3xl border bg-card px-6 py-7 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] sm:px-8 sm:py-9">
           <div
             aria-hidden
@@ -50,15 +85,14 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+        <DashboardTodayHeader appointmentsToday={appointmentsToday} />
+
         <div className="space-y-6">
-          <DashboardKpiGrid />
-          <DashboardWidgetGrid />
+          <DashboardKpiGrid appointmentsToday={appointmentsToday} patientsTotal={patientsTotal} />
+          <DashboardWidgetGrid appointmentsToday={appointmentsToday} />
         </div>
 
-        <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">
-          Estas cifras son una vista previa con datos de muestra — cobrarán vida en cuanto
-          conectemos Agenda, Cobros y Seguimiento a tu dashboard.
-        </p>
+        <DashboardQuickAccess />
       </div>
     </div>
   );

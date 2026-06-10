@@ -1,22 +1,57 @@
-// Tarjetas de widgets del dashboard. Presentacional puro: hoy no existen las
-// consultas agregadas (próximas citas, pacientes recientes, finanzas, etc.) para
-// esta vista, así que en vez de simular listas con guiones se usan estados vacíos
-// elegantes que indican con qué módulo se conectará cada tarjeta más adelante.
-// Cuando esas consultas existan, cada tarjeta recibe props/datos reales.
+// Widgets centrales del dashboard — Dashboard Control Center (Fase 1).
+// "Agenda viva de hoy" usa datos reales de Agenda. "Próximas acciones" y
+// "Radar de dinero atorado" muestran estado honesto hasta tener las
+// agregaciones de cobros/seguimiento (Fase 2+). Sin datos inventados.
 
-import { CalendarClock, UserRound, ListTodo, Wallet2, Activity, Compass } from "lucide-react";
+import Link from "next/link";
+import { CalendarClock, Compass, Wallet2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { AppointmentListItem } from "@/server/domain/agenda/queries";
+
+const FMT_TIME = new Intl.DateTimeFormat("es-MX", {
+  timeZone: "America/Mexico_City",
+  hour: "numeric",
+  minute: "2-digit",
+});
+
+const APPT_STATUS_LABELS: Record<string, string> = {
+  SCHEDULED: "Programada",
+  CONFIRMED: "Confirmada",
+  COMPLETED: "Completada",
+  CANCELED: "Cancelada",
+  NO_SHOW: "No presentó",
+  RESCHEDULED: "Reagendada",
+};
+
+const APPT_STATUS_CLASS: Record<string, string> = {
+  SCHEDULED: "bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400",
+  CONFIRMED: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400",
+  COMPLETED: "bg-muted text-muted-foreground",
+  CANCELED: "bg-muted text-muted-foreground line-through",
+  NO_SHOW: "bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400",
+  RESCHEDULED: "bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400",
+};
+
+function fTime(iso: string): string {
+  try {
+    return FMT_TIME.format(new Date(iso));
+  } catch {
+    return "—";
+  }
+}
 
 function WidgetCard({
   title,
   subtitle,
   accentBar,
+  badge,
   className,
   children,
 }: {
   title: string;
   subtitle?: string;
   accentBar: string;
+  badge?: string;
   className?: string;
   children: React.ReactNode;
 }) {
@@ -28,9 +63,11 @@ function WidgetCard({
           <h3 className="text-sm font-semibold tracking-tight">{title}</h3>
           {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
         </div>
-        <span className="mt-0.5 shrink-0 rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground">
-          En construcción
-        </span>
+        {badge && (
+          <span className="mt-0.5 shrink-0 rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground">
+            {badge}
+          </span>
+        )}
       </div>
       <div className="px-5 pb-5">{children}</div>
     </div>
@@ -48,63 +85,76 @@ function EmptyHint({ icon: Icon, accent, children }: { icon: React.ElementType; 
   );
 }
 
-const CONNECTING_MODULES = ["Agenda", "Consultas", "Cobros", "Seguimiento"];
+interface Props {
+  appointmentsToday: AppointmentListItem[] | null;
+}
 
-export function DashboardWidgetGrid() {
+export function DashboardWidgetGrid({ appointmentsToday }: Props) {
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      {/* A) Agenda viva de hoy — REAL */}
       <WidgetCard
-        title="Resumen operativo"
-        subtitle="Tu día de un vistazo"
-        accentBar="from-slate-400 to-slate-300"
+        title="Agenda viva de hoy"
+        subtitle="Tus próximas citas, en orden"
+        accentBar="from-emerald-400 to-emerald-300"
         className="lg:col-span-2"
       >
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          Aquí vivirá el resumen de tu día — citas, consultas activas y pendientes de
-          cobro en un solo lugar. En cuanto conectemos Agenda, Consultas y Cobros, esta
-          tarjeta cobrará vida con tus datos reales.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {CONNECTING_MODULES.map((m) => (
-            <span
-              key={m}
-              className="inline-flex items-center gap-1.5 rounded-full bg-muted/70 px-3 py-1 text-xs font-medium text-muted-foreground"
-            >
-              <Compass className="h-3 w-3" />
-              Llega con {m}
-            </span>
-          ))}
+        {appointmentsToday === null ? (
+          <EmptyHint icon={CalendarClock} accent="bg-emerald-500/10 text-emerald-600">
+            Conecta Agenda para ver tus citas de hoy aquí.
+          </EmptyHint>
+        ) : appointmentsToday.length === 0 ? (
+          <EmptyHint icon={CalendarClock} accent="bg-emerald-500/10 text-emerald-600">
+            Aún no hay citas para hoy.
+          </EmptyHint>
+        ) : (
+          <ul className="divide-y">
+            {appointmentsToday.map((a) => (
+              <li key={a.id} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-sm font-medium tabular-nums text-foreground/80 shrink-0">
+                    {fTime(a.startAt)}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {a.displayName ?? "Paciente sin nombre"}
+                    </p>
+                    {a.professionalName && (
+                      <p className="text-xs text-muted-foreground truncate">{a.professionalName}</p>
+                    )}
+                  </div>
+                </div>
+                <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium", APPT_STATUS_CLASS[a.status] ?? "bg-muted text-muted-foreground")}>
+                  {APPT_STATUS_LABELS[a.status] ?? a.status}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-3 flex justify-end">
+          <Link href="/agenda" className="text-xs font-medium text-primary/80 hover:text-primary transition-colors">
+            Ver agenda completa →
+          </Link>
         </div>
       </WidgetCard>
 
-      <WidgetCard title="Próximas citas" accentBar="from-emerald-400 to-emerald-300">
-        <EmptyHint icon={CalendarClock} accent="bg-emerald-500/10 text-emerald-600">
-          Aquí aparecerán tus próximas citas en cuanto conectemos Agenda.
+      {/* B) Próximas acciones — honesto, pendiente */}
+      <WidgetCard title="Próximas acciones" accentBar="from-amber-400 to-amber-300" badge="Próximamente">
+        <EmptyHint icon={Compass} accent="bg-amber-500/10 text-amber-600">
+          Las acciones inteligentes se activarán al conectar Cobros, Agenda y Seguimiento.
         </EmptyHint>
       </WidgetCard>
 
-      <WidgetCard title="Pacientes recientes" accentBar="from-blue-400 to-blue-300">
-        <EmptyHint icon={UserRound} accent="bg-blue-500/10 text-blue-600">
-          Se mostrarán los pacientes que has visto recientemente al conectar Pacientes.
-        </EmptyHint>
-      </WidgetCard>
-
-      <WidgetCard title="Seguimiento pendiente" accentBar="from-amber-400 to-amber-300">
-        <EmptyHint icon={ListTodo} accent="bg-amber-500/10 text-amber-600">
-          Se conectará con tu bandeja de seguimiento para mostrar lo pendiente.
-        </EmptyHint>
-      </WidgetCard>
-
-      <WidgetCard title="Finanzas rápidas" subtitle="Los montos siempre los calcula el servidor" accentBar="from-violet-400 to-violet-300">
+      {/* C) Radar de dinero atorado — honesto, pendiente */}
+      <WidgetCard title="Radar de dinero atorado" subtitle="Pacientes con saldo pendiente" accentBar="from-violet-400 to-violet-300" badge="Próximamente" className="lg:col-span-3">
         <EmptyHint icon={Wallet2} accent="bg-violet-500/10 text-violet-600">
-          Se conectará con Cobros para mostrar tus saldos cobrados y pendientes.
+          Pendiente de conectar con Cobros y Presupuestos.
         </EmptyHint>
-      </WidgetCard>
-
-      <WidgetCard title="Actividad reciente" accentBar="from-cyan-400 to-cyan-300">
-        <EmptyHint icon={Activity} accent="bg-cyan-500/10 text-cyan-600">
-          Aquí aparecerá la actividad reciente de tu organización.
-        </EmptyHint>
+        <div className="mt-3 flex justify-end">
+          <Link href="/cobros" className="text-xs font-medium text-primary/80 hover:text-primary transition-colors">
+            Ir a cobros →
+          </Link>
+        </div>
       </WidgetCard>
     </div>
   );
