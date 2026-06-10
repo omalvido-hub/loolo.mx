@@ -5,11 +5,10 @@ import { getActorContext } from "@/server/auth/context";
 import { makeTenantRunner } from "@/server/db/tenant";
 import { can } from "@/server/domain/identity/permissions";
 import { listAppointmentsByRange } from "@/server/domain/agenda/queries";
-import { listPatientsForOrg } from "@/server/domain/patient-record/list";
 import type { AppointmentListItem } from "@/server/domain/agenda/queries";
 import { DashboardTodayHeader } from "@/components/dashboard/DashboardTodayHeader";
 import { DashboardKpiGrid } from "@/components/dashboard/DashboardKpiGrid";
-import { AgendaPanel, MoneyPanel, ActionsPanel, PatientsPanel } from "@/components/dashboard/DashboardWidgetGrid";
+import { AgendaPanel, IncomeSummaryPanel, BreakEvenPanel, RecentActivityPanel } from "@/components/dashboard/DashboardWidgetGrid";
 
 function greetingFor(date: Date): string {
   const hour = Number(
@@ -49,12 +48,6 @@ export default async function DashboardPage() {
     if (result.ok) appointmentsToday = result.value.items;
   }
 
-  let patientsTotal: number | null = null;
-  if (can(ctx.permissions, "patients.view")) {
-    const result = await listPatientsForOrg(run, ctx, { limit: 1 });
-    if (result.ok) patientsTotal = result.value.total;
-  }
-
   return (
     <div className="relative">
       <div
@@ -88,15 +81,11 @@ export default async function DashboardPage() {
 
         <DashboardKpiGrid appointmentsToday={appointmentsToday} />
 
-        <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-3 lg:grid-rows-2">
-          <div className="lg:row-span-2">
-            <AgendaPanel appointmentsToday={appointmentsToday} />
-          </div>
-          <MoneyPanel />
-          <PatientsPanel patientsTotal={patientsTotal} />
-          <div className="lg:col-span-2">
-            <ActionsPanel />
-          </div>
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+          <AgendaPanel appointmentsToday={appointmentsToday} />
+          <IncomeSummaryPanel />
+          <BreakEvenPanel />
+          <RecentActivityPanel />
         </div>
       </div>
     </div>

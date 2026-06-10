@@ -1,8 +1,8 @@
-// KPI rail del dashboard — Dashboard Executive 2A.
-// Mini cards de lectura rápida. "Citas de hoy" usa datos reales de Agenda.
-// El resto muestra estado honesto (chip "Pendiente"/"Configurable") hasta
-// tener agregaciones seguras (Cobros, Presupuestos, Seguimiento, metas).
-// Nunca se inventan montos.
+// KPI rail del dashboard — Dashboard Final (8 KPIs verticales).
+// Tarjetas tipo portrait, 2 filas de 4 en desktop. "Citas de hoy" y
+// "Citas confirmadas" usan datos reales de Agenda. El resto muestra estado
+// honesto (chip "Pendiente"/"Configurable") hasta tener agregaciones seguras
+// (Cobros, Presupuestos, Pacientes, metas). Nunca se inventan montos.
 
 import Link from "next/link";
 import {
@@ -10,6 +10,10 @@ import {
   Wallet,
   CircleDollarSign,
   FileText,
+  UserPlus,
+  TrendingUp,
+  BadgeCheck,
+  Percent,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AppointmentListItem } from "@/server/domain/agenda/queries";
@@ -46,23 +50,26 @@ function KpiCard({ cardId, icon: Icon, accent, label, value, status, footer, hre
   const content = (
     <>
       <div className="flex w-full items-center justify-between">
-        <span className={cn("flex items-center justify-center size-6 rounded-lg transition-transform group-hover:scale-105", accent)}>
-          <Icon className="h-3.5 w-3.5" />
+        <span className={cn("flex items-center justify-center size-7 rounded-lg transition-transform group-hover:scale-105", accent)}>
+          <Icon className="h-4 w-4" />
         </span>
         <span className={cn("rounded-full px-1.5 py-0.5 text-[9px] font-medium tracking-wide", STATUS_CHIP_CLASS[status])}>
           {status}
         </span>
       </div>
 
-      <p className="mt-1.5 text-base font-semibold tracking-tight">{value}</p>
-      <p className="w-full truncate text-[11px] font-medium text-foreground/70">{label}</p>
-      <p className={cn("mt-1 w-full truncate text-[10px] font-medium", href ? "text-primary/80 group-hover:text-primary transition-colors" : "text-muted-foreground")}>
+      <div>
+        <p className="text-xl font-semibold tracking-tight">{value}</p>
+        <p className="mt-0.5 w-full truncate text-[11px] font-medium text-foreground/70">{label}</p>
+      </div>
+
+      <p className={cn("w-full truncate text-[10px] font-medium", href ? "text-primary/80 group-hover:text-primary transition-colors" : "text-muted-foreground")}>
         {href ? `${footer} →` : footer}
       </p>
     </>
   );
 
-  const className = "group relative flex flex-col items-start rounded-xl border bg-card p-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-16px_rgba(0,0,0,0.18)]";
+  const className = "group relative flex aspect-[4/5] w-full flex-col justify-between rounded-xl border bg-card p-3 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-16px_rgba(0,0,0,0.18)]";
 
   if (!href) {
     return (
@@ -83,24 +90,32 @@ interface Props {
   appointmentsToday: AppointmentListItem[] | null;
 }
 
-// Fila de 4 KPIs compactos. "Citas de hoy" usa datos reales de Agenda; el
-// resto muestra estado honesto (chip "Pendiente") hasta tener agregaciones
-// seguras de Cobros/Presupuestos. Nunca se inventan montos.
 export function DashboardKpiGrid({ appointmentsToday }: Props) {
   // KPI 1 — Citas de hoy (REAL vía agenda/queries.ts).
   let citasValue = "—";
   let citasFooter = "Ver agenda";
+  let confirmadasValue = "—";
+  let confirmadasStatus: KpiStatus = "Pendiente";
+  let confirmadasFooter = "Ver agenda";
+
   if (appointmentsToday !== null) {
     const n = appointmentsToday.length;
     citasValue = String(n);
+    confirmadasStatus = "Activo";
+
+    const counts = new Map<string, number>();
+    for (const a of appointmentsToday) {
+      counts.set(a.status, (counts.get(a.status) ?? 0) + 1);
+    }
+
     if (n > 0) {
-      const counts = new Map<string, number>();
-      for (const a of appointmentsToday) {
-        counts.set(a.status, (counts.get(a.status) ?? 0) + 1);
-      }
       const [topStatus, topCount] = Array.from(counts.entries()).sort((a, b) => b[1] - a[1])[0];
       citasFooter = `${topCount} ${APPT_STATUS_ES[topStatus] ?? topStatus.toLowerCase()}`;
     }
+
+    const confirmadas = counts.get("CONFIRMED") ?? 0;
+    confirmadasValue = String(confirmadas);
+    confirmadasFooter = "Hoy";
   }
 
   return (
@@ -120,10 +135,10 @@ export function DashboardKpiGrid({ appointmentsToday }: Props) {
         cardId="kpi-cobrado"
         icon={Wallet}
         accent="bg-violet-500/10 text-violet-600"
-        label="Cobrado mes"
+        label="Cobrado este mes"
         value="—"
         status="Pendiente"
-        footer="Ver cobros"
+        footer="Este mes"
         href="/cobros"
       />
 
@@ -147,6 +162,47 @@ export function DashboardKpiGrid({ appointmentsToday }: Props) {
         status="Pendiente"
         footer="Ver presupuestos"
         href="/presupuestos"
+      />
+
+      <KpiCard
+        cardId="kpi-nuevos-pacientes"
+        icon={UserPlus}
+        accent="bg-rose-500/10 text-rose-600"
+        label="Nuevos pacientes"
+        value="—"
+        status="Pendiente"
+        footer="Este mes"
+      />
+
+      <KpiCard
+        cardId="kpi-ingresos"
+        icon={TrendingUp}
+        accent="bg-teal-500/10 text-teal-600"
+        label="Ingresos del mes"
+        value="—"
+        status="Pendiente"
+        footer="Este mes"
+      />
+
+      <KpiCard
+        cardId="kpi-confirmadas"
+        icon={BadgeCheck}
+        accent="bg-sky-500/10 text-sky-600"
+        label="Citas confirmadas"
+        value={confirmadasValue}
+        status={confirmadasStatus}
+        footer={confirmadasFooter}
+        href="/agenda"
+      />
+
+      <KpiCard
+        cardId="kpi-conversion"
+        icon={Percent}
+        accent="bg-cyan-500/10 text-cyan-600"
+        label="Conversión"
+        value="—"
+        status="Configurable"
+        footer="Configurar"
       />
     </div>
   );

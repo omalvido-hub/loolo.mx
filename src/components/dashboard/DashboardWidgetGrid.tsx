@@ -4,7 +4,7 @@
 // agregaciones de Cobros/Presupuestos/Seguimiento. Sin datos inventados.
 
 import Link from "next/link";
-import { CalendarClock, Compass, Users, Wallet2 } from "lucide-react";
+import { CalendarClock, History, Scale, Wallet2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AppointmentListItem } from "@/server/domain/agenda/queries";
 
@@ -142,12 +142,12 @@ export function AgendaPanel({ appointmentsToday }: AgendaPanelProps) {
   );
 }
 
-// B) Dinero por atender — honesto, pendiente.
-export function MoneyPanel() {
+// B) Resumen de ingresos — honesto, pendiente.
+export function IncomeSummaryPanel() {
   return (
-    <PanelCard cardId="widget-dinero" title="Dinero por atender" accentBar="from-violet-400 to-violet-300" badge="Por conectar">
+    <PanelCard cardId="widget-ingresos" title="Resumen de ingresos" accentBar="from-violet-400 to-violet-300" badge="Por conectar">
       <CompactHint icon={Wallet2} accent="bg-violet-500/10 text-violet-600">
-        Por conectar
+        Se mostrará aquí en cuanto conectemos las agregaciones de Cobros
       </CompactHint>
       <div className="mt-2 flex justify-end">
         <Link href="/cobros" className="text-xs font-medium text-primary/80 hover:text-primary transition-colors">
@@ -158,38 +158,24 @@ export function MoneyPanel() {
   );
 }
 
-// C) Acciones sugeridas — honesto, pendiente.
-export function ActionsPanel() {
+// C) Punto de equilibrio — honesto, configurable.
+export function BreakEvenPanel() {
   return (
-    <PanelCard cardId="widget-acciones" title="Acciones sugeridas" accentBar="from-amber-400 to-amber-300" badge="Próximamente">
-      <CompactHint icon={Compass} accent="bg-amber-500/10 text-amber-600">
-        Se activará al conectar Agenda, Cobros y Seguimiento
+    <PanelCard cardId="widget-punto-equilibrio" title="Punto de equilibrio" accentBar="from-cyan-400 to-cyan-300" badge="Configurable">
+      <CompactHint icon={Scale} accent="bg-cyan-500/10 text-cyan-600">
+        Define tus costos fijos y meta mensual para ver tu punto de equilibrio aquí
       </CompactHint>
     </PanelCard>
   );
 }
 
-interface PatientsPanelProps {
-  patientsTotal: number | null;
-}
-
-// D) Pacientes — REAL (total vía patient-record/list.ts).
-export function PatientsPanel({ patientsTotal }: PatientsPanelProps) {
-  const text =
-    patientsTotal !== null
-      ? `${patientsTotal} ${patientsTotal === 1 ? "paciente registrado" : "pacientes registrados"}`
-      : "Conecta tu base de pacientes";
-
+// D) Actividades recientes — honesto, pendiente.
+export function RecentActivityPanel() {
   return (
-    <PanelCard cardId="widget-pacientes" title="Pacientes" accentBar="from-rose-400 to-rose-300">
-      <CompactHint icon={Users} accent="bg-rose-500/10 text-rose-600">
-        {text}
+    <PanelCard cardId="widget-actividad" title="Actividades recientes" accentBar="from-amber-400 to-amber-300" badge="Próximamente">
+      <CompactHint icon={History} accent="bg-amber-500/10 text-amber-600">
+        Se activará al conectar Agenda, Cobros y Seguimiento
       </CompactHint>
-      <div className="mt-2 flex justify-end">
-        <Link href="/pacientes" className="text-xs font-medium text-primary/80 hover:text-primary transition-colors">
-          Ver pacientes →
-        </Link>
-      </div>
     </PanelCard>
   );
 }
