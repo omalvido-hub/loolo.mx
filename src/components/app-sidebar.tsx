@@ -83,7 +83,7 @@ export function AppSidebar({ roleKey, orgName, collapsed, onToggleCollapse, onOp
           onClick={onToggleCollapse}
           aria-label="Colapsar menú"
           title="Colapsar menú"
-          className="flex items-center justify-center size-7 shrink-0 rounded-md text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+          className="flex items-center justify-center size-8 shrink-0 rounded-full border bg-card text-sidebar-foreground/60 shadow-sm ring-1 ring-foreground/[0.06] transition-colors hover:text-sidebar-accent-foreground"
         >
           <PanelLeftClose className="h-4 w-4" />
         </button>

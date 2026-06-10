@@ -38,7 +38,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-4 px-6 py-6 pb-12 sm:px-8">
+    <div className="mx-auto max-w-6xl space-y-4 px-6 py-6 pb-12 sm:px-8">
       {/* Fila superior: 4 KPIs verticales */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <CitasHoyKpi appointmentsToday={appointmentsToday} />
