@@ -10,8 +10,6 @@ import {
   Wallet,
   CircleDollarSign,
   FileText,
-  HeartPulse,
-  Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AppointmentListItem } from "@/server/domain/agenda/queries";
@@ -34,6 +32,7 @@ const STATUS_CHIP_CLASS: Record<KpiStatus, string> = {
 };
 
 interface KpiCardProps {
+  cardId: string;
   icon: React.ElementType;
   accent: string;
   label: string;
@@ -43,7 +42,7 @@ interface KpiCardProps {
   href?: string;
 }
 
-function KpiCard({ icon: Icon, accent, label, value, status, footer, href }: KpiCardProps) {
+function KpiCard({ cardId, icon: Icon, accent, label, value, status, footer, href }: KpiCardProps) {
   const content = (
     <>
       <div className="flex w-full items-center justify-between">
@@ -63,14 +62,18 @@ function KpiCard({ icon: Icon, accent, label, value, status, footer, href }: Kpi
     </>
   );
 
-  const className = "group relative flex flex-col items-start rounded-xl border bg-card p-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-16px_rgba(0,0,0,0.18)]";
+  const className = "group relative flex flex-col items-start rounded-xl border bg-card p-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-16px_rgba(0,0,0,0.18)]";
 
   if (!href) {
-    return <div className={cn(className, "opacity-80")}>{content}</div>;
+    return (
+      <div data-dashboard-card={cardId} className={cn(className, "opacity-80")}>
+        {content}
+      </div>
+    );
   }
 
   return (
-    <Link href={href} className={cn(className, "hover:ring-foreground/10 cursor-pointer")}>
+    <Link data-dashboard-card={cardId} href={href} className={cn(className, "hover:ring-foreground/10 cursor-pointer")}>
       {content}
     </Link>
   );
@@ -78,10 +81,12 @@ function KpiCard({ icon: Icon, accent, label, value, status, footer, href }: Kpi
 
 interface Props {
   appointmentsToday: AppointmentListItem[] | null;
-  patientsTotal: number | null;
 }
 
-export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
+// Fila de 4 KPIs compactos. "Citas de hoy" usa datos reales de Agenda; el
+// resto muestra estado honesto (chip "Pendiente") hasta tener agregaciones
+// seguras de Cobros/Presupuestos. Nunca se inventan montos.
+export function DashboardKpiGrid({ appointmentsToday }: Props) {
   // KPI 1 — Citas de hoy (REAL vía agenda/queries.ts).
   let citasValue = "—";
   let citasFooter = "Ver agenda";
@@ -98,12 +103,10 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
     }
   }
 
-  // KPI 5 — Pacientes (PARCIAL: total real; "por atender" llega en fase futura).
-  const pacientesValue = patientsTotal !== null ? String(patientsTotal) : "—";
-
   return (
-    <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
       <KpiCard
+        cardId="kpi-citas"
         icon={CalendarCheck}
         accent="bg-emerald-500/10 text-emerald-600"
         label="Citas de hoy"
@@ -114,6 +117,7 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
       />
 
       <KpiCard
+        cardId="kpi-cobrado"
         icon={Wallet}
         accent="bg-violet-500/10 text-violet-600"
         label="Cobrado mes"
@@ -124,6 +128,7 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
       />
 
       <KpiCard
+        cardId="kpi-porcobrar"
         icon={CircleDollarSign}
         accent="bg-amber-500/10 text-amber-600"
         label="Por cobrar"
@@ -134,6 +139,7 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
       />
 
       <KpiCard
+        cardId="kpi-presupuestos"
         icon={FileText}
         accent="bg-blue-500/10 text-blue-600"
         label="Presupuestos"
@@ -141,25 +147,6 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
         status="Pendiente"
         footer="Ver presupuestos"
         href="/presupuestos"
-      />
-
-      <KpiCard
-        icon={HeartPulse}
-        accent="bg-rose-500/10 text-rose-600"
-        label="Pacientes"
-        value={pacientesValue}
-        status="Pendiente"
-        footer="Ver pacientes"
-        href="/pacientes"
-      />
-
-      <KpiCard
-        icon={Target}
-        accent="bg-cyan-500/10 text-cyan-600"
-        label="Break-even"
-        value="—"
-        status="Configurable"
-        footer="Configurar"
       />
     </div>
   );
