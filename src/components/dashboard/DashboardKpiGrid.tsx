@@ -14,7 +14,18 @@ import {
   Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DraggableDashboardLayout } from "./DraggableDashboardLayout";
 import type { AppointmentListItem } from "@/server/domain/agenda/queries";
+
+export const KPI_RAIL_STORAGE_KEY = "nelzzon.dashboard.layout.v1.kpis";
+export const KPI_DEFAULT_ORDER = [
+  "kpi-citas",
+  "kpi-cobrado",
+  "kpi-porcobrar",
+  "kpi-presupuestos",
+  "kpi-pacientes",
+  "kpi-breakeven",
+];
 
 const APPT_STATUS_ES: Record<string, string> = {
   SCHEDULED: "programadas",
@@ -101,8 +112,8 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
   // KPI 5 — Pacientes (PARCIAL: total real; "por atender" llega en fase futura).
   const pacientesValue = patientsTotal !== null ? String(patientsTotal) : "—";
 
-  return (
-    <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+  const items: Record<string, React.ReactNode> = {
+    "kpi-citas": (
       <KpiCard
         icon={CalendarCheck}
         accent="bg-emerald-500/10 text-emerald-600"
@@ -112,7 +123,8 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
         footer={citasFooter}
         href="/agenda"
       />
-
+    ),
+    "kpi-cobrado": (
       <KpiCard
         icon={Wallet}
         accent="bg-violet-500/10 text-violet-600"
@@ -122,7 +134,8 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
         footer="Ver cobros"
         href="/cobros"
       />
-
+    ),
+    "kpi-porcobrar": (
       <KpiCard
         icon={CircleDollarSign}
         accent="bg-amber-500/10 text-amber-600"
@@ -132,7 +145,8 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
         footer="Ver cobros"
         href="/cobros"
       />
-
+    ),
+    "kpi-presupuestos": (
       <KpiCard
         icon={FileText}
         accent="bg-blue-500/10 text-blue-600"
@@ -142,7 +156,8 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
         footer="Ver presupuestos"
         href="/presupuestos"
       />
-
+    ),
+    "kpi-pacientes": (
       <KpiCard
         icon={HeartPulse}
         accent="bg-rose-500/10 text-rose-600"
@@ -152,7 +167,8 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
         footer="Ver pacientes"
         href="/pacientes"
       />
-
+    ),
+    "kpi-breakeven": (
       <KpiCard
         icon={Target}
         accent="bg-cyan-500/10 text-cyan-600"
@@ -161,6 +177,15 @@ export function DashboardKpiGrid({ appointmentsToday, patientsTotal }: Props) {
         status="Configurable"
         footer="Configurar"
       />
-    </div>
+    ),
+  };
+
+  return (
+    <DraggableDashboardLayout
+      storageKey={KPI_RAIL_STORAGE_KEY}
+      defaultOrder={KPI_DEFAULT_ORDER}
+      items={items}
+      className="grid grid-cols-3 gap-2 sm:grid-cols-6"
+    />
   );
 }
