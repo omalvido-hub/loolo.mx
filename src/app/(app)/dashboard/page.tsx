@@ -10,7 +10,6 @@ import type { AppointmentListItem } from "@/server/domain/agenda/queries";
 import { DashboardTodayHeader } from "@/components/dashboard/DashboardTodayHeader";
 import { DashboardKpiGrid } from "@/components/dashboard/DashboardKpiGrid";
 import { DashboardWidgetGrid } from "@/components/dashboard/DashboardWidgetGrid";
-import { DashboardQuickAccess } from "@/components/dashboard/DashboardQuickAccess";
 
 function greetingFor(date: Date): string {
   const hour = Number(
@@ -91,8 +90,6 @@ export default async function DashboardPage() {
           <DashboardKpiGrid appointmentsToday={appointmentsToday} patientsTotal={patientsTotal} />
           <DashboardWidgetGrid appointmentsToday={appointmentsToday} />
         </div>
-
-        <DashboardQuickAccess />
       </div>
     </div>
   );
