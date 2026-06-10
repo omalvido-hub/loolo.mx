@@ -70,7 +70,7 @@ export function VerticalKpiCard({ cardId, icon: Icon, accent, label, value, stat
     </>
   );
 
-  const className = "group relative flex h-[260px] sm:h-[310px] w-full flex-col justify-between rounded-3xl border bg-card p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-16px_rgba(0,0,0,0.18)]";
+  const className = "group relative flex h-[230px] sm:h-[330px] w-full flex-col justify-between rounded-3xl border bg-card p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-16px_rgba(0,0,0,0.18)]";
 
   if (!href) {
     return (
@@ -111,7 +111,7 @@ export function HorizontalKpiCard({ cardId, icon: Icon, accent, label, value, st
     </>
   );
 
-  const className = "group relative flex h-[124px] sm:h-[150px] w-full items-center gap-3 rounded-2xl border bg-card px-5 py-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-16px_rgba(0,0,0,0.18)]";
+  const className = "group relative flex h-[130px] sm:h-[156px] w-full items-center gap-3 rounded-2xl border bg-card px-5 py-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-foreground/[0.04] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-16px_rgba(0,0,0,0.18)]";
 
   if (!href) {
     return (

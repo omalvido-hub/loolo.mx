@@ -38,22 +38,22 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-4 px-6 py-6 sm:px-8">
-      {/* Bloque 1: Citas / Cobrado (verticales) + Por cobrar / Presupuestos (horizontales) */}
+    <div className="mx-auto max-w-7xl space-y-4 px-6 py-6 pb-12 sm:px-8">
+      {/* Fila superior: 4 KPIs verticales */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <CitasHoyKpi appointmentsToday={appointmentsToday} />
         <CobradoMesKpi />
-        <div className="col-span-2 flex flex-col gap-4 sm:col-span-2">
+        <TratamientosActivosKpi />
+        <IngresosMesKpi />
+      </div>
+
+      {/* Fila inferior: 2 columnas de horizontales apiladas */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-4">
           <PorCobrarKpi />
           <PresupuestosPendientesKpi />
         </div>
-      </div>
-
-      {/* Bloque 2: Tratamientos / Ingresos (verticales) + Punto de equilibrio / Meta mensual (horizontales) */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <TratamientosActivosKpi />
-        <IngresosMesKpi />
-        <div className="col-span-2 flex flex-col gap-4 sm:col-span-2">
+        <div className="flex flex-col gap-4">
           <PuntoEquilibrioKpi />
           <MetaMensualKpi />
         </div>
