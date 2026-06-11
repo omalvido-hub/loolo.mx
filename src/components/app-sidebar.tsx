@@ -13,7 +13,7 @@ import {
   Settings,
   Sparkles,
   ChevronLeft,
-  PanelLeftOpen,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -189,9 +189,9 @@ export function SidebarMenuTrigger({ onClick }: SidebarMenuTriggerProps) {
       onClick={onClick}
       aria-label="Abrir menú"
       title="Abrir menú"
-      className="flex shrink-0 items-center justify-center size-8 rounded-full border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      className="inline-flex shrink-0 items-center justify-center rounded-full border bg-card p-1.5 text-muted-foreground shadow-sm ring-1 ring-foreground/[0.06] transition-colors hover:text-foreground"
     >
-      <PanelLeftOpen className="h-4 w-4" />
+      <ChevronRight className="h-3.5 w-3.5" />
     </button>
   );
 }
