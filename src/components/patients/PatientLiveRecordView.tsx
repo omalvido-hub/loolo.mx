@@ -145,12 +145,14 @@ interface MiniStatProps {
   value: React.ReactNode;
   valueClassName?: string;
   action?: React.ReactNode;
+  /** Si el valor ocupa varias líneas (p. ej. fecha + hora), no se trunca a una sola línea. */
+  multiline?: boolean;
 }
-function MiniStat({ label, value, valueClassName, action }: MiniStatProps) {
+function MiniStat({ label, value, valueClassName, action, multiline }: MiniStatProps) {
   return (
     <div className="rounded-lg bg-muted/40 px-2.5 py-1.5 min-w-0">
       <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className={`text-sm font-semibold truncate leading-tight ${valueClassName ?? ""}`}>{value}</p>
+      <div className={`text-sm font-semibold leading-tight ${multiline ? "" : "truncate"} ${valueClassName ?? ""}`}>{value}</div>
       {action && <div className="mt-0.5">{action}</div>}
     </div>
   );
@@ -284,10 +286,18 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
               <MiniStat
                 label="Próxima cita"
                 value={
-                  nextAppt
-                    ? `${nextApptIsToday ? "Hoy" : formatAppointmentDate(nextAppt.startAt)} · ${formatAppointmentTime(nextAppt.startAt)}`
-                    : "Sin cita"
+                  nextAppt ? (
+                    <>
+                      <span className="block truncate">
+                        {nextApptIsToday ? "Hoy" : formatAppointmentDate(nextAppt.startAt)}
+                      </span>
+                      <span className="block truncate">{formatAppointmentTime(nextAppt.startAt)}</span>
+                    </>
+                  ) : (
+                    "Sin cita"
+                  )
                 }
+                multiline={!!nextAppt}
                 valueClassName={nextAppt ? "" : "text-muted-foreground"}
                 action={
                   <div className="space-y-0.5">

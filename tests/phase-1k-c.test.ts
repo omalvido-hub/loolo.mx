@@ -157,14 +157,14 @@ describe("1K-C — Ficha del paciente: CTA 'Sin cita' manda a /agenda?patientId=
   it('CTA sin próxima cita usa `/agenda?patientId=${patientId}`', () => {
     const idx = patientViewContent.indexOf('label="Próxima cita"');
     expect(idx).toBeGreaterThan(-1);
-    const block = patientViewContent.slice(idx, idx + 1200);
+    const block = patientViewContent.slice(idx, idx + 1500);
     expect(block).toContain("`/agenda?appointmentId=${nextAppt.id}`");
     expect(block).toContain("`/agenda?patientId=${patientId}`");
   });
 
   it("no rompe el caso con cita: sigue mandando a /agenda?appointmentId=<id>", () => {
     const idx = patientViewContent.indexOf('label="Próxima cita"');
-    const block = patientViewContent.slice(idx, idx + 1200);
+    const block = patientViewContent.slice(idx, idx + 1500);
     expect(block).toContain('"Ver cita →"');
   });
 });

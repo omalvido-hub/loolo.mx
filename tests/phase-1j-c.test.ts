@@ -27,7 +27,7 @@ describe("1J-C — Próxima cita real en la Ficha Viva", () => {
   it('la mini-métrica "Próxima cita" usa fecha/hora reales y CTA hacia agenda', () => {
     const idx = viewContent.indexOf('label="Próxima cita"');
     expect(idx).toBeGreaterThan(-1);
-    const block = viewContent.slice(idx, idx + 1200);
+    const block = viewContent.slice(idx, idx + 1500);
 
     // Valor: fecha+hora reales (o "Hoy" si la cita es hoy), nunca el ISO crudo.
     expect(block).toContain("formatAppointmentDate(nextAppt.startAt)");
