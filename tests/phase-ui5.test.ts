@@ -642,3 +642,31 @@ describe("integridad estructural", () => {
     expect(existsSync(resolve("PHASE_UI-5_DELIVERY_MARKER.txt"))).toBe(true);
   });
 });
+
+describe("1G-B — origen del hallazgo vinculado en el plan", () => {
+  const content = readFileSync(
+    resolve("src/components/treatment/TreatmentPlansSectionClient.tsx"),
+    "utf-8",
+  );
+
+  it("define findingOriginLabel", () => {
+    expect(content).toContain("function findingOriginLabel(");
+  });
+
+  it("ítem sin linkedFindingId no muestra línea de origen (retorna null)", () => {
+    expect(content).toContain("if (!item.linkedFindingId) return null;");
+  });
+
+  it("ítem con linkedFindingId muestra 'Origen: Odontograma · ...'", () => {
+    expect(content).toContain("`Origen: Odontograma · ${findingOptionLabel(f)}`");
+  });
+
+  it("fallback seguro 'Origen: Odontograma' si el hallazgo no está en el panel", () => {
+    expect(content).toContain('return "Origen: Odontograma";');
+  });
+
+  it("ItemRowClient renderiza originLabel de forma condicional", () => {
+    expect(content).toContain("const originLabel = findingOriginLabel(item, findingsById);");
+    expect(content).toContain("{originLabel && (");
+  });
+});

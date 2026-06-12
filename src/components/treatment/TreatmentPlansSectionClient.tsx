@@ -168,6 +168,19 @@ function findingOptionLabel(f: FindingPanelItem): string {
   return `Pieza ${f.toothFdi}${surfaceLabel} — ${typeLabel}`;
 }
 
+// Línea discreta "Origen: Odontograma · ..." para ítems vinculados a un
+// hallazgo (1G-B). Si el hallazgo ya no está en el panel (caso límite),
+// se muestra un fallback seguro sin romper la UI.
+function findingOriginLabel(
+  item: TreatmentItemView,
+  findingsById: Map<string, FindingPanelItem>,
+): string | null {
+  if (!item.linkedFindingId) return null;
+  const f = findingsById.get(item.linkedFindingId);
+  if (!f) return "Origen: Odontograma";
+  return `Origen: Odontograma · ${findingOptionLabel(f)}`;
+}
+
 function AddItemForm({ patientId, planId, linkableFindings, onCancel, onDone }: AddItemFormProps) {
   const [procedureType, setProcedureType] = useState<string>(ProcedureTypeZ.options[0]);
   const [toothFdi, setToothFdi] = useState("");
@@ -442,10 +455,11 @@ interface ItemRowClientProps {
   patientId: string;
   item: TreatmentItemView;
   permissions: TreatmentPermissions;
+  findingsById: Map<string, FindingPanelItem>;
   onChanged: () => void;
 }
 
-function ItemRowClient({ patientId, item, permissions, onChanged }: ItemRowClientProps) {
+function ItemRowClient({ patientId, item, permissions, findingsById, onChanged }: ItemRowClientProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [showEdit, setShowEdit] = useState(false);
@@ -453,6 +467,7 @@ function ItemRowClient({ patientId, item, permissions, onChanged }: ItemRowClien
   const procedureLabel = PROCEDURE_LABELS[item.procedureType] ?? item.procedureType;
   const surfaceLabel = item.surface ? SURFACE_LABELS[item.surface] ?? item.surface : null;
   const priorityLabel = PRIORITY_LABELS[item.priority] ?? item.priority;
+  const originLabel = findingOriginLabel(item, findingsById);
 
   const targets = (ITEM_TRANSITIONS[item.status] ?? []).filter(
     (to) => permissions[ITEM_PERM_FLAG[to]],
@@ -488,6 +503,9 @@ function ItemRowClient({ patientId, item, permissions, onChanged }: ItemRowClien
         </div>
         <div className="flex-1 min-w-0">
           <span className="font-medium truncate">{procedureLabel}</span>
+          {originLabel && (
+            <p className="text-[11px] text-muted-foreground truncate mt-0.5">{originLabel}</p>
+          )}
         </div>
         <div className="w-20 shrink-0 text-right">
           <span className="text-xs text-muted-foreground">{priorityLabel}</span>
@@ -562,10 +580,11 @@ interface PlanCardClientProps {
   plan: TreatmentPlanView;
   permissions: TreatmentPermissions;
   linkableFindings: FindingPanelItem[];
+  findingsById: Map<string, FindingPanelItem>;
   highlighted?: boolean;
 }
 
-function PlanCardClient({ patientId, plan, permissions, linkableFindings, highlighted = false }: PlanCardClientProps) {
+function PlanCardClient({ patientId, plan, permissions, linkableFindings, findingsById, highlighted = false }: PlanCardClientProps) {
   const router = useRouter();
   const [showAddItem, setShowAddItem] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -646,6 +665,7 @@ function PlanCardClient({ patientId, plan, permissions, linkableFindings, highli
                 patientId={patientId}
                 item={item}
                 permissions={permissions}
+                findingsById={findingsById}
                 onChanged={() => router.refresh()}
               />
             ))}
@@ -661,6 +681,7 @@ function PlanCardClient({ patientId, plan, permissions, linkableFindings, highli
                       patientId={patientId}
                       item={item}
                       permissions={permissions}
+                      findingsById={findingsById}
                       onChanged={() => router.refresh()}
                     />
                   ))}
@@ -843,6 +864,9 @@ export function TreatmentPlansSectionClient({ view, patientId, permissions, find
     (f) => LINKABLE_FINDING_STATUS.has(f.lifecycleStatus) && !linkedFindingIds.has(f.findingId),
   );
 
+  // Mapa para mostrar el origen del odontograma en ítems vinculados (1G-B).
+  const findingsById = new Map(findings.map((f) => [f.findingId, f]));
+
   const subtitle =
     totalPlans === 0
       ? "Sin planes registrados"
@@ -893,6 +917,7 @@ export function TreatmentPlansSectionClient({ view, patientId, permissions, find
               plan={plan}
               permissions={permissions}
               linkableFindings={linkableFindings}
+              findingsById={findingsById}
               highlighted={plan.status === "ACTIVE"}
             />
           ))}
