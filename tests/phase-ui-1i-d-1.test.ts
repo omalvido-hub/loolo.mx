@@ -22,12 +22,12 @@ const fvoPath = resolve("src/components/patients/PatientFVOSectionsClient.tsx");
 const fvoContent = readFileSync(fvoPath, "utf-8");
 
 describe("1I-D-1 — Prueba del niño: renombres y separación mental", () => {
-  it('existe la sección "Atención de hoy" con Agenda y Tareas abiertas', () => {
+  it('existe la sección "Atención de hoy" con agenda y tareas (1I-D-2: franja compacta)', () => {
     expect(viewContent).toContain('title="Atención de hoy"');
     const idx = viewContent.indexOf('title="Atención de hoy"');
     const block = viewContent.slice(idx, idx + 2000);
-    expect(block).toContain('title="Agenda"');
-    expect(block).toContain('title="Tareas abiertas"');
+    expect(block).toContain("Tareas abiertas");
+    expect(block).toContain('href="/agenda"');
   });
 
   it('"Atención de hoy" aparece antes de "Clínica"', () => {

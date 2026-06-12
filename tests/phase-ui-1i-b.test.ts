@@ -60,10 +60,11 @@ describe("1I-B — Reorganización visual de la ficha del paciente", () => {
     expect(sectionBefore).toBeLessThan(bitacoraIdx);
   });
 
-  it('"Tratamiento y pagos" agrupa Planes, Presupuestos/Cobros y Documentos en page.tsx (vía operationDetail)', () => {
-    expect(pageContent).toContain('title="Planes de tratamiento"');
-    expect(pageContent).toContain('title="Presupuestos y cobros"');
-    expect(pageContent).toContain('title="Documentos del paciente"');
+  it('"Tratamiento y pagos" agrupa Planes, Presupuestos/Cobros y Documentos en page.tsx (vía operationDetail con tabs)', () => {
+    expect(pageContent).toContain("<PatientOperationTabs");
+    expect(pageContent).toContain(">Planes de tratamiento<");
+    expect(pageContent).toContain(">Presupuestos y cobros<");
+    expect(pageContent).toContain(">Documentos del paciente<");
     expect(pageContent).toContain("<TreatmentPlansSectionClient");
     expect(pageContent).toContain("<QuotesSectionClient");
     expect(pageContent).toContain("<PatientDocumentsSection");
@@ -77,7 +78,7 @@ describe("1I-B — Reorganización visual de la ficha del paciente", () => {
 
   it("no se elimina información clave (resumen de Tratamiento y pagos, agenda, perfil clínico)", () => {
     expect(viewContent).toContain('title="Tratamiento y pagos"');
-    expect(viewContent).toContain('title="Agenda"');
+    expect(viewContent).toContain('href="/agenda"');
     expect(viewContent).toContain("<PatientClinicalProfileSection");
   });
 

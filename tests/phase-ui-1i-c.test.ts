@@ -50,9 +50,9 @@ describe("1I-C — Compactar jerarquía de la ficha del paciente", () => {
 
   it('page.tsx pasa operationDetail con "Planes de tratamiento", "Presupuestos y cobros" y "Documentos del paciente"', () => {
     expect(pageContent).toContain("operationDetail={operationDetail}");
-    expect(pageContent).toContain('title="Planes de tratamiento"');
-    expect(pageContent).toContain('title="Presupuestos y cobros"');
-    expect(pageContent).toContain('title="Documentos del paciente"');
+    expect(pageContent).toContain(">Planes de tratamiento<");
+    expect(pageContent).toContain(">Presupuestos y cobros<");
+    expect(pageContent).toContain(">Documentos del paciente<");
   });
 
   it('"Datos del paciente" usa PatientFVOSectionsClient en variant="compact"', () => {

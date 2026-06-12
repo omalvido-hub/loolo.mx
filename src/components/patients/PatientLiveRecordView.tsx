@@ -2,8 +2,6 @@ import Link from "next/link";
 import type { PatientLiveRecord } from "@/server/domain/patient-record/schemas";
 import { EncounterList } from "@/components/clinical/EncounterList";
 import { PatientFVOSectionsClient, PatientClinicalProfileSection } from "@/components/patients/PatientFVOSectionsClient";
-import { PatientStatusBar } from "@/components/patients/PatientStatusBar";
-import { PatientCareChain } from "@/components/patients/PatientCareChain";
 import { PatientDisclosureSection } from "@/components/patients/PatientDisclosureSection";
 import type { EncounterListItem } from "@/server/domain/clinical/encounter-views";
 
@@ -176,6 +174,15 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
     : 0;
   const itemsAceptados = treatment?.itemsByStatus.ACCEPTED ?? 0;
 
+  // Consulta activa: la más reciente con DRAFT o IN_PROGRESS (encounters viene
+  // ordenado DESC por createdAt desde listEncountersSafeForPatient).
+  const activeEncounter =
+    encounters?.find((e) => e.status === "IN_PROGRESS" || e.status === "DRAFT") ?? null;
+
+  const nextAppt = operative.nextAppointment;
+  const hasPlan = !!treatment?.activePlanId;
+  const balance = financial?.balanceCents ?? null;
+
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-6">
       {/* Cabecera */}
@@ -209,50 +216,68 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
             <p className="text-sm text-muted-foreground mt-0.5">
               {identity.phone ?? "Sin teléfono"}{identity.email ? ` · ${identity.email}` : ""}
             </p>
-            {/* Chips contextuales: estado clínico-financiero a primera vista */}
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {treatment?.activePlanId && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400 border border-purple-200/60 dark:border-purple-800/40">
-                  <span className="size-1.5 rounded-full bg-purple-500" />
-                  Plan activo
-                </span>
-              )}
-              {financial && financial.balanceCents > 0 && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/40">
-                  <span className="size-1.5 rounded-full bg-amber-400" />
-                  Saldo {fCents(financial.balanceCents)}
-                </span>
-              )}
-              {financial && financial.balanceCents === 0 && financial.paidCents > 0 && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border border-green-200/60 dark:border-green-800/40">
-                  <span className="size-1.5 rounded-full bg-green-500" />
-                  Al corriente
-                </span>
-              )}
-              {!operative.nextAppointment && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
-                  Sin cita próxima
-                </span>
-              )}
+
+            {/* Resumen compacto: lo esencial de un vistazo, sin tarjetas grandes */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm">
+              <span>
+                <span className="text-muted-foreground">Próxima cita: </span>
+                {nextAppt ? (
+                  <span className="font-medium">{fDatetime(nextAppt.startAt)}</span>
+                ) : (
+                  <>
+                    <span className="text-muted-foreground">Sin cita próxima</span>{" "}
+                    <Link href="/agenda" className="text-xs font-medium text-primary/70 hover:text-primary transition-colors">
+                      Ir a agenda →
+                    </Link>
+                  </>
+                )}
+              </span>
+
+              <span>
+                <span className="text-muted-foreground">Consulta activa: </span>
+                {activeEncounter ? (
+                  <>
+                    <span className="font-medium">
+                      {activeEncounter.status === "IN_PROGRESS" ? "En consulta" : "Borrador"}
+                    </span>{" "}
+                    <Link
+                      href={`/pacientes/${patientId}/consultas/${activeEncounter.encounterId}`}
+                      className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      Continuar →
+                    </Link>
+                  </>
+                ) : (
+                  <span className="text-muted-foreground">Ninguna</span>
+                )}
+              </span>
+
+              <span>
+                <span className="text-muted-foreground">Plan: </span>
+                <span className="font-medium">{hasPlan ? "Sí" : "No"}</span>
+              </span>
+
+              <span>
+                <span className="text-muted-foreground">Saldo: </span>
+                {balance === null ? (
+                  <span className="text-muted-foreground">—</span>
+                ) : balance > 0 ? (
+                  <span className="font-semibold text-amber-700 dark:text-amber-400">{fCents(balance)}</span>
+                ) : (
+                  <span className="font-medium text-green-700 dark:text-green-400">{fCents(balance)}</span>
+                )}
+              </span>
+
               {odontogramSummary && odontogramSummary.totalFindings > 0 && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
-                  {odontogramSummary.totalFindings} hallazgo{odontogramSummary.totalFindings !== 1 ? "s" : ""}
+                <span>
+                  <span className="text-muted-foreground">Hallazgos: </span>
+                  <span className="font-medium">{odontogramSummary.totalFindings}</span>
                 </span>
               )}
             </div>
           </div>
         </div>
       </div>
-
-      {/* Estado actual del paciente — qué sigue, de un vistazo */}
-      <PatientStatusBar
-        record={record}
-        encounters={encounters}
-        patientId={patientId ?? ""}
-      />
-
-      {/* Cadena de atención — qué módulos ya tienen datos */}
-      <PatientCareChain record={record} documentsCount={documentsCount} />
 
       {/* Próximos pasos — acciones recomendadas como lista limpia */}
       {recommendedActions.filter(a => a.code !== "schedule_appointment").length > 0 && (
@@ -271,54 +296,50 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
       )}
 
       {/* ── Atención de hoy: lo que el usuario necesita para actuar hoy con
-          este paciente — agenda y tareas abiertas. ────── */}
+          este paciente. Franja compacta, no tarjeta gigante. ────── */}
 
-      <GroupHeading
-        title="Atención de hoy"
-        subtitle="Agenda y tareas pendientes de este paciente."
-      />
+      <GroupHeading title="Atención de hoy" />
 
-      <div className="space-y-4">
-        {/* Agenda */}
-        <SectionCard title="Agenda">
-          <Row
-            label="Próxima cita"
-            value={
-              operative.nextAppointment
-                ? `${fDatetime(operative.nextAppointment.startAt)} — ${APPT_STATUS_LABELS[operative.nextAppointment.status] ?? operative.nextAppointment.status}`
-                : "Sin cita próxima"
-            }
-          />
-          <Row
-            label="Última cita"
-            value={
-              operative.lastAppointment
+      <div className="rounded-xl border bg-muted/20 px-4 py-3">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+          <span>
+            <span className="text-muted-foreground">Última cita: </span>
+            <span className="font-medium">
+              {operative.lastAppointment
                 ? `${fDate(operative.lastAppointment.startAt)} — ${APPT_STATUS_LABELS[operative.lastAppointment.status] ?? operative.lastAppointment.status}`
-                : "Sin historial"
-            }
-          />
-          <Row label="Conversaciones abiertas" value={operative.openConversationsCount} />
-          <Row label="Tareas abiertas" value={operative.openTasksCount} />
-          <Row label="Última actividad" value={fDate(operative.lastActivityAt)} />
-        </SectionCard>
+                : "Sin historial"}
+            </span>
+          </span>
+          <span>
+            <span className="text-muted-foreground">Conversaciones abiertas: </span>
+            <span className="font-medium">{operative.openConversationsCount}</span>
+          </span>
+          <span>
+            <span className="text-muted-foreground">Tareas abiertas: </span>
+            <span className="font-medium">{operative.openTasksCount}</span>
+          </span>
+          <span>
+            <span className="text-muted-foreground">Última actividad: </span>
+            <span className="font-medium">{fDate(operative.lastActivityAt)}</span>
+          </span>
+          <Link href="/agenda" className="text-xs font-medium text-primary/70 hover:text-primary transition-colors">
+            Ir a agenda →
+          </Link>
+        </div>
 
-        {/* Tareas abiertas */}
+        {/* Tareas abiertas — lista corta, dentro de la misma franja */}
         {tasks && tasks.length > 0 && (
-          <SectionCard title="Tareas abiertas">
-            <ul className="space-y-2">
-              {tasks.map((t) => (
-                <li key={t.id} className="flex items-start gap-2">
-                  <span className="mt-0.5 size-2 rounded-full bg-amber-400 shrink-0" />
-                  <div>
-                    <p className="font-medium">{t.title}</p>
-                    {t.dueAt && (
-                      <p className="text-xs text-muted-foreground">Vence: {fDate(t.dueAt)}</p>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </SectionCard>
+          <ul className="mt-3 space-y-1.5 border-t pt-3">
+            {tasks.map((t) => (
+              <li key={t.id} className="flex items-start gap-2 text-sm">
+                <span className="mt-1.5 size-1.5 rounded-full bg-amber-400 shrink-0" />
+                <span>
+                  <span className="font-medium">{t.title}</span>
+                  {t.dueAt && <span className="text-xs text-muted-foreground"> — Vence: {fDate(t.dueAt)}</span>}
+                </span>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 
@@ -433,23 +454,20 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
           </>
         }
       >
-        {/* Identidad — bloque compacto, agrupado bajo "General" junto con datos personales (FVO). */}
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 pt-2 first:pt-0">
-            General
-          </p>
-          <div className="py-3 border-b">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-              Identidad y contacto
-            </h3>
-            <div className="space-y-2 text-sm">
-              <Row label="ID paciente" value={<span className="font-mono text-xs">{identity.patientId}</span>} />
-              <Row label="Teléfono" value={identity.phone} />
-              <Row label="Correo" value={identity.email} />
-              <Row label="Fuente" value={identity.source} />
-              <Row label="Alta" value={fDate(identity.createdAt)} />
-              {identity.archivedAt && <Row label="Archivado" value={fDate(identity.archivedAt)} />}
-            </div>
+        {/* Identidad — bloque compacto, agrupado bajo "General" junto con datos personales (FVO).
+            El encabezado de grupo "General" lo aporta PatientFVOSectionsClient (Datos personales),
+            justo debajo de este bloque, para no duplicar el rótulo. */}
+        <div className="py-3 border-b">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+            Identidad y contacto
+          </h3>
+          <div className="space-y-2 text-sm">
+            <Row label="ID paciente" value={<span className="font-mono text-xs">{identity.patientId}</span>} />
+            <Row label="Teléfono" value={identity.phone} />
+            <Row label="Correo" value={identity.email} />
+            <Row label="Fuente" value={identity.source} />
+            <Row label="Alta" value={fDate(identity.createdAt)} />
+            {identity.archivedAt && <Row label="Archivado" value={fDate(identity.archivedAt)} />}
           </div>
         </div>
 
