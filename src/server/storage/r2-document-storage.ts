@@ -15,12 +15,13 @@
 //   - Los errores de R2/S3 NUNCA se propagan tal cual: pueden contener el
 //     endpoint, el nombre del bucket o fragmentos de la petición firmada.
 //     Se traduce todo a un mensaje genérico y seguro.
-//   - No hay download, no hay signed URLs, no hay portal — solo escritura.
+//   - getObject lee bytes completos para que el dominio los sirva vía endpoint
+//     interno — no hay signed URLs, no hay redirect a R2, no hay portal.
 
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { ok, fail } from "../domain/shared/status.js";
 import type { Result } from "../domain/shared/status.js";
-import type { DocumentStorage, PutObjectInput } from "./document-storage.js";
+import type { DocumentStorage, GetObjectOutput, PutObjectInput } from "./document-storage.js";
 
 export interface R2StorageConfig {
   accountId: string;
@@ -70,6 +71,31 @@ export class R2DocumentStorage implements DocumentStorage {
         "BLOCKED",
         "No se pudo guardar el archivo en el almacenamiento seguro. No se creó ningún registro.",
       );
+    }
+  }
+
+  async getObject(storageKey: string): Promise<Result<GetObjectOutput>> {
+    try {
+      const response = await this.client.send(
+        new GetObjectCommand({ Bucket: this.bucketName, Key: storageKey }),
+      );
+      if (!response.Body) {
+        return fail("BLOCKED", "El almacenamiento no devolvió datos.");
+      }
+      const chunks: Buffer[] = [];
+      for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
+        chunks.push(Buffer.from(chunk));
+      }
+      const bytes = Buffer.concat(chunks);
+      return ok({
+        bytes,
+        contentType: response.ContentType ?? null,
+        contentLength: bytes.length,
+      });
+    } catch {
+      // No exponemos el error real: puede incluir endpoint, bucket, o
+      // fragmentos de la petición firmada. Mensaje genérico y seguro.
+      return fail("BLOCKED", "No se pudo leer el archivo del almacenamiento seguro.");
     }
   }
 

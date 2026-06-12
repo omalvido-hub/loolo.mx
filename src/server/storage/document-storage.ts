@@ -31,8 +31,21 @@ export interface PutObjectInput {
   mimeType: string;
 }
 
+export interface GetObjectOutput {
+  bytes: Buffer;
+  contentType: string | null;
+  contentLength: number;
+}
+
 export interface DocumentStorage {
   putObject(input: PutObjectInput): Promise<Result<void>>;
+  /**
+   * Lee un objeto del storage por su storageKey opaco. Devuelve los bytes
+   * completos — el dominio decide qué exponer al cliente (nunca el storageKey).
+   * NOT_FOUND si la clave no existe; BLOCKED si el storage falla o no está
+   * configurado.
+   */
+  getObject(storageKey: string): Promise<Result<GetObjectOutput>>;
   /**
    * Indica si este storage está listo para recibir archivos reales.
    * NO expone nombres de variables, credenciales ni detalles internos —
@@ -49,6 +62,18 @@ export class InMemoryDocumentStorage implements DocumentStorage {
   async putObject({ storageKey, body, mimeType }: PutObjectInput): Promise<Result<void>> {
     this.objects.set(storageKey, { body, mimeType });
     return ok(undefined);
+  }
+
+  async getObject(storageKey: string): Promise<Result<GetObjectOutput>> {
+    const entry = this.objects.get(storageKey);
+    if (!entry) {
+      return fail("NOT_FOUND", "El objeto no existe en el almacenamiento.");
+    }
+    return ok({
+      bytes: entry.body,
+      contentType: entry.mimeType,
+      contentLength: entry.body.length,
+    });
   }
 
   isConfigured(): boolean {
@@ -75,6 +100,13 @@ class UnconfiguredDocumentStorage implements DocumentStorage {
       "BLOCKED",
       "Almacenamiento de documentos no configurado todavía (faltan credenciales reales de S3/R2). " +
         "No se guardó ningún archivo ni se creó ningún registro.",
+    );
+  }
+
+  async getObject(): Promise<Result<GetObjectOutput>> {
+    return fail(
+      "BLOCKED",
+      "Almacenamiento de documentos no configurado todavía. No se puede descargar el archivo.",
     );
   }
 
