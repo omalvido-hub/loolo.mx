@@ -48,7 +48,7 @@ describe("1I-B — Reorganización visual de la ficha del paciente", () => {
   it('"Datos del paciente" es una tarjeta madre desplegable con identidad y secciones FVO', () => {
     expect(viewContent).toContain("PatientDisclosureSection");
     expect(viewContent).toContain('title="Datos del paciente"');
-    expect(viewContent).toContain('title="Identidad y contacto"');
+    expect(viewContent).toContain("Identidad y contacto");
     expect(viewContent).toContain("<PatientFVOSectionsClient");
   });
 
@@ -60,26 +60,23 @@ describe("1I-B — Reorganización visual de la ficha del paciente", () => {
     expect(sectionBefore).toBeLessThan(bitacoraIdx);
   });
 
-  it('"Detalle operativo" agrupa Planes, Presupuestos/Cobros y Documentos en page.tsx', () => {
-    const match = pageContent.match(/<PatientDisclosureSection[\s\S]*?<\/PatientDisclosureSection>/);
-    expect(match, "PatientDisclosureSection debe estar en la página").not.toBeNull();
-    const block = match![0];
-    expect(block).toContain('title="Detalle operativo"');
-    expect(block).toContain("<TreatmentPlansSectionClient");
-    expect(block).toContain("<QuotesSectionClient");
-    expect(block).toContain("<PatientDocumentsSection");
+  it('"Operación" agrupa Planes, Presupuestos/Cobros y Documentos en page.tsx (vía operationDetail)', () => {
+    expect(pageContent).toContain('title="Planes de tratamiento"');
+    expect(pageContent).toContain('title="Presupuestos y cobros"');
+    expect(pageContent).toContain('title="Documentos del paciente"');
+    expect(pageContent).toContain("<TreatmentPlansSectionClient");
+    expect(pageContent).toContain("<QuotesSectionClient");
+    expect(pageContent).toContain("<PatientDocumentsSection");
+    expect(pageContent).toContain("operationDetail={operationDetail}");
   });
 
-  it("PatientTimeline queda visible fuera de Detalle operativo", () => {
-    const detalleMatch = pageContent.match(/<PatientDisclosureSection[\s\S]*?<\/PatientDisclosureSection>/);
-    expect(detalleMatch).not.toBeNull();
-    expect(detalleMatch![0]).not.toContain("<PatientTimeline");
+  it("PatientTimeline se pasa como historyTimeline a PatientLiveRecordView", () => {
     expect(pageContent).toContain("<PatientTimeline");
+    expect(pageContent).toContain("historyTimeline={historyTimeline}");
   });
 
-  it("no se elimina información clave (resúmenes de plan/presupuesto, agenda, perfil clínico)", () => {
-    expect(viewContent).toContain('title="Resumen de plan de tratamiento"');
-    expect(viewContent).toContain('title="Resumen de presupuestos y cobros"');
+  it("no se elimina información clave (resumen de Operación, agenda, perfil clínico)", () => {
+    expect(viewContent).toContain('title="Operación"');
     expect(viewContent).toContain('title="Agenda"');
     expect(viewContent).toContain("<PatientClinicalProfileSection");
   });

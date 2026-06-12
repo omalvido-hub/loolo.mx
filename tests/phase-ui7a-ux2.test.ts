@@ -49,15 +49,13 @@ describe("UI-7A-UX2 — PatientLiveRecordView.tsx labels traducidos", () => {
     expect(content).not.toMatch(/label=\{status\}/);
   });
 
-  // Estado de ítems de tratamiento
-  it("tiene TREATMENT_ITEM_STATUS_LABELS con PROPOSED → propuestos", () => {
-    expect(content).toContain("TREATMENT_ITEM_STATUS_LABELS");
-    expect(content).toContain('PROPOSED: "propuestos"');
-  });
-
-  it("usa TREATMENT_ITEM_STATUS_LABELS en itemsByStatus (no muestra status.toLowerCase() crudo)", () => {
-    expect(content).toContain("TREATMENT_ITEM_STATUS_LABELS[status]");
+  // Estado de ítems de tratamiento — agregado en el resumen de "Operación" (1I-C)
+  it('itemsByStatus se agrega en "Ítems vivos / aceptados" (no muestra status crudo)', () => {
+    expect(content).toContain("treatment.itemsByStatus.PROPOSED");
+    expect(content).toContain("treatment.itemsByStatus.ACCEPTED");
+    expect(content).toContain('label="Ítems vivos / aceptados"');
     expect(content).not.toContain("`Ítems ${status.toLowerCase()}`");
+    expect(content).not.toMatch(/label=\{`Ítems \$\{status/);
   });
 });
 

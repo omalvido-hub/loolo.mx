@@ -58,9 +58,14 @@ export function OdontogramMasterSection({ view, patientId, activeEncounterId, ca
         </div>
       </SectionCard>
 
-      {/* Leyenda */}
+      {/* Leyenda — colapsada por default para no ocupar altura. */}
       <SectionCard title="Leyenda">
-        <OdontogramLegend />
+        <details>
+          <summary className="cursor-pointer text-sm text-muted-foreground">Ver leyenda</summary>
+          <div className="pt-2">
+            <OdontogramLegend />
+          </div>
+        </details>
       </SectionCard>
 
       {/* Panel de hallazgos activos */}

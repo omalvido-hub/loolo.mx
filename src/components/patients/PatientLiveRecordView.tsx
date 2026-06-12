@@ -140,15 +140,6 @@ const TOOTH_STATUS_LABELS: Record<string, string> = {
   ROOT_ONLY: "Solo raíz",
 };
 
-const TREATMENT_ITEM_STATUS_LABELS: Record<string, string> = {
-  PROPOSED: "propuestos",
-  ACCEPTED: "aceptados",
-  IN_PROGRESS: "en progreso",
-  COMPLETED: "completados",
-  REJECTED: "rechazados",
-  CANCELED: "cancelados",
-};
-
 const TIMELINE_LABELS: Record<string, string> = {
   "appointment.scheduled": "Cita agendada",
   "appointment.completed": "Cita completada",
@@ -171,10 +162,19 @@ interface Props {
   odontogramSection?: React.ReactNode;
   canCreateEncounter?: boolean;
   documentsCount?: number;
+  /** Detalle bajo demanda de "Operación": planes, presupuestos/cobros y documentos. */
+  operationDetail?: React.ReactNode;
+  /** Historial clínico cruzado (PatientTimeline), renderizado dentro de la ficha. */
+  historyTimeline?: React.ReactNode;
 }
 
-export function PatientLiveRecordView({ record, encounters, patientId, fvoPermissions, odontogramSection, canCreateEncounter, documentsCount }: Props) {
-  const { identity, operative, clinical, odontogramSummary, treatment, financial, tasks, timeline, recommendedActions, _meta } = record;
+export function PatientLiveRecordView({ record, encounters, patientId, fvoPermissions, odontogramSection, canCreateEncounter, documentsCount, operationDetail, historyTimeline }: Props) {
+  const { identity, operative, clinical, odontogramSummary, treatment, financial, tasks, timeline, recommendedActions } = record;
+
+  const itemsVivos = treatment
+    ? (treatment.itemsByStatus.PROPOSED ?? 0) + (treatment.itemsByStatus.ACCEPTED ?? 0) + (treatment.itemsByStatus.IN_PROGRESS ?? 0)
+    : 0;
+  const itemsAceptados = treatment?.itemsByStatus.ACCEPTED ?? 0;
 
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-6">
@@ -293,12 +293,14 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
               <Row label="Notas clínicas" value={clinical.notesCount} />
               <Row label="Última nota" value={fDate(clinical.lastNoteAt)} />
               {encounters !== undefined && patientId && (
-                <div className="pt-3 mt-1 border-t">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                    Consultas registradas
-                  </p>
-                  <EncounterList items={encounters} patientId={patientId} canCreate={canCreateEncounter} />
-                </div>
+                <details className="pt-3 mt-1 border-t">
+                  <summary className="cursor-pointer text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                    Ver todas las consultas
+                  </summary>
+                  <div className="pt-2">
+                    <EncounterList items={encounters} patientId={patientId} canCreate={canCreateEncounter} />
+                  </div>
+                </details>
               )}
             </SectionCard>
           )}
@@ -308,48 +310,6 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         <div className="space-y-4">
           {/* Odontograma vigente completo */}
           {odontogramSection}
-
-          {/* Resumen corto del plan — el módulo "Planes de tratamiento — detalle"
-              (en "Detalle operativo") tiene la lista completa de planes, ítems y acciones. */}
-          {treatment && (
-            <SectionCard
-              title="Resumen de plan de tratamiento"
-              badge="Resumen"
-              hint="Vista rápida. El detalle completo (planes, ítems y acciones) está en “Detalle operativo → Planes de tratamiento — detalle”."
-            >
-              <Row label="Planes registrados" value={treatment.plansCount} />
-              <Row label="Plan activo" value={treatment.activePlanId ? "Sí" : "No"} />
-              {Object.entries(treatment.itemsByStatus).map(([status, count]) => (
-                <Row key={status} label={`Ítems ${TREATMENT_ITEM_STATUS_LABELS[status] ?? status.toLowerCase()}`} value={count} />
-              ))}
-            </SectionCard>
-          )}
-
-          {/* Resumen corto de presupuestos/cobros — el módulo "Presupuestos y cobros — detalle"
-              (en "Detalle operativo") tiene las líneas, estados y registro de pagos. */}
-          {financial && (
-            <SectionCard
-              title="Resumen de presupuestos y cobros"
-              badge="Resumen"
-              hint="Vista rápida del saldo. El detalle completo (presupuestos, líneas y pagos) está en “Detalle operativo → Presupuestos y cobros — detalle”."
-            >
-              <Row label="Presupuestos" value={financial.quotesCount} />
-              <Row label="Total propuesto" value={fCents(financial.totalProposedCents)} />
-              <Row label="Total aceptado" value={fCents(financial.totalAcceptedCents)} />
-              <Row label="Pagado" value={fCents(financial.paidCents)} />
-              <Row
-                label="Saldo pendiente"
-                value={
-                  <span className={financial.balanceCents > 0 ? "text-destructive font-semibold" : ""}>
-                    {fCents(financial.balanceCents)}
-                  </span>
-                }
-              />
-              {financial.hasReversals && (
-                <p className="text-xs text-muted-foreground">Incluye reversiones de pago.</p>
-              )}
-            </SectionCard>
-          )}
 
           {/* Agenda */}
           <SectionCard title="Agenda">
@@ -395,9 +355,40 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         </div>
       </div>
 
+      {/* ── Operación: plan de tratamiento, presupuestos/cobros y documentos ───
+          Resumen siempre visible; detalle completo bajo demanda. ── */}
+
+      {(treatment || financial || documentsCount !== undefined) && (
+        <PatientDisclosureSection
+          title="Operación"
+          subtitle="Plan de tratamiento, presupuestos, cobros y documentos — resumen y detalle."
+          summary={
+            <>
+              {treatment && <Row label="Plan activo" value={treatment.activePlanId ? "Sí" : "No"} />}
+              {treatment && <Row label="Ítems vivos / aceptados" value={`${itemsVivos} / ${itemsAceptados}`} />}
+              {financial && <Row label="Presupuesto aceptado" value={fCents(financial.totalAcceptedCents)} />}
+              {financial && <Row label="Pagado" value={fCents(financial.paidCents)} />}
+              {financial && (
+                <Row
+                  label="Saldo"
+                  value={
+                    <span className={financial.balanceCents > 0 ? "text-destructive font-semibold" : ""}>
+                      {fCents(financial.balanceCents)}
+                    </span>
+                  }
+                />
+              )}
+              {documentsCount !== undefined && <Row label="Documentos" value={documentsCount} />}
+            </>
+          }
+        >
+          {operationDetail}
+        </PatientDisclosureSection>
+      )}
+
       {/* ── Datos del paciente: identidad, contacto y datos administrativos ───
           Tarjeta madre única, colapsada por default — resumen compacto siempre
-          visible; subsecciones internas (no tarjetas sueltas) al expandir. ── */}
+          visible; subsecciones internas compactas (no tarjetas sueltas) al expandir. ── */}
 
       <PatientDisclosureSection
         title="Datos del paciente"
@@ -432,17 +423,27 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
           </>
         }
       >
-        {/* Identidad */}
-        <SectionCard title="Identidad y contacto">
-          <Row label="ID paciente" value={<span className="font-mono text-xs">{identity.patientId}</span>} />
-          <Row label="Teléfono" value={identity.phone} />
-          <Row label="Correo" value={identity.email} />
-          <Row label="Fuente" value={identity.source} />
-          <Row label="Alta" value={fDate(identity.createdAt)} />
-          {identity.archivedAt && <Row label="Archivado" value={fDate(identity.archivedAt)} />}
-        </SectionCard>
+        {/* Identidad — bloque compacto, agrupado bajo "General" junto con datos personales (FVO). */}
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 pt-2 first:pt-0">
+            General
+          </p>
+          <div className="py-3 border-b">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+              Identidad y contacto
+            </h3>
+            <div className="space-y-2 text-sm">
+              <Row label="ID paciente" value={<span className="font-mono text-xs">{identity.patientId}</span>} />
+              <Row label="Teléfono" value={identity.phone} />
+              <Row label="Correo" value={identity.email} />
+              <Row label="Fuente" value={identity.source} />
+              <Row label="Alta" value={fDate(identity.createdAt)} />
+              {identity.archivedAt && <Row label="Archivado" value={fDate(identity.archivedAt)} />}
+            </div>
+          </div>
+        </div>
 
-        {/* Secciones extendidas FVO — datos personales, domicilio, tutor, contacto, fiscal, comercial, consentimiento */}
+        {/* Secciones extendidas FVO — datos personales, domicilio, tutor, contacto, fiscal, consentimiento, origen — en modo compacto */}
         <PatientFVOSectionsClient
           record={record}
           patientId={patientId ?? ""}
@@ -450,18 +451,23 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
           canAddGuardian={fvoPermissions?.canAddGuardian ?? false}
           canAddEmergencyContact={fvoPermissions?.canAddEmergencyContact ?? false}
           canManageConsent={fvoPermissions?.canManageConsent ?? false}
+          variant="compact"
         />
       </PatientDisclosureSection>
+
+      {/* ── Historial clínico: últimos eventos, con acceso al historial completo ── */}
+      {historyTimeline}
 
       {/* ── Bitácora de eventos: auditoría cronológica, fuera del flujo clínico ── */}
 
       {/* Bitácora de eventos del sistema (versionados) — resumen corto y reciente.
-          Distinta de "Historial clínico" (PatientTimeline, más abajo), que es el
+          Distinta de "Historial clínico" (PatientTimeline, más arriba), que es el
           cruce de actividad clínica: consultas, hallazgos, tratamientos y documentos. */}
       {timeline.length > 0 && (
         <PatientDisclosureSection
           title="Bitácora de eventos"
           subtitle="Los 20 eventos más recientes del sistema — auditoría, no forma parte del historial clínico."
+          tone="muted"
         >
           <ul className="space-y-2">
             {timeline.slice(0, 20).map((ev, i) => (
@@ -480,11 +486,6 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
           )}
         </PatientDisclosureSection>
       )}
-
-      {/* Metadatos de resolución */}
-      <p className="text-xs text-muted-foreground text-right">
-        Secciones visibles: {_meta.visibleSections.join(", ")} · Resuelto {fDatetime(_meta.resolvedAt)}
-      </p>
     </div>
   );
 }

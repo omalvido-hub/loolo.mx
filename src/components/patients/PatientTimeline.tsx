@@ -209,8 +209,39 @@ interface Props {
   documents: PatientDocumentSafeItem[];
 }
 
+function TimelineEntryItem({ entry }: { entry: TimelineEntry }) {
+  return (
+    <li className="flex items-start gap-3 px-4 py-2.5">
+      <span className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${CATEGORY_DOT[entry.category]}`} />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm font-medium text-foreground">{entry.title}</span>
+          {entry.statusLabel && (
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border bg-muted text-muted-foreground">
+              {entry.statusLabel}
+            </span>
+          )}
+          <span className="text-[10px] text-muted-foreground/70 uppercase tracking-wide">
+            {CATEGORY_LABEL[entry.category]}
+          </span>
+        </div>
+        {entry.lines.map((line, i) => (
+          <p key={i} className="text-xs text-muted-foreground mt-0.5 truncate">{line}</p>
+        ))}
+      </div>
+      <span className="text-[11px] text-muted-foreground whitespace-nowrap mt-0.5">
+        {fDateTime(entry.date)}
+      </span>
+    </li>
+  );
+}
+
+const VISIBLE_ENTRIES = 5;
+
 export function PatientTimeline({ encounters, findings, treatmentPlans, documents }: Props) {
   const entries = buildTimeline(encounters, findings, treatmentPlans, documents);
+  const visible = entries.slice(0, VISIBLE_ENTRIES);
+  const rest = entries.slice(VISIBLE_ENTRIES);
 
   return (
     <section className="rounded-xl border bg-card">
@@ -226,32 +257,25 @@ export function PatientTimeline({ encounters, findings, treatmentPlans, document
           Sin historial clínico registrado.
         </p>
       ) : (
-        <ol className="divide-y">
-          {entries.map((entry) => (
-            <li key={entry.id} className="flex items-start gap-3 px-4 py-2.5">
-              <span className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${CATEGORY_DOT[entry.category]}`} />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-foreground">{entry.title}</span>
-                  {entry.statusLabel && (
-                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border bg-muted text-muted-foreground">
-                      {entry.statusLabel}
-                    </span>
-                  )}
-                  <span className="text-[10px] text-muted-foreground/70 uppercase tracking-wide">
-                    {CATEGORY_LABEL[entry.category]}
-                  </span>
-                </div>
-                {entry.lines.map((line, i) => (
-                  <p key={i} className="text-xs text-muted-foreground mt-0.5 truncate">{line}</p>
+        <>
+          <ol className="divide-y">
+            {visible.map((entry) => (
+              <TimelineEntryItem key={entry.id} entry={entry} />
+            ))}
+          </ol>
+          {rest.length > 0 && (
+            <details className="border-t">
+              <summary className="cursor-pointer text-xs text-muted-foreground px-4 py-2.5">
+                Ver historial completo ({rest.length} más)
+              </summary>
+              <ol className="divide-y border-t">
+                {rest.map((entry) => (
+                  <TimelineEntryItem key={entry.id} entry={entry} />
                 ))}
-              </div>
-              <span className="text-[11px] text-muted-foreground whitespace-nowrap mt-0.5">
-                {fDateTime(entry.date)}
-              </span>
-            </li>
-          ))}
-        </ol>
+              </ol>
+            </details>
+          )}
+        </>
       )}
     </section>
   );

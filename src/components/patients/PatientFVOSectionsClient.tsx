@@ -83,9 +83,22 @@ interface SectionCardProps {
   children: React.ReactNode;
   accent?: "red" | "default";
   headerAction?: React.ReactNode;
+  /** "compact" — bloque ligero con divisor inferior, sin tarjeta propia. Para "Datos del paciente". */
+  variant?: "default" | "compact";
 }
 
-function SectionCard({ title, children, accent = "default", headerAction }: SectionCardProps) {
+function SectionCard({ title, children, accent = "default", headerAction, variant = "default" }: SectionCardProps) {
+  if (variant === "compact") {
+    return (
+      <div className="py-3 border-b last:border-b-0">
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</h3>
+          {headerAction}
+        </div>
+        <div className="space-y-2 text-sm">{children}</div>
+      </div>
+    );
+  }
   return (
     <div className={`rounded-xl border text-sm overflow-hidden ${
       accent === "red"
@@ -102,6 +115,15 @@ function SectionCard({ title, children, accent = "default", headerAction }: Sect
       </div>
       <div className="px-4 py-4 space-y-2">{children}</div>
     </div>
+  );
+}
+
+/** Etiqueta de subgrupo — solo en variant="compact", para organizar "Datos del paciente". */
+function GroupLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 pt-2 first:pt-0">
+      {children}
+    </p>
   );
 }
 
@@ -301,6 +323,8 @@ interface Props {
   canAddGuardian?: boolean;
   canAddEmergencyContact?: boolean;
   canManageConsent?: boolean;
+  /** "compact" — renderiza cada subsección como bloque ligero con divisor, agrupado por temas. Para "Datos del paciente". */
+  variant?: "default" | "compact";
 }
 
 // ── Componente principal ───────────────────────────────────────────────────────
@@ -312,6 +336,7 @@ export function PatientFVOSectionsClient({
   canAddGuardian = false,
   canAddEmergencyContact = false,
   canManageConsent = false,
+  variant = "default",
 }: Props) {
   const {
     demographics,
@@ -569,16 +594,19 @@ export function PatientFVOSectionsClient({
     <>
       {/* Datos personales */}
       {demographics !== undefined && (
-        <SectionCard
-          title="Datos personales"
-          headerAction={
-            canEditDemographics && !editDemographics ? (
-              <Button size="sm" variant="outline" onClick={handleEditDemographics}>
-                Editar
-              </Button>
-            ) : undefined
-          }
-        >
+        <>
+          {variant === "compact" && <GroupLabel>General</GroupLabel>}
+          <SectionCard
+            title="Datos personales"
+            variant={variant}
+            headerAction={
+              canEditDemographics && !editDemographics ? (
+                <Button size="sm" variant="outline" onClick={handleEditDemographics}>
+                  Editar
+                </Button>
+              ) : undefined
+            }
+          >
           {editDemographics ? (
             <div className="space-y-3">
               <FormRow label="Fecha de nacimiento">
@@ -680,21 +708,25 @@ export function PatientFVOSectionsClient({
               <Row label="Estado civil" value={demographics.maritalStatus ? (MARITAL_LABELS[demographics.maritalStatus] ?? demographics.maritalStatus) : "—"} />
             </>
           )}
-        </SectionCard>
+          </SectionCard>
+        </>
       )}
 
       {/* Domicilio */}
       {(address != null || canEditDemographics) && (
-        <SectionCard
-          title="Domicilio"
-          headerAction={
-            canEditDemographics && !editAddress ? (
-              <Button size="sm" variant="outline" onClick={handleEditAddress}>
-                {address ? "Editar" : "Agregar"}
-              </Button>
-            ) : undefined
-          }
-        >
+        <>
+          {variant === "compact" && <GroupLabel>Domicilio</GroupLabel>}
+          <SectionCard
+            title="Domicilio"
+            variant={variant}
+            headerAction={
+              canEditDemographics && !editAddress ? (
+                <Button size="sm" variant="outline" onClick={handleEditAddress}>
+                  {address ? "Editar" : "Agregar"}
+                </Button>
+              ) : undefined
+            }
+          >
           {editAddress ? (
             <div className="space-y-3">
               <FormRow label="Calle">
@@ -788,21 +820,25 @@ export function PatientFVOSectionsClient({
           ) : (
             <p className="text-sm text-muted-foreground">Sin datos de domicilio registrados.</p>
           )}
-        </SectionCard>
+          </SectionCard>
+        </>
       )}
 
       {/* Tutor / Responsable */}
       {(guardian !== undefined || canAddGuardian) && (
-        <SectionCard
-          title="Tutor / Responsable"
-          headerAction={
-            canAddGuardian && !addingGuardian ? (
-              <Button size="sm" variant="outline" onClick={handleOpenAddGuardian}>
-                Agregar tutor
-              </Button>
-            ) : undefined
-          }
-        >
+        <>
+          {variant === "compact" && <GroupLabel>Contactos</GroupLabel>}
+          <SectionCard
+            title="Tutor / Responsable"
+            variant={variant}
+            headerAction={
+              canAddGuardian && !addingGuardian ? (
+                <Button size="sm" variant="outline" onClick={handleOpenAddGuardian}>
+                  Agregar tutor
+                </Button>
+              ) : undefined
+            }
+          >
           {guardian && (
             <div className="space-y-2 mb-2">
               <Row label="Nombre" value={guardian.name} />
@@ -870,13 +906,15 @@ export function PatientFVOSectionsClient({
           {!guardian && !addingGuardian && (
             <p className="text-sm text-muted-foreground">Sin tutor o responsable registrado.</p>
           )}
-        </SectionCard>
+          </SectionCard>
+        </>
       )}
 
       {/* Contacto de emergencia */}
       {(emergencyContact !== undefined || canAddEmergencyContact) && (
         <SectionCard
           title="Contacto de emergencia"
+          variant={variant}
           headerAction={
             canAddEmergencyContact && !addingEmergency ? (
               <Button size="sm" variant="outline" onClick={handleOpenAddEmergency}>
@@ -940,92 +978,23 @@ export function PatientFVOSectionsClient({
 
       {/* Datos fiscales — solo lectura hasta UI-7B */}
       {tax && (
-        <SectionCard title="Datos fiscales">
-          <Row label="RFC" value={tax.rfc ? <span className="font-mono">{tax.rfc}</span> : "—"} />
-          <Row label="Razón social" value={tax.legalName} />
-          <Row label="Régimen fiscal" value={tax.taxRegime} />
-          <Row label="Uso CFDI" value={tax.cfdiUse} />
-          <Row label="CP fiscal" value={tax.taxPostalCode} />
-        </SectionCard>
-      )}
-
-      {/* Origen comercial */}
-      {(commercialOrigin != null || canEditDemographics) && (
-        <SectionCard
-          title="Origen comercial"
-          headerAction={
-            canEditDemographics && !editCommercial ? (
-              <Button size="sm" variant="outline" onClick={handleEditCommercial}>
-                {commercialOrigin ? "Editar" : "Agregar"}
-              </Button>
-            ) : undefined
-          }
-        >
-          {editCommercial ? (
-            <div className="space-y-3">
-              <FormRow label="Canal">
-                <SelectNative
-                  value={commercialForm.channel}
-                  onChange={(v) => setCommercialForm((f) => ({ ...f, channel: v }))}
-                  disabled={commercialPending}
-                >
-                  <option value="">— Sin especificar —</option>
-                  <option value="WHATSAPP">WhatsApp</option>
-                  <option value="INSTAGRAM">Instagram</option>
-                  <option value="REFERRAL">Referido</option>
-                  <option value="WALK_IN">Llegada directa</option>
-                  <option value="WEB">Web</option>
-                  <option value="OTHER">Otro</option>
-                </SelectNative>
-              </FormRow>
-              <FormRow label="Campaña">
-                <Input
-                  value={commercialForm.campaign}
-                  onChange={(e) => setCommercialForm((f) => ({ ...f, campaign: e.target.value }))}
-                  disabled={commercialPending}
-                />
-              </FormRow>
-              <FormRow label="Referido por">
-                <Input
-                  value={commercialForm.referredBy}
-                  onChange={(e) => setCommercialForm((f) => ({ ...f, referredBy: e.target.value }))}
-                  disabled={commercialPending}
-                />
-              </FormRow>
-              <FormRow label="Motivo inicial">
-                <Input
-                  value={commercialForm.initialReason}
-                  onChange={(e) => setCommercialForm((f) => ({ ...f, initialReason: e.target.value }))}
-                  disabled={commercialPending}
-                  placeholder="¿Por qué eligió la clínica?"
-                />
-              </FormRow>
-              <InlineError msg={commercialError} />
-              <FormActions
-                onSave={handleSaveCommercial}
-                onCancel={() => { setEditCommercial(false); setCommercialError(null); }}
-                pending={commercialPending}
-              />
-            </div>
-          ) : commercialOrigin ? (
-            <>
-              <Row
-                label="Canal"
-                value={commercialOrigin.channel ? (CHANNEL_LABELS[commercialOrigin.channel] ?? commercialOrigin.channel) : "—"}
-              />
-              <Row label="Campaña" value={commercialOrigin.campaign} />
-              <Row label="Referido por" value={commercialOrigin.referredBy} />
-              <Row label="Motivo inicial" value={commercialOrigin.initialReason} />
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground">Sin origen comercial registrado.</p>
-          )}
-        </SectionCard>
+        <>
+          {variant === "compact" && <GroupLabel>Fiscal</GroupLabel>}
+          <SectionCard title="Datos fiscales" variant={variant}>
+            <Row label="RFC" value={tax.rfc ? <span className="font-mono">{tax.rfc}</span> : "—"} />
+            <Row label="Razón social" value={tax.legalName} />
+            <Row label="Régimen fiscal" value={tax.taxRegime} />
+            <Row label="Uso CFDI" value={tax.cfdiUse} />
+            <Row label="CP fiscal" value={tax.taxPostalCode} />
+          </SectionCard>
+        </>
       )}
 
       {/* Consentimiento de datos */}
       {(consent !== undefined || canManageConsent) && (
-        <SectionCard title="Consentimiento de datos">
+        <>
+          {variant === "compact" && <GroupLabel>Consentimiento</GroupLabel>}
+          <SectionCard title="Consentimiento de datos" variant={variant}>
           {consent && (
             <div className="space-y-2">
               <Row
@@ -1153,7 +1122,86 @@ export function PatientFVOSectionsClient({
               <InlineError msg={consentError} />
             </div>
           )}
-        </SectionCard>
+          </SectionCard>
+        </>
+      )}
+
+      {/* Origen comercial */}
+      {(commercialOrigin != null || canEditDemographics) && (
+        <>
+          {variant === "compact" && <GroupLabel>Origen</GroupLabel>}
+          <SectionCard
+            title="Origen comercial"
+            variant={variant}
+            headerAction={
+              canEditDemographics && !editCommercial ? (
+                <Button size="sm" variant="outline" onClick={handleEditCommercial}>
+                  {commercialOrigin ? "Editar" : "Agregar"}
+                </Button>
+              ) : undefined
+            }
+          >
+          {editCommercial ? (
+            <div className="space-y-3">
+              <FormRow label="Canal">
+                <SelectNative
+                  value={commercialForm.channel}
+                  onChange={(v) => setCommercialForm((f) => ({ ...f, channel: v }))}
+                  disabled={commercialPending}
+                >
+                  <option value="">— Sin especificar —</option>
+                  <option value="WHATSAPP">WhatsApp</option>
+                  <option value="INSTAGRAM">Instagram</option>
+                  <option value="REFERRAL">Referido</option>
+                  <option value="WALK_IN">Llegada directa</option>
+                  <option value="WEB">Web</option>
+                  <option value="OTHER">Otro</option>
+                </SelectNative>
+              </FormRow>
+              <FormRow label="Campaña">
+                <Input
+                  value={commercialForm.campaign}
+                  onChange={(e) => setCommercialForm((f) => ({ ...f, campaign: e.target.value }))}
+                  disabled={commercialPending}
+                />
+              </FormRow>
+              <FormRow label="Referido por">
+                <Input
+                  value={commercialForm.referredBy}
+                  onChange={(e) => setCommercialForm((f) => ({ ...f, referredBy: e.target.value }))}
+                  disabled={commercialPending}
+                />
+              </FormRow>
+              <FormRow label="Motivo inicial">
+                <Input
+                  value={commercialForm.initialReason}
+                  onChange={(e) => setCommercialForm((f) => ({ ...f, initialReason: e.target.value }))}
+                  disabled={commercialPending}
+                  placeholder="¿Por qué eligió la clínica?"
+                />
+              </FormRow>
+              <InlineError msg={commercialError} />
+              <FormActions
+                onSave={handleSaveCommercial}
+                onCancel={() => { setEditCommercial(false); setCommercialError(null); }}
+                pending={commercialPending}
+              />
+            </div>
+          ) : commercialOrigin ? (
+            <>
+              <Row
+                label="Canal"
+                value={commercialOrigin.channel ? (CHANNEL_LABELS[commercialOrigin.channel] ?? commercialOrigin.channel) : "—"}
+              />
+              <Row label="Campaña" value={commercialOrigin.campaign} />
+              <Row label="Referido por" value={commercialOrigin.referredBy} />
+              <Row label="Motivo inicial" value={commercialOrigin.initialReason} />
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">Sin origen comercial registrado.</p>
+          )}
+          </SectionCard>
+        </>
       )}
     </>
   );
