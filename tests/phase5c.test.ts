@@ -134,6 +134,39 @@ describe("addItem — vinculación con hallazgo según lifecycleStatus (1G-A)", 
     await expect(runA((e) => addItem(e, clinicianCtxA, { planId, procedureType: "RESTORATION", toothFdi: 18, surface: "OCCLUSAL", linkedFindingId: voided.findingId }))).rejects.toBeInstanceOf(CoherenceError);
   });
 
+  it("mismo linkedFindingId en un segundo ítem abierto → CoherenceError", async () => {
+    const fnd = await newFinding(31);
+    const { planId: plan1 } = await mkPlan();
+    const it1 = await runA((e) => addItem(e, clinicianCtxA, { planId: plan1, procedureType: "RESTORATION", toothFdi: 31, surface: "OCCLUSAL", linkedFindingId: fnd.findingId }));
+    expect(it1.itemId).toBeTruthy();
+
+    const { planId: plan2 } = await mkPlan();
+    await expect(runA((e) => addItem(e, clinicianCtxA, { planId: plan2, procedureType: "RESTORATION", toothFdi: 31, surface: "OCCLUSAL", linkedFindingId: fnd.findingId }))).rejects.toBeInstanceOf(CoherenceError);
+  });
+
+  it("linkedFindingId liberado tras cancelar el ítem previo → permite replanificar", async () => {
+    const fnd = await newFinding(32);
+    const { planId: plan1 } = await mkPlan();
+    const it1 = await runA((e) => addItem(e, clinicianCtxA, { planId: plan1, procedureType: "RESTORATION", toothFdi: 32, surface: "OCCLUSAL", linkedFindingId: fnd.findingId }));
+    await runA((e) => setItemStatus(e, clinicianCtxA, it1.itemId, "CANCELED"));
+
+    const { planId: plan2 } = await mkPlan();
+    const it2 = await runA((e) => addItem(e, clinicianCtxA, { planId: plan2, procedureType: "RESTORATION", toothFdi: 32, surface: "OCCLUSAL", linkedFindingId: fnd.findingId }));
+    expect(it2.itemId).toBeTruthy();
+  });
+
+  it("linkedFindingId liberado tras cancelar el plan previo → permite replanificar", async () => {
+    const fnd = await newFinding(33);
+    const { planId: plan1 } = await mkPlan();
+    const it1 = await runA((e) => addItem(e, clinicianCtxA, { planId: plan1, procedureType: "RESTORATION", toothFdi: 33, surface: "OCCLUSAL", linkedFindingId: fnd.findingId }));
+    expect(it1.itemId).toBeTruthy();
+    await runA((e) => setPlanStatus(e, clinicianCtxA, plan1, "CANCELED"));
+
+    const { planId: plan2 } = await mkPlan();
+    const it2 = await runA((e) => addItem(e, clinicianCtxA, { planId: plan2, procedureType: "RESTORATION", toothFdi: 33, surface: "OCCLUSAL", linkedFindingId: fnd.findingId }));
+    expect(it2.itemId).toBeTruthy();
+  });
+
   it("hallazgo de otro paciente/tenant → OrgRefError", async () => {
     const encB = await forTenantPg(orgB, async (c) => {
       const ctxB = await member(orgB, "clinician");

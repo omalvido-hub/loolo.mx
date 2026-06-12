@@ -87,6 +87,19 @@ export async function addItem(exec: Exec, ctx: ActorContext, raw: unknown) {
     // Solo hallazgos vigentes (1G-A) — un hallazgo ya tratado/resuelto/controlado/anulado
     // no debe poder vincularse a un nuevo ítem de plan.
     if (!LINKABLE_FINDING_STATUS.has(fnd.lifecycleStatus)) throw new CoherenceError("El hallazgo no está en un estado vinculable a un tratamiento (debe estar ACTIVE u OBSERVATION).");
+    // Anti-duplicado en dominio (1G-A2): el mismo hallazgo no puede quedar
+    // vinculado a dos ítems abiertos a la vez. Un ítem/plan terminal
+    // (COMPLETED/REJECTED/CANCELED) libera el hallazgo para replanificarse.
+    const dup = (await exec(
+      `SELECT 1 FROM "treatment_plan_items" tpi
+         JOIN "treatment_plans" tp ON tp."id" = tpi."planId"
+        WHERE tpi."linkedFindingId" = $1
+          AND tpi."status" <> ALL($2)
+          AND tp."status" <> ALL($3)
+        LIMIT 1`,
+      [input.linkedFindingId, Array.from(ITEM_TERMINAL), Array.from(PLAN_TERMINAL)],
+    ))[0];
+    if (dup) throw new CoherenceError("Este hallazgo ya está vinculado a un tratamiento en curso.");
   }
   const id = (await exec(
     `INSERT INTO "treatment_plan_items"
