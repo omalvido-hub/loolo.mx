@@ -8,8 +8,13 @@ import { z } from "zod";
 const AppointmentSummarySchema = z.object({
   id: z.string().uuid(),
   startAt: z.string().datetime(),
+  endAt: z.string().datetime().nullable().optional(),
   status: z.string(),
   reason: z.string().nullable().optional(),
+  professionalResourceId: z.string().uuid().nullable().optional(),
+  chairResourceId: z.string().uuid().nullable().optional(),
+  professionalName: z.string().nullable().optional(),
+  chairName: z.string().nullable().optional(),
 });
 
 export const IdentitySectionSchema = z.object({

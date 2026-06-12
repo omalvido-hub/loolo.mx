@@ -120,7 +120,12 @@ function buildTimeline(
   return events;
 }
 
-async function fetchOperative(exec: Exec, patientId: string, contactId: string): Promise<{
+async function fetchOperative(
+  exec: Exec,
+  patientId: string,
+  contactId: string,
+  includeResourceNames: boolean,
+): Promise<{
   appointments: any[];
   nextAppointment: any | null;
   lastAppointment: any | null;
@@ -131,12 +136,23 @@ async function fetchOperative(exec: Exec, patientId: string, contactId: string):
   const now = new Date();
 
   const allAppts: any[] = await exec(
-    `SELECT "id", "startAt", "endAt", "status", "reason", "completedAt", "canceledAt", "createdAt"
-     FROM "appointments"
-     WHERE "patientId"=$1
-     ORDER BY "startAt" ASC`,
+    `SELECT a."id", a."startAt", a."endAt", a."status", a."reason", a."completedAt", a."canceledAt", a."createdAt",
+            a."professionalResourceId", a."chairResourceId",
+            pr."name" AS "professionalName", cr."name" AS "chairName"
+     FROM "appointments" a
+     LEFT JOIN "resources" pr ON pr."id" = a."professionalResourceId"
+     LEFT JOIN "resources" cr ON cr."id" = a."chairResourceId"
+     WHERE a."patientId"=$1
+     ORDER BY a."startAt" ASC`,
     [patientId],
   );
+
+  if (!includeResourceNames) {
+    for (const a of allAppts) {
+      a.professionalName = null;
+      a.chairName = null;
+    }
+  }
 
   const futureScheduled = allAppts.filter((a) => a.status === "SCHEDULED" && new Date(a.startAt) >= now);
   const past = allAppts.filter((a) => new Date(a.startAt) < now).sort(
@@ -244,13 +260,34 @@ export async function resolvePatientLiveRecord(
     };
 
     // — operative
-    const op = await fetchOperative(exec, patientId, patient.contactId);
+    const includeResourceNames = can(ctx.permissions, "resources.view");
+    const op = await fetchOperative(exec, patientId, patient.contactId, includeResourceNames);
     const operative = {
       nextAppointment: op.nextAppointment
-        ? { id: op.nextAppointment.id, startAt: toIso(op.nextAppointment.startAt) ?? "", status: op.nextAppointment.status, reason: op.nextAppointment.reason ?? null }
+        ? {
+            id: op.nextAppointment.id,
+            startAt: toIso(op.nextAppointment.startAt) ?? "",
+            endAt: toIso(op.nextAppointment.endAt),
+            status: op.nextAppointment.status,
+            reason: op.nextAppointment.reason ?? null,
+            professionalResourceId: op.nextAppointment.professionalResourceId ?? null,
+            chairResourceId: op.nextAppointment.chairResourceId ?? null,
+            professionalName: op.nextAppointment.professionalName ?? null,
+            chairName: op.nextAppointment.chairName ?? null,
+          }
         : null,
       lastAppointment: op.lastAppointment
-        ? { id: op.lastAppointment.id, startAt: toIso(op.lastAppointment.startAt) ?? "", status: op.lastAppointment.status, reason: op.lastAppointment.reason ?? null }
+        ? {
+            id: op.lastAppointment.id,
+            startAt: toIso(op.lastAppointment.startAt) ?? "",
+            endAt: toIso(op.lastAppointment.endAt),
+            status: op.lastAppointment.status,
+            reason: op.lastAppointment.reason ?? null,
+            professionalResourceId: op.lastAppointment.professionalResourceId ?? null,
+            chairResourceId: op.lastAppointment.chairResourceId ?? null,
+            professionalName: op.lastAppointment.professionalName ?? null,
+            chairName: op.lastAppointment.chairName ?? null,
+          }
         : null,
       openConversationsCount: op.openConversationsCount,
       openTasksCount: op.openTasksCount,
