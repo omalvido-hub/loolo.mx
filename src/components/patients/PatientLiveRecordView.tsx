@@ -254,33 +254,33 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
           (mini-métricas) + Atención de hoy, todo dentro de la misma tarjeta. ── */}
       <div className="rounded-xl border bg-card ring-1 ring-foreground/10 overflow-hidden">
         <div className="p-3 md:p-4 space-y-3">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:items-start gap-3">
             {/* Identidad */}
             <div className="flex items-start gap-3 min-w-0">
               <span className="flex items-center justify-center size-10 shrink-0 rounded-full bg-primary/10 text-primary font-semibold text-base ring-2 ring-background">
                 {initials(identity.fullName)}
               </span>
               <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-xl font-bold">
+                <div className="flex items-center gap-2 flex-wrap min-w-0">
+                  <h1 className="text-xl font-bold truncate min-w-0">
                     {identity.fullName ?? <span className="text-muted-foreground italic">Sin nombre</span>}
                   </h1>
                   <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0 ${
                       PATIENT_STATUS_BADGE_CLASS[identity.patientStatus] ?? "bg-muted text-muted-foreground"
                     }`}
                   >
                     {PATIENT_STATUS_LABELS[identity.patientStatus] ?? identity.patientStatus}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground mt-0.5">
+                <p className="text-sm text-muted-foreground mt-0.5 truncate">
                   {identity.phone ?? "Sin teléfono"}{identity.email ? ` · ${identity.email}` : ""}
                 </p>
               </div>
             </div>
 
             {/* Resumen operativo: mini-métricas en retícula, no una línea que se rompe */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 lg:w-auto lg:shrink-0">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 min-w-0">
               <MiniStat
                 label="Próxima cita"
                 value={
