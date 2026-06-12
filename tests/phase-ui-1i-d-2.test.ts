@@ -91,12 +91,11 @@ describe("1I-D-2 — Rediseño visual completo (prueba del niño)", () => {
     expect(odontoIdx).toBeLessThan(consultasIdx);
   });
 
-  it("OdontogramMasterSection divide internamente Diagrama dental (más ancho) y Hallazgos activos en una retícula 7/5", () => {
-    expect(odontogramContent).toContain("grid-cols-1 lg:grid-cols-[7fr_5fr]");
-    const gridIdx = odontogramContent.indexOf("grid-cols-1 lg:grid-cols-[7fr_5fr]");
+  it("OdontogramMasterSection coloca Diagrama dental a ancho completo y Hallazgos activos debajo (1I-D-2F)", () => {
+    expect(odontogramContent).not.toContain("grid-cols-1 lg:grid-cols-[7fr_5fr]");
     const diagramaIdx = odontogramContent.indexOf('title="Diagrama dental"');
     const hallazgosIdx = odontogramContent.indexOf('title="Hallazgos activos"');
-    expect(gridIdx).toBeLessThan(diagramaIdx);
+    expect(diagramaIdx).toBeGreaterThan(-1);
     expect(diagramaIdx).toBeLessThan(hallazgosIdx);
   });
 

@@ -49,51 +49,49 @@ export function OdontogramMasterSection({ view, patientId, activeEncounterId, ca
         </p>
       </div>
 
-      {/* Diagrama dental (más ancho) + Hallazgos activos (lista lateral), retícula 7/5 en desktop */}
-      <div className="grid grid-cols-1 lg:grid-cols-[7fr_5fr] gap-4 items-start">
-        {/* Diagrama dental interactivo, con leyenda colapsada dentro de la misma tarjeta */}
-        <SectionCard title="Diagrama dental">
-          <div className="overflow-x-auto pb-2">
-            <div className="w-max">
-              <OdontogramChartInteractive
-                teeth={teeth}
-                patientId={patientId}
-                activeEncounterId={activeEncounterId}
-                canVoid={canVoid}
-                canActOnFindings={canActOnFindings}
-              />
-            </div>
+      {/* Diagrama dental a ancho completo (todas las piezas visibles sin scroll
+          en desktop), con leyenda colapsada dentro de la misma tarjeta */}
+      <SectionCard title="Diagrama dental">
+        <div className="overflow-x-auto pb-2">
+          <div className="w-max">
+            <OdontogramChartInteractive
+              teeth={teeth}
+              patientId={patientId}
+              activeEncounterId={activeEncounterId}
+              canVoid={canVoid}
+              canActOnFindings={canActOnFindings}
+            />
           </div>
+        </div>
 
-          <details className="mt-3 pt-3 border-t">
-            <summary className="cursor-pointer text-sm text-muted-foreground">Ver leyenda</summary>
-            <div className="pt-2">
-              <OdontogramLegend />
-            </div>
-          </details>
-        </SectionCard>
+        <details className="mt-3 pt-3 border-t">
+          <summary className="cursor-pointer text-sm text-muted-foreground">Ver leyenda</summary>
+          <div className="pt-2">
+            <OdontogramLegend />
+          </div>
+        </details>
+      </SectionCard>
 
-        {/* Panel de hallazgos activos — máximo VISIBLE_FINDINGS por default */}
-        <SectionCard title="Hallazgos activos">
-          {findingsPanel.length === 0 ? (
-            <OdontogramEmpty />
-          ) : (
-            <>
-              <FindingsPanel findings={visibleFindings} patientId={patientId} title="" />
-              {restFindings.length > 0 && (
-                <details className="mt-2 pt-2 border-t">
-                  <summary className="cursor-pointer text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Ver todos los hallazgos ({findingsPanel.length})
-                  </summary>
-                  <div className="pt-2">
-                    <FindingsPanel findings={restFindings} patientId={patientId} title="" />
-                  </div>
-                </details>
-              )}
-            </>
-          )}
-        </SectionCard>
-      </div>
+      {/* Hallazgos activos — debajo del diagrama, ancho completo, máximo VISIBLE_FINDINGS por default */}
+      <SectionCard title="Hallazgos activos">
+        {findingsPanel.length === 0 ? (
+          <OdontogramEmpty />
+        ) : (
+          <>
+            <FindingsPanel findings={visibleFindings} patientId={patientId} title="" />
+            {restFindings.length > 0 && (
+              <details className="mt-2 pt-2 border-t">
+                <summary className="cursor-pointer text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Ver todos los hallazgos ({findingsPanel.length})
+                </summary>
+                <div className="pt-2">
+                  <FindingsPanel findings={restFindings} patientId={patientId} title="" />
+                </div>
+              </details>
+            )}
+          </>
+        )}
+      </SectionCard>
     </div>
   );
 }
