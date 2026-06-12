@@ -49,6 +49,20 @@ export const UpsertAddressZ = z.object({
 });
 export type UpsertAddressInput = z.infer<typeof UpsertAddressZ>;
 
+// ── patient_insurance ─────────────────────────────────────────────────────────
+
+export const UpsertPatientInsuranceZ = z.object({
+  hasInsurance:     z.boolean().optional().default(false),
+  providerName:     z.string().max(200).nullable().optional(),
+  policyNumber:     z.string().max(100).nullable().optional(),
+  policyholderName: z.string().max(200).nullable().optional(),
+  planName:         z.string().max(200).nullable().optional(),
+  validFrom:        z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato YYYY-MM-DD requerido").nullable().optional(),
+  validUntil:       z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato YYYY-MM-DD requerido").nullable().optional(),
+  notes:            z.string().max(1000).nullable().optional(),
+});
+export type UpsertPatientInsuranceInput = z.infer<typeof UpsertPatientInsuranceZ>;
+
 // ── patient_commercial_origin ─────────────────────────────────────────────────
 
 const CHANNELS = ["WHATSAPP", "INSTAGRAM", "REFERRAL", "WALK_IN", "WEB", "OTHER"] as const;

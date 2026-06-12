@@ -11,6 +11,7 @@ import { makeTenantRunner } from "@/server/db/tenant";
 import {
   upsertDemographics,
   upsertAddress,
+  upsertInsurance,
   upsertCommercialOrigin,
   upsertClinicalProfile,
   createMedicalAlert,
@@ -68,6 +69,25 @@ export async function upsertAddressAction(
       return { ok: false, error: "Sesión expirada. Recarga la página." };
     }
     return { ok: false, error: e?.message ?? "Error al guardar domicilio." };
+  }
+}
+
+// ── Cobertura / aseguradora ───────────────────────────────────────────────────
+
+export async function upsertInsuranceAction(
+  patientId: string,
+  data: unknown,
+): Promise<ActionResult<{ insuranceId: string }>> {
+  try {
+    const { ctx, run } = await getCtx();
+    const result = await run((exec) => upsertInsurance(exec, ctx, patientId, data));
+    revalidatePath(`/pacientes/${patientId}`);
+    return { ok: true, data: result };
+  } catch (e: any) {
+    if (e instanceof UnauthorizedError || e instanceof NoOrganizationError) {
+      return { ok: false, error: "Sesión expirada. Recarga la página." };
+    }
+    return { ok: false, error: e?.message ?? "Error al guardar datos de aseguradora." };
   }
 }
 

@@ -14,6 +14,7 @@ import type { PatientLiveRecord } from "./schemas.js";
 import {
   fetchDemographicsSection,
   fetchAddressSection,
+  fetchInsuranceSection,
   fetchGuardianSection,
   fetchEmergencyContactSection,
   fetchCommercialOriginSection,
@@ -407,6 +408,7 @@ export async function resolvePatientLiveRecord(
     // y bandera de alerta médica → patient.demographics.view
     let demographics: any = undefined;
     let address: any = undefined;
+    let insurance: any = undefined;
     let guardian: any = undefined;
     let emergencyContact: any = undefined;
     let commercialOrigin: any = undefined;
@@ -416,6 +418,7 @@ export async function resolvePatientLiveRecord(
     if (can(ctx.permissions, "patient.demographics.view")) {
       demographics = await fetchDemographicsSection(exec, patientId);
       address = await fetchAddressSection(exec, patientId);
+      insurance = await fetchInsuranceSection(exec, patientId);
       guardian = await fetchGuardianSection(exec, patientId);
       emergencyContact = await fetchEmergencyContactSection(exec, patientId);
       commercialOrigin = await fetchCommercialOriginSection(exec, patientId);
@@ -485,6 +488,7 @@ export async function resolvePatientLiveRecord(
       // FVO-1: secciones extendidas (undefined cuando no aplica el permiso)
       demographics,
       address: address ?? undefined,
+      insurance: insurance ?? undefined,
       guardian: guardian ?? undefined,
       emergencyContact: emergencyContact ?? undefined,
       commercialOrigin: commercialOrigin ?? undefined,

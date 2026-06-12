@@ -436,6 +436,12 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
                   value={record.address.street || record.address.municipality || record.address.postalCode ? "Registrado" : "No registrado"}
                 />
               )}
+              {record.insurance && (
+                <Row
+                  label="Aseguradora"
+                  value={record.insurance.hasInsurance ? (record.insurance.providerName || "Registrada") : "Sin seguro"}
+                />
+              )}
               {record.tax && (
                 <Row
                   label="Fiscal"

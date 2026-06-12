@@ -34,9 +34,9 @@ const EXPECTED_ACTIONS = [
 // ══════════════════════════════════════════════════════════════════════════════
 
 describe("FVO-1d — integridad de archivos", () => {
-  it("no existe migración 0020 ni superior (snapshot: 0018-0019 son de fases posteriores legítimas)", () => {
+  it("no existe migración 0021 ni superior (snapshot: 0018-0019 son de fases posteriores legítimas; 0020 es de 1I-D-3 — cobertura/aseguradora)", () => {
     const files = readdirSync(resolve("prisma/migrations"));
-    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 20)).toBe(false);
+    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 21)).toBe(false);
   });
 
   it("src/server/actions/fvo.ts existe", () => {
@@ -68,9 +68,9 @@ describe("FVO-1d — verificación estructural de fvo.ts", () => {
     expect(content).toContain(`export async function ${name}`);
   });
 
-  it("exporta exactamente 11 funciones (ni más, ni menos)", () => {
+  it("exporta exactamente 12 funciones (ni más, ni menos; 1I-D-3 agrega upsertInsuranceAction)", () => {
     const exported = (content.match(/^export async function \w+/gm) ?? []);
-    expect(exported.length).toBe(11);
+    expect(exported.length).toBe(12);
   });
 
   it("importa revalidatePath de next/cache", () => {
@@ -80,7 +80,7 @@ describe("FVO-1d — verificación estructural de fvo.ts", () => {
 
   it("cada acción llama revalidatePath con /pacientes/${patientId}", () => {
     const revalidateCalls = (content.match(/revalidatePath\(`\/pacientes\/\$\{patientId\}`\)/g) ?? []);
-    expect(revalidateCalls.length).toBe(11);
+    expect(revalidateCalls.length).toBe(12);
   });
 
   it("no contiene SQL ni llamadas exec directas (sin lógica de negocio propia)", () => {

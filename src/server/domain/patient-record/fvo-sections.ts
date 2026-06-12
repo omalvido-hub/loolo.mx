@@ -65,6 +65,26 @@ export async function fetchAddressSection(exec: Exec, patientId: string) {
   };
 }
 
+export async function fetchInsuranceSection(exec: Exec, patientId: string) {
+  const rows = await exec(
+    `SELECT "hasInsurance", "providerName", "policyNumber", "policyholderName", "planName", "validFrom", "validUntil", "notes"
+     FROM "patient_insurance" WHERE "patientId"=$1`,
+    [patientId],
+  );
+  const row = rows[0] ?? null;
+  if (!row) return null;
+  return {
+    hasInsurance: row.hasInsurance as boolean,
+    providerName: row.providerName ?? null,
+    policyNumber: row.policyNumber ?? null,
+    policyholderName: row.policyholderName ?? null,
+    planName: row.planName ?? null,
+    validFrom: toIsoDate(row.validFrom),
+    validUntil: toIsoDate(row.validUntil),
+    notes: row.notes ?? null,
+  };
+}
+
 export async function fetchGuardianSection(exec: Exec, patientId: string) {
   const rows = await exec(
     `SELECT "name", "relationship", "phone", "email"

@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import {
   upsertDemographicsAction,
   upsertAddressAction,
+  upsertInsuranceAction,
   upsertCommercialOriginAction,
   addGuardianAction,
   addEmergencyContactAction,
@@ -396,6 +397,7 @@ export function PatientFVOSectionsClient({
   const {
     demographics,
     address,
+    insurance,
     guardian,
     emergencyContact,
     commercialOrigin,
@@ -421,6 +423,15 @@ export function PatientFVOSectionsClient({
   });
   const [addrPending, startAddrTx] = useTransition();
   const [addrError, setAddrError] = useState<string | null>(null);
+
+  // ── Estado: Cobertura / aseguradora ──────────────────────────────────────────
+  const [editInsurance, setEditInsurance] = useState(false);
+  const [insuranceForm, setInsuranceForm] = useState({
+    hasInsurance: false, providerName: "", policyNumber: "", policyholderName: "",
+    planName: "", validFrom: "", validUntil: "", notes: "",
+  });
+  const [insurancePending, startInsuranceTx] = useTransition();
+  const [insuranceError, setInsuranceError] = useState<string | null>(null);
 
   // ── Estado: Origen comercial ─────────────────────────────────────────────────
   const [editCommercial, setEditCommercial] = useState(false);
@@ -453,6 +464,7 @@ export function PatientFVOSectionsClient({
   // ── Guardia: sin secciones FVO para este actor ────────────────────────────────
   const hasFVO =
     demographics !== undefined ||
+    insurance !== undefined ||
     tax !== undefined ||
     canEditDemographics ||
     canAddGuardian ||
@@ -524,6 +536,41 @@ export function PatientFVOSectionsClient({
       });
       if (!result.ok) setAddrError(result.error);
       else setEditAddress(false);
+    });
+  }
+
+  // ── Handlers: Cobertura / aseguradora ─────────────────────────────────────────
+
+  function handleEditInsurance() {
+    setInsuranceForm({
+      hasInsurance: insurance?.hasInsurance ?? false,
+      providerName: insurance?.providerName ?? "",
+      policyNumber: insurance?.policyNumber ?? "",
+      policyholderName: insurance?.policyholderName ?? "",
+      planName: insurance?.planName ?? "",
+      validFrom: insurance?.validFrom ?? "",
+      validUntil: insurance?.validUntil ?? "",
+      notes: insurance?.notes ?? "",
+    });
+    setInsuranceError(null);
+    setEditInsurance(true);
+  }
+
+  function handleSaveInsurance() {
+    setInsuranceError(null);
+    startInsuranceTx(async () => {
+      const result = await upsertInsuranceAction(patientId, {
+        hasInsurance: insuranceForm.hasInsurance,
+        providerName: insuranceForm.providerName || null,
+        policyNumber: insuranceForm.policyNumber || null,
+        policyholderName: insuranceForm.policyholderName || null,
+        planName: insuranceForm.planName || null,
+        validFrom: insuranceForm.validFrom || null,
+        validUntil: insuranceForm.validUntil || null,
+        notes: insuranceForm.notes || null,
+      });
+      if (!result.ok) setInsuranceError(result.error);
+      else setEditInsurance(false);
     });
   }
 
@@ -874,6 +921,119 @@ export function PatientFVOSectionsClient({
             </>
           ) : (
             <p className="text-sm text-muted-foreground">Sin datos de domicilio registrados.</p>
+          )}
+          </SectionCard>
+        </>
+      )}
+
+      {/* Cobertura / aseguradora */}
+      {(insurance != null || canEditDemographics) && (
+        <>
+          {variant === "compact" && <GroupLabel>Aseguradora</GroupLabel>}
+          <SectionCard
+            title="Cobertura / aseguradora"
+            variant={variant}
+            headerAction={
+              canEditDemographics && !editInsurance ? (
+                <Button size="sm" variant="outline" onClick={handleEditInsurance}>
+                  {insurance ? "Editar" : "Agregar"}
+                </Button>
+              ) : undefined
+            }
+          >
+          {editInsurance ? (
+            <div className="space-y-3">
+              <FormRow label="Tiene seguro">
+                <SelectNative
+                  value={insuranceForm.hasInsurance ? "yes" : "no"}
+                  onChange={(v) => setInsuranceForm((f) => ({ ...f, hasInsurance: v === "yes" }))}
+                  disabled={insurancePending}
+                >
+                  <option value="no">No</option>
+                  <option value="yes">Sí</option>
+                </SelectNative>
+              </FormRow>
+              <FormRow label="Aseguradora">
+                <Input
+                  value={insuranceForm.providerName}
+                  onChange={(e) => setInsuranceForm((f) => ({ ...f, providerName: e.target.value }))}
+                  disabled={insurancePending}
+                  placeholder="Ej. GNP, AXA, Metlife"
+                />
+              </FormRow>
+              <FormRow label="Número de póliza">
+                <Input
+                  value={insuranceForm.policyNumber}
+                  onChange={(e) => setInsuranceForm((f) => ({ ...f, policyNumber: e.target.value }))}
+                  disabled={insurancePending}
+                />
+              </FormRow>
+              <FormRow label="Titular">
+                <Input
+                  value={insuranceForm.policyholderName}
+                  onChange={(e) => setInsuranceForm((f) => ({ ...f, policyholderName: e.target.value }))}
+                  disabled={insurancePending}
+                  placeholder="Nombre del titular de la póliza"
+                />
+              </FormRow>
+              <FormRow label="Plan / cobertura">
+                <Input
+                  value={insuranceForm.planName}
+                  onChange={(e) => setInsuranceForm((f) => ({ ...f, planName: e.target.value }))}
+                  disabled={insurancePending}
+                />
+              </FormRow>
+              <FormRow label="Vigente desde">
+                <Input
+                  type="date"
+                  value={insuranceForm.validFrom}
+                  onChange={(e) => setInsuranceForm((f) => ({ ...f, validFrom: e.target.value }))}
+                  disabled={insurancePending}
+                />
+              </FormRow>
+              <FormRow label="Vigente hasta">
+                <Input
+                  type="date"
+                  value={insuranceForm.validUntil}
+                  onChange={(e) => setInsuranceForm((f) => ({ ...f, validUntil: e.target.value }))}
+                  disabled={insurancePending}
+                />
+              </FormRow>
+              <FormRow label="Observaciones">
+                <textarea
+                  value={insuranceForm.notes}
+                  onChange={(e) => setInsuranceForm((f) => ({ ...f, notes: e.target.value }))}
+                  disabled={insurancePending}
+                  rows={3}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+              </FormRow>
+              <InlineError msg={insuranceError} />
+              <FormActions
+                onSave={handleSaveInsurance}
+                onCancel={() => { setEditInsurance(false); setInsuranceError(null); }}
+                pending={insurancePending}
+              />
+            </div>
+          ) : insurance ? (
+            <>
+              <Row label="Tiene seguro" value={insurance.hasInsurance ? "Sí" : "No"} />
+              <Row label="Aseguradora" value={insurance.providerName} />
+              <Row label="Número de póliza" value={insurance.policyNumber ? <span className="font-mono">{insurance.policyNumber}</span> : "—"} />
+              <Row label="Titular" value={insurance.policyholderName} />
+              <Row label="Plan / cobertura" value={insurance.planName} />
+              <Row
+                label="Vigencia"
+                value={
+                  insurance.validFrom || insurance.validUntil
+                    ? `${fDate(insurance.validFrom)} – ${fDate(insurance.validUntil)}`
+                    : "—"
+                }
+              />
+              <Row label="Observaciones" value={insurance.notes} />
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">Sin datos de aseguradora registrados.</p>
           )}
           </SectionCard>
         </>

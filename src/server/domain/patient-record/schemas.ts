@@ -150,6 +150,17 @@ export const PatientClinicalProfileSectionSchema = z.object({
   medicalAlerts: z.array(MedicalAlertDetailSchema),
 });
 
+export const PatientInsuranceSectionSchema = z.object({
+  hasInsurance: z.boolean(),
+  providerName: z.string().nullable(),
+  policyNumber: z.string().nullable(),
+  policyholderName: z.string().nullable(),
+  planName: z.string().nullable(),
+  validFrom: z.string().nullable(),   // Formato YYYY-MM-DD
+  validUntil: z.string().nullable(),  // Formato YYYY-MM-DD
+  notes: z.string().nullable(),
+});
+
 export const PatientGuardianSectionSchema = z.object({
   name: z.string().nullable(),
   relationship: z.string().nullable(),
@@ -192,6 +203,7 @@ export const PatientLiveRecordSchema = z.object({
   // FVO-1: secciones extendidas del perfil (opcionales por permiso)
   demographics: PatientDemographicsSectionSchema.optional(),
   address: PatientAddressSectionSchema.optional(),
+  insurance: PatientInsuranceSectionSchema.optional(),
   guardian: PatientGuardianSectionSchema.optional(),
   emergencyContact: PatientEmergencyContactSectionSchema.optional(),
   commercialOrigin: PatientCommercialOriginSectionSchema.optional(),

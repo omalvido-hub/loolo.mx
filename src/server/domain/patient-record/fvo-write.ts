@@ -14,6 +14,7 @@ import {
   parseOrThrow,
   UpsertDemographicsZ,
   UpsertAddressZ,
+  UpsertPatientInsuranceZ,
   UpsertCommercialOriginZ,
   UpsertClinicalProfileZ,
   CreateMedicalAlertZ,
@@ -115,6 +116,47 @@ export async function upsertAddress(
   ))[0];
   await audit(exec, ctx, "patient.address.updated", "patient", patientId, {});
   return { addressId: row.id };
+}
+
+// ── patient_insurance (UPSERT 1:1) ───────────────────────────────────────────
+
+export async function upsertInsurance(
+  exec: Exec,
+  ctx: ActorContext,
+  patientId: string,
+  raw: unknown,
+): Promise<{ insuranceId: string }> {
+  authorize(ctx, "patient.demographics.edit");
+  const input = parseOrThrow(UpsertPatientInsuranceZ, raw);
+  const { organizationId, userId } = ctx;
+  const row = (await exec(
+    `INSERT INTO "patient_insurance"
+       ("organizationId","patientId","hasInsurance","providerName","policyNumber","policyholderName","planName","validFrom","validUntil","notes","createdBy")
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+     ON CONFLICT ("patientId") DO UPDATE
+       SET "hasInsurance"     = EXCLUDED."hasInsurance",
+           "providerName"     = EXCLUDED."providerName",
+           "policyNumber"     = EXCLUDED."policyNumber",
+           "policyholderName" = EXCLUDED."policyholderName",
+           "planName"         = EXCLUDED."planName",
+           "validFrom"        = EXCLUDED."validFrom",
+           "validUntil"       = EXCLUDED."validUntil",
+           "notes"            = EXCLUDED."notes",
+           "updatedAt"        = now()
+     RETURNING "id"`,
+    [
+      organizationId, patientId,
+      input.hasInsurance ?? false,
+      input.providerName ?? null, input.policyNumber ?? null,
+      input.policyholderName ?? null, input.planName ?? null,
+      input.validFrom ?? null, input.validUntil ?? null,
+      input.notes ?? null,
+      userId,
+    ],
+  ))[0];
+  // Metadata vacía: no exponer número de póliza ni datos de cobertura en audit_logs
+  await audit(exec, ctx, "patient.insurance.updated", "patient", patientId, {});
+  return { insuranceId: row.id };
 }
 
 // ── patient_commercial_origin (UPSERT 1:1) ───────────────────────────────────
