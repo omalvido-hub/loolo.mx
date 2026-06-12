@@ -1,20 +1,43 @@
-import Link from "next/link";
+import { redirect } from "next/navigation";
+import { requireOrganization, UnauthorizedError, NoOrganizationError } from "@/server/auth/session";
+import { getActorContext } from "@/server/auth/context";
+import { makeTenantRunner } from "@/server/db/tenant";
+import { getPaymentsOverviewSafeView } from "@/server/domain/billing/billing-views";
+import { BillingNoPermission } from "@/components/billing/BillingNoPermission";
+import { PaymentsOverviewList } from "@/components/billing/PaymentsOverviewList";
 
-export default function CobrosPage() {
+export default async function CobrosPage() {
+  let organizationId: string;
+  let userId: string;
+
+  try {
+    const org = await requireOrganization();
+    organizationId = org.organizationId;
+    userId = org.user.id;
+  } catch (e) {
+    if (e instanceof UnauthorizedError || e instanceof NoOrganizationError) {
+      redirect("/login");
+    }
+    throw e;
+  }
+
+  const ctx = await getActorContext(userId, organizationId);
+  const run = makeTenantRunner(organizationId);
+  const result = await getPaymentsOverviewSafeView(run, ctx);
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 px-8">
-      <div className="text-center space-y-2">
+    <div className="px-8 py-6 max-w-4xl mx-auto space-y-6">
+      <div>
         <h1 className="text-xl font-semibold">Cobros</h1>
         <p className="text-sm text-muted-foreground">
-          Selecciona un paciente para ver su historial de cobros.
+          Vista global de los cobros del consultorio, solo lectura.
         </p>
       </div>
-      <Link
-        href="/pacientes"
-        className="text-sm underline underline-offset-2 text-muted-foreground hover:text-foreground"
-      >
-        Ir a Pacientes
-      </Link>
+      {result.ok ? (
+        <PaymentsOverviewList payments={result.value.payments} />
+      ) : (
+        <BillingNoPermission />
+      )}
     </div>
   );
 }

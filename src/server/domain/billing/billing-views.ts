@@ -92,6 +92,23 @@ export interface QuotesOverviewView {
   totalQuotes: number;
 }
 
+export interface PaymentOverviewItem {
+  id: string;
+  quoteId: string;
+  patientId: string;
+  patientName: string;
+  entryKind: "PAYMENT" | "REVERSAL";
+  method: string;
+  amountCents: number;
+  paidAt: string;
+  quoteStatus: string | null;
+}
+
+export interface PaymentsOverviewView {
+  payments: PaymentOverviewItem[];
+  totalPayments: number;
+}
+
 // ─── getQuotesSafeView ──────────────────────────────────────────────────────
 
 /**
@@ -349,6 +366,81 @@ export async function getQuotesOverviewSafeView(
     return ok<QuotesOverviewView>({
       quotes,
       totalQuotes: quotes.length,
+    });
+  });
+}
+
+// ─── getPaymentsOverviewSafeView ───────────────────────────────────────────
+
+/**
+ * Listado global (todo el tenant) de movimientos de cobro (PAYMENT/REVERSAL).
+ * Exige payment.view. Fail-closed si falta tenant, actor o permiso.
+ * NUNCA devuelve reference, voidReason, recordedByUserId ni organizationId.
+ * Audita el acceso sin contenido financiero libre.
+ */
+export async function getPaymentsOverviewSafeView(
+  run: TenantRunner,
+  ctx: ActorContext,
+  options?: { limit?: number },
+): Promise<Result<PaymentsOverviewView>> {
+  if (!ctx.organizationId || !ctx.userId) {
+    return fail("FORBIDDEN", "Actor o tenant no válido (fail-closed).");
+  }
+
+  if (!can(ctx.permissions, "payment.view")) {
+    await run(async (exec) => {
+      await recordPermissionDenied(exec, {
+        organizationId: ctx.organizationId,
+        actorUserId: ctx.userId,
+        permission: "payment.view",
+        entityType: "organization",
+        entityId: ctx.organizationId,
+      });
+    });
+    return fail("FORBIDDEN", "Falta el permiso: payment.view");
+  }
+
+  const limit = options?.limit ?? 100;
+
+  return run(async (exec) => {
+    // SELECT explícito — sin reference, sin voidReason, sin recordedByUserId, sin organizationId.
+    const rows = await exec(
+      `SELECT pay."id",pay."quoteId",pay."patientId",pay."entryKind",pay."method",
+              pay."amountCents",pay."paidAt",c."fullName" AS "patientName",q."status" AS "quoteStatus"
+       FROM "payments" pay
+       JOIN "patients" p ON p."id" = pay."patientId"
+       JOIN "contacts" c ON c."id" = p."contactId"
+       LEFT JOIN "quotes" q ON q."id" = pay."quoteId"
+       ORDER BY pay."paidAt" DESC
+       LIMIT $1`,
+      [limit],
+    );
+
+    const payments: PaymentOverviewItem[] = rows.map((r: any) => ({
+      id: r.id,
+      quoteId: r.quoteId,
+      patientId: r.patientId,
+      patientName: r.patientName ?? "—",
+      entryKind: r.entryKind as "PAYMENT" | "REVERSAL",
+      method: r.method,
+      amountCents: Number(r.amountCents),
+      paidAt: toIso(r.paidAt) ?? new Date().toISOString(),
+      quoteStatus: r.quoteStatus ?? null,
+    }));
+
+    await recordAudit(exec, {
+      organizationId: ctx.organizationId,
+      actorUserId: ctx.userId,
+      actorType: "USER",
+      action: "payment.viewed",
+      entityType: "organization",
+      entityId: ctx.organizationId,
+      metadata: { accessType: "getPaymentsOverviewSafeView", count: payments.length },
+    });
+
+    return ok<PaymentsOverviewView>({
+      payments,
+      totalPayments: payments.length,
     });
   });
 }
