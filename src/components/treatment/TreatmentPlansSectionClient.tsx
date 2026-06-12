@@ -10,7 +10,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { TreatmentPlansPatientView, TreatmentPlanView, TreatmentItemView } from "@/server/domain/clinical/treatment-views";
-import { PLAN_TRANSITIONS, ITEM_TRANSITIONS, ProcedureTypeZ, TreatmentPriorityZ } from "@/server/domain/clinical/treatment-schemas";
+import { PLAN_TRANSITIONS, ITEM_TRANSITIONS, ITEM_TERMINAL, ProcedureTypeZ, TreatmentPriorityZ } from "@/server/domain/clinical/treatment-schemas";
 import { ToothSurfaceZ } from "@/server/domain/clinical/odontogram-schemas";
 import { TreatmentPlanStatusBadge } from "./TreatmentPlanStatusBadge";
 import { TreatmentEmpty } from "./TreatmentEmpty";
@@ -95,6 +95,18 @@ const ITEM_PERM_FLAG: Record<string, keyof TreatmentPermissions> = {
   COMPLETED: "canComplete",
   CANCELED: "canCancel",
 };
+
+// Transiciones que terminan el plan/ítem sin avance (rechazar/cancelar) se
+// agrupan visualmente aparte de las transiciones de avance (proponer, aceptar,
+// activar, iniciar, completar). Misma lista de transiciones, solo orden visual.
+const DESTRUCTIVE_TARGETS = new Set(["CANCELED", "REJECTED"]);
+
+function splitTargets(targets: string[]): { primary: string[]; destructive: string[] } {
+  return {
+    primary: targets.filter((t) => !DESTRUCTIVE_TARGETS.has(t)),
+    destructive: targets.filter((t) => DESTRUCTIVE_TARGETS.has(t)),
+  };
+}
 
 // ─── Permisos ────────────────────────────────────────────────────────────────
 
@@ -264,23 +276,42 @@ function ItemRowClient({ patientId, item, permissions, onChanged }: ItemRowClien
           <TreatmentPlanStatusBadge status={item.status} variant="item" />
         </div>
       </div>
-      {targets.length > 0 && (
-        <div className="flex items-center gap-2 mt-1 pl-1 flex-wrap">
-          {targets.map((to) => (
-            <Button
-              key={to}
-              size="sm"
-              variant={to === "CANCELED" || to === "REJECTED" ? "ghost" : "outline"}
-              className={to === "CANCELED" || to === "REJECTED" ? "text-muted-foreground hover:text-destructive h-7 px-2 text-xs" : "h-7 px-2 text-xs"}
-              onClick={() => handleTransition(to)}
-              disabled={isPending}
-            >
-              {TRANSITION_LABELS[to] ?? to}
-            </Button>
-          ))}
-          {error && <span className="text-xs text-destructive">{error}</span>}
-        </div>
-      )}
+      {targets.length > 0 && (() => {
+        const { primary, destructive } = splitTargets(targets);
+        return (
+          <div className="flex items-center gap-2 mt-1 pl-1 flex-wrap">
+            {primary.map((to) => (
+              <Button
+                key={to}
+                size="sm"
+                variant="outline"
+                className="h-7 px-2 text-xs"
+                onClick={() => handleTransition(to)}
+                disabled={isPending}
+              >
+                {TRANSITION_LABELS[to] ?? to}
+              </Button>
+            ))}
+            {destructive.length > 0 && (
+              <div className="ml-auto flex items-center gap-2">
+                {destructive.map((to) => (
+                  <Button
+                    key={to}
+                    size="sm"
+                    variant="ghost"
+                    className="text-muted-foreground hover:text-destructive h-7 px-2 text-xs"
+                    onClick={() => handleTransition(to)}
+                    disabled={isPending}
+                  >
+                    {TRANSITION_LABELS[to] ?? to}
+                  </Button>
+                ))}
+              </div>
+            )}
+            {error && <span className="text-xs text-destructive w-full">{error}</span>}
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -309,6 +340,10 @@ function PlanCardClient({ patientId, plan, permissions, highlighted = false }: P
 
   const liveCount = plan.liveItemsCount;
   const totalCount = plan.itemsCount;
+  const completedCount = plan.items.filter((i) => i.status === "COMPLETED").length;
+
+  const liveItems = plan.items.filter((i) => !ITEM_TERMINAL.has(i.status));
+  const terminalItems = plan.items.filter((i) => ITEM_TERMINAL.has(i.status));
 
   const planTargets = (PLAN_TRANSITIONS[plan.status] ?? []).filter(
     (to) => permissions[PLAN_PERM_FLAG[to]],
@@ -349,7 +384,7 @@ function PlanCardClient({ patientId, plan, permissions, highlighted = false }: P
         <div className="shrink-0 text-right text-xs text-muted-foreground whitespace-nowrap">
           {totalCount === 0
             ? "Sin ítems"
-            : `${liveCount} vivo${liveCount !== 1 ? "s" : ""} / ${totalCount} total`}
+            : `${liveCount} vivo${liveCount !== 1 ? "s" : ""} · ${completedCount} completado${completedCount !== 1 ? "s" : ""} / ${totalCount} total`}
         </div>
       </div>
 
@@ -365,7 +400,7 @@ function PlanCardClient({ patientId, plan, permissions, highlighted = false }: P
               <span className="w-20 shrink-0 text-right">Prioridad</span>
               <span className="shrink-0">Estado</span>
             </div>
-            {plan.items.map((item) => (
+            {liveItems.map((item) => (
               <ItemRowClient
                 key={item.id}
                 patientId={patientId}
@@ -374,6 +409,24 @@ function PlanCardClient({ patientId, plan, permissions, highlighted = false }: P
                 onChanged={() => router.refresh()}
               />
             ))}
+            {terminalItems.length > 0 && (
+              <div className="mt-2 pt-2 border-t">
+                <p className="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Finalizados
+                </p>
+                <div className="opacity-70">
+                  {terminalItems.map((item) => (
+                    <ItemRowClient
+                      key={item.id}
+                      patientId={patientId}
+                      item={item}
+                      permissions={permissions}
+                      onChanged={() => router.refresh()}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -397,23 +450,41 @@ function PlanCardClient({ patientId, plan, permissions, highlighted = false }: P
       )}
 
       {/* Acciones de estado del plan */}
-      {planTargets.length > 0 && (
-        <div className="px-4 py-3 border-t bg-muted/10 flex items-center gap-2 flex-wrap">
-          {planTargets.map((to) => (
-            <Button
-              key={to}
-              size="sm"
-              variant={to === "CANCELED" || to === "REJECTED" ? "ghost" : "outline"}
-              className={to === "CANCELED" || to === "REJECTED" ? "text-muted-foreground hover:text-destructive" : ""}
-              onClick={() => handlePlanTransition(to)}
-              disabled={isPending}
-            >
-              {isPending ? "Procesando…" : (TRANSITION_LABELS[to] ?? to)}
-            </Button>
-          ))}
-          {error && <p className="text-xs text-destructive w-full">{error}</p>}
-        </div>
-      )}
+      {planTargets.length > 0 && (() => {
+        const { primary, destructive } = splitTargets(planTargets);
+        return (
+          <div className="px-4 py-3 border-t bg-muted/10 flex items-center gap-2 flex-wrap">
+            {primary.map((to) => (
+              <Button
+                key={to}
+                size="sm"
+                variant="outline"
+                onClick={() => handlePlanTransition(to)}
+                disabled={isPending}
+              >
+                {isPending ? "Procesando…" : (TRANSITION_LABELS[to] ?? to)}
+              </Button>
+            ))}
+            {destructive.length > 0 && (
+              <div className="ml-auto flex items-center gap-2">
+                {destructive.map((to) => (
+                  <Button
+                    key={to}
+                    size="sm"
+                    variant="ghost"
+                    className="text-muted-foreground hover:text-destructive"
+                    onClick={() => handlePlanTransition(to)}
+                    disabled={isPending}
+                  >
+                    {isPending ? "Procesando…" : (TRANSITION_LABELS[to] ?? to)}
+                  </Button>
+                ))}
+              </div>
+            )}
+            {error && <p className="text-xs text-destructive w-full">{error}</p>}
+          </div>
+        );
+      })()}
 
       {/* Fechas relevantes al pie */}
       {(plan.completedAt || plan.rejectedAt || plan.canceledAt) && (
@@ -445,6 +516,7 @@ export function TreatmentPlansSectionClient({ view, patientId, permissions }: Pr
   const router = useRouter();
   const { plans, activePlan, totalPlans } = view;
   const otherPlans = plans.filter((p) => p.status !== "ACTIVE");
+  const hasOpenPlan = plans.some((p) => p.status === "ACTIVE" || p.status === "DRAFT");
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -472,7 +544,7 @@ export function TreatmentPlansSectionClient({ view, patientId, permissions }: Pr
           <h2 className="text-lg font-semibold">Planes de tratamiento — detalle</h2>
           <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>
         </div>
-        {permissions.canCreate && (
+        {permissions.canCreate && !hasOpenPlan && (
           <Button size="sm" variant="outline" onClick={handleCreatePlan} disabled={isPending}>
             {isPending ? "Creando…" : "+ Nuevo plan"}
           </Button>
