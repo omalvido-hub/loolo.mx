@@ -120,6 +120,17 @@ export interface TreatmentPermissions {
   canCancel: boolean;
 }
 
+// ─── Subcomponente: campo con etiqueta visible (formularios de tratamiento) ─
+
+function FormField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
+      {children}
+    </label>
+  );
+}
+
 // ─── Subcomponente: formulario "Agregar tratamiento" ───────────────────────
 
 interface AddItemFormProps {
@@ -162,52 +173,60 @@ function AddItemForm({ patientId, planId, onCancel, onDone }: AddItemFormProps) 
       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
         Agregar tratamiento
       </p>
-      <div className="flex items-center gap-2 flex-wrap">
-        <select
-          value={procedureType}
-          onChange={(e) => setProcedureType(e.target.value)}
-          className="h-8 rounded-md border border-input bg-background px-2 text-sm"
-          disabled={isPending}
-          aria-label="Tipo de procedimiento"
-        >
-          {ProcedureTypeZ.options.map((value) => (
-            <option key={value} value={value}>{PROCEDURE_LABELS[value] ?? value}</option>
-          ))}
-        </select>
-        <Input
-          type="number"
-          min={11}
-          max={48}
-          placeholder="Pieza (opcional)"
-          value={toothFdi}
-          onChange={(e) => setToothFdi(e.target.value)}
-          className="w-32 h-8 text-sm"
-          disabled={isPending}
-          aria-label="Pieza dental FDI (opcional)"
-        />
-        <select
-          value={surface}
-          onChange={(e) => setSurface(e.target.value)}
-          className="h-8 rounded-md border border-input bg-background px-2 text-sm"
-          disabled={isPending}
-          aria-label="Superficie (opcional)"
-        >
-          <option value="">Superficie (opcional)</option>
-          {ToothSurfaceZ.options.map((value) => (
-            <option key={value} value={value}>{SURFACE_LABELS[value] ?? value}</option>
-          ))}
-        </select>
-        <select
-          value={priority}
-          onChange={(e) => setPriority(e.target.value)}
-          className="h-8 rounded-md border border-input bg-background px-2 text-sm"
-          disabled={isPending}
-          aria-label="Prioridad"
-        >
-          {TreatmentPriorityZ.options.map((value) => (
-            <option key={value} value={value}>{PRIORITY_LABELS[value] ?? value}</option>
-          ))}
-        </select>
+      <div className="flex items-end gap-2 flex-wrap">
+        <FormField label="Procedimiento">
+          <select
+            value={procedureType}
+            onChange={(e) => setProcedureType(e.target.value)}
+            className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+            disabled={isPending}
+            aria-label="Tipo de procedimiento"
+          >
+            {ProcedureTypeZ.options.map((value) => (
+              <option key={value} value={value}>{PROCEDURE_LABELS[value] ?? value}</option>
+            ))}
+          </select>
+        </FormField>
+        <FormField label="Pieza">
+          <Input
+            type="number"
+            min={11}
+            max={48}
+            placeholder="Opcional (FDI)"
+            value={toothFdi}
+            onChange={(e) => setToothFdi(e.target.value)}
+            className="w-32 h-8 text-sm"
+            disabled={isPending}
+            aria-label="Pieza dental FDI (opcional)"
+          />
+        </FormField>
+        <FormField label="Superficie">
+          <select
+            value={surface}
+            onChange={(e) => setSurface(e.target.value)}
+            className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+            disabled={isPending}
+            aria-label="Superficie (opcional)"
+          >
+            <option value="">Opcional</option>
+            {ToothSurfaceZ.options.map((value) => (
+              <option key={value} value={value}>{SURFACE_LABELS[value] ?? value}</option>
+            ))}
+          </select>
+        </FormField>
+        <FormField label="Prioridad">
+          <select
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+            className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+            disabled={isPending}
+            aria-label="Prioridad"
+          >
+            {TreatmentPriorityZ.options.map((value) => (
+              <option key={value} value={value}>{PRIORITY_LABELS[value] ?? value}</option>
+            ))}
+          </select>
+        </FormField>
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
       <div className="flex gap-2">
@@ -275,62 +294,72 @@ function EditItemForm({ patientId, item, onCancel, onDone }: EditItemFormProps) 
       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
         Editar tratamiento
       </p>
-      <div className="flex items-center gap-2 flex-wrap">
-        <select
-          value={procedureType}
-          onChange={(e) => setProcedureType(e.target.value)}
-          className="h-8 rounded-md border border-input bg-background px-2 text-sm"
-          disabled={isPending}
-          aria-label="Tipo de procedimiento"
-        >
-          {ProcedureTypeZ.options.map((value) => (
-            <option key={value} value={value}>{PROCEDURE_LABELS[value] ?? value}</option>
-          ))}
-        </select>
-        <Input
-          type="number"
-          min={11}
-          max={48}
-          placeholder="Pieza (opcional)"
-          value={toothFdi}
-          onChange={(e) => setToothFdi(e.target.value)}
-          className="w-32 h-8 text-sm"
-          disabled={isPending}
-          aria-label="Pieza dental FDI (opcional)"
-        />
-        <select
-          value={surface}
-          onChange={(e) => setSurface(e.target.value)}
-          className="h-8 rounded-md border border-input bg-background px-2 text-sm"
-          disabled={isPending}
-          aria-label="Superficie (opcional)"
-        >
-          <option value="">Superficie (opcional)</option>
-          {ToothSurfaceZ.options.map((value) => (
-            <option key={value} value={value}>{SURFACE_LABELS[value] ?? value}</option>
-          ))}
-        </select>
-        <select
-          value={priority}
-          onChange={(e) => setPriority(e.target.value)}
-          className="h-8 rounded-md border border-input bg-background px-2 text-sm"
-          disabled={isPending}
-          aria-label="Prioridad"
-        >
-          {TreatmentPriorityZ.options.map((value) => (
-            <option key={value} value={value}>{PRIORITY_LABELS[value] ?? value}</option>
-          ))}
-        </select>
-        <Input
-          type="number"
-          min={0}
-          placeholder="Orden"
-          value={sequence}
-          onChange={(e) => setSequence(e.target.value)}
-          className="w-24 h-8 text-sm"
-          disabled={isPending}
-          aria-label="Orden dentro del plan"
-        />
+      <div className="flex items-end gap-2 flex-wrap">
+        <FormField label="Procedimiento">
+          <select
+            value={procedureType}
+            onChange={(e) => setProcedureType(e.target.value)}
+            className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+            disabled={isPending}
+            aria-label="Tipo de procedimiento"
+          >
+            {ProcedureTypeZ.options.map((value) => (
+              <option key={value} value={value}>{PROCEDURE_LABELS[value] ?? value}</option>
+            ))}
+          </select>
+        </FormField>
+        <FormField label="Pieza">
+          <Input
+            type="number"
+            min={11}
+            max={48}
+            placeholder="Opcional (FDI)"
+            value={toothFdi}
+            onChange={(e) => setToothFdi(e.target.value)}
+            className="w-32 h-8 text-sm"
+            disabled={isPending}
+            aria-label="Pieza dental FDI (opcional)"
+          />
+        </FormField>
+        <FormField label="Superficie">
+          <select
+            value={surface}
+            onChange={(e) => setSurface(e.target.value)}
+            className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+            disabled={isPending}
+            aria-label="Superficie (opcional)"
+          >
+            <option value="">Opcional</option>
+            {ToothSurfaceZ.options.map((value) => (
+              <option key={value} value={value}>{SURFACE_LABELS[value] ?? value}</option>
+            ))}
+          </select>
+        </FormField>
+        <FormField label="Prioridad">
+          <select
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+            className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+            disabled={isPending}
+            aria-label="Prioridad"
+          >
+            {TreatmentPriorityZ.options.map((value) => (
+              <option key={value} value={value}>{PRIORITY_LABELS[value] ?? value}</option>
+            ))}
+          </select>
+        </FormField>
+        <FormField label="Orden">
+          <Input
+            type="number"
+            min={0}
+            placeholder="Orden en el plan"
+            value={sequence}
+            onChange={(e) => setSequence(e.target.value)}
+            className="w-28 h-8 text-sm"
+            disabled={isPending}
+            aria-label="Orden dentro del plan"
+          />
+        </FormField>
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
       <div className="flex gap-2">
