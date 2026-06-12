@@ -136,8 +136,9 @@ describe("1K-C — AppointmentForm: formulario cliente seguro", () => {
     expect(formContent).toContain("chairResourceId: chairResourceId || undefined");
   });
 
-  it("incluye patientId oculto/prefijado al enviar", () => {
-    expect(formContent).toContain("patientId: patientId || undefined");
+  it("incluye patientId/contactId del paciente resuelto al enviar (1K-E)", () => {
+    expect(formContent).toContain("patientId: resolvedPatient.patientId");
+    expect(formContent).toContain("contactId: resolvedPatient.contactId");
   });
 
   it("maneja éxito y error de forma legible, sin stack traces ni errores crudos", () => {

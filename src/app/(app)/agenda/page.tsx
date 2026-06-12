@@ -3,6 +3,7 @@ import { requireOrganization, UnauthorizedError, NoOrganizationError } from "@/s
 import { getActorContext } from "@/server/auth/context";
 import { makeTenantRunner } from "@/server/db/tenant";
 import { listAppointmentsByRange, listResources } from "@/server/domain/agenda/queries";
+import { getAgendaPatientContext } from "@/server/domain/agenda/patient-context";
 import { can } from "@/server/domain/identity/permissions";
 import { AgendaView } from "@/components/agenda/AgendaView";
 
@@ -42,10 +43,13 @@ export default async function AgendaPage({
   const patientId = typeof params.patientId === "string" ? params.patientId : undefined;
   const canCreateAppointment = can(ctx.permissions, "appointments.create");
 
-  const [apptResult, resResult] = await Promise.all([
+  const [apptResult, resResult, patientResult] = await Promise.all([
     listAppointmentsByRange(run, ctx, { from, to, resourceId }),
     listResources(run, ctx),
+    patientId ? getAgendaPatientContext(run, ctx, patientId) : Promise.resolve(null),
   ]);
+
+  const patient = patientResult && patientResult.ok ? patientResult.value : null;
 
   if (!apptResult.ok) {
     if (apptResult.reason === "FORBIDDEN") {
@@ -72,6 +76,7 @@ export default async function AgendaPage({
       appointments={apptResult.value}
       resources={resResult.ok ? resResult.value : null}
       patientId={patientId}
+      patient={patient}
       canCreateAppointment={canCreateAppointment}
     />
   );
