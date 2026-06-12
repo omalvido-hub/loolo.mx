@@ -199,10 +199,50 @@ function FormActions({
 
 // ── Perfil clínico (exportado para composición en PatientLiveRecordView) ──────
 
+/** Alertas médicas visibles por default en el perfil clínico compacto; el resto queda bajo "Ver perfil completo". */
+const MAX_VISIBLE_ALERTS = 3;
+
+const ALERT_SEVERITY_RANK: Record<string, number> = {
+  CRITICAL: 3, HIGH: 2, MEDIUM: 1, LOW: 0,
+};
+
+function AlertRow({ alert }: { alert: { id: string; active: boolean; severity: string; alertType: string; description: string } }) {
+  return (
+    <div className={`rounded-lg px-3 py-2 flex items-start gap-2 ${alert.active ? "" : "opacity-50"}`}>
+      <span
+        className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+          SEVERITY_COLORS[alert.severity] ?? "bg-muted text-foreground"
+        }`}
+      >
+        {SEVERITY_LABELS[alert.severity] ?? alert.severity}
+      </span>
+      <div>
+        <p className="text-sm font-medium">{ALERT_TYPE_LABELS[alert.alertType] ?? alert.alertType}</p>
+        <p className="text-xs text-muted-foreground">{alert.description}</p>
+        {!alert.active && (
+          <p className="text-xs text-muted-foreground italic">Inactiva</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function PatientClinicalProfileSection({ record }: { record: PatientLiveRecord }) {
   const { clinicalProfile, medicalAlertFlag } = record;
 
   if (!medicalAlertFlag && !clinicalProfile) return null;
+
+  // Activas y de mayor severidad primero, para que las 3 visibles por default
+  // siempre incluyan lo más crítico.
+  const sortedAlerts = clinicalProfile
+    ? [...clinicalProfile.medicalAlerts].sort((a, b) => {
+        if (a.active !== b.active) return a.active ? -1 : 1;
+        return (ALERT_SEVERITY_RANK[b.severity] ?? 0) - (ALERT_SEVERITY_RANK[a.severity] ?? 0);
+      })
+    : [];
+  const visibleAlerts = sortedAlerts.slice(0, MAX_VISIBLE_ALERTS);
+  const restAlerts = sortedAlerts.slice(MAX_VISIBLE_ALERTS);
+  const hasMoreDetail = restAlerts.length > 0 || !!clinicalProfile?.relevantHistory;
 
   return (
     <>
@@ -228,31 +268,13 @@ export function PatientClinicalProfileSection({ record }: { record: PatientLiveR
               : "default"
           }
         >
-          {clinicalProfile.medicalAlerts.length > 0 && (
+          {visibleAlerts.length > 0 && (
             <div className="pb-2 space-y-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Alertas médicas
               </p>
-              {clinicalProfile.medicalAlerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className={`rounded-lg px-3 py-2 flex items-start gap-2 ${alert.active ? "" : "opacity-50"}`}
-                >
-                  <span
-                    className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                      SEVERITY_COLORS[alert.severity] ?? "bg-muted text-foreground"
-                    }`}
-                  >
-                    {SEVERITY_LABELS[alert.severity] ?? alert.severity}
-                  </span>
-                  <div>
-                    <p className="text-sm font-medium">{ALERT_TYPE_LABELS[alert.alertType] ?? alert.alertType}</p>
-                    <p className="text-xs text-muted-foreground">{alert.description}</p>
-                    {!alert.active && (
-                      <p className="text-xs text-muted-foreground italic">Inactiva</p>
-                    )}
-                  </div>
-                </div>
+              {visibleAlerts.map((alert) => (
+                <AlertRow key={alert.id} alert={alert} />
               ))}
             </div>
           )}
@@ -294,19 +316,37 @@ export function PatientClinicalProfileSection({ record }: { record: PatientLiveR
               )
             }
           />
-          {clinicalProfile.relevantHistory && (
-            <div className="flex gap-2">
-              <span className="w-44 shrink-0 text-muted-foreground">Antecedentes</span>
-              <p className="font-medium text-sm leading-relaxed">{clinicalProfile.relevantHistory}</p>
-            </div>
-          )}
           {clinicalProfile.safetyNotes && (
             <div className="flex gap-2">
               <span className="w-44 shrink-0 text-muted-foreground">Notas de seguridad</span>
-              <p className="font-medium text-sm leading-relaxed text-orange-700 dark:text-orange-400">
+              <p className="font-medium text-sm leading-relaxed text-orange-700 dark:text-orange-400 line-clamp-2">
                 {clinicalProfile.safetyNotes}
               </p>
             </div>
+          )}
+
+          {hasMoreDetail && (
+            <details className="pt-2 mt-1 border-t">
+              <summary className="cursor-pointer text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Ver perfil completo
+                {restAlerts.length > 0 ? ` (${restAlerts.length} alerta${restAlerts.length !== 1 ? "s" : ""} más)` : ""}
+              </summary>
+              <div className="pt-2 space-y-2">
+                {restAlerts.length > 0 && (
+                  <div className="space-y-2">
+                    {restAlerts.map((alert) => (
+                      <AlertRow key={alert.id} alert={alert} />
+                    ))}
+                  </div>
+                )}
+                {clinicalProfile.relevantHistory && (
+                  <div className="flex gap-2">
+                    <span className="w-44 shrink-0 text-muted-foreground">Antecedentes</span>
+                    <p className="font-medium text-sm leading-relaxed">{clinicalProfile.relevantHistory}</p>
+                  </div>
+                )}
+              </div>
+            </details>
           )}
         </SectionCard>
       )}

@@ -6,9 +6,9 @@
 //   activa, plan, saldo, hallazgos).
 // - "Atención de hoy" es una franja compacta (no tarjeta gigante) con
 //   última cita, conversaciones, tareas, última actividad y link a agenda.
-// - "Clínica" mantiene 2 columnas: izquierda = perfil clínico + consultas;
-//   derecha = odontograma (que ya incluye "Hallazgos activos" como tarjeta
-//   propia, separada del diagrama).
+// - "Clínica" apila 3 bloques full-width: perfil clínico resumido, odontograma
+//   (con "Hallazgos activos" en retícula interna 7/5) y consultas clínicas
+//   (ver phase-ui-1i-d-2d.test.ts para el detalle de 1I-D-2D).
 // - "Tratamiento y pagos" usa PatientOperationTabs (tabs internas: Planes de
 //   tratamiento, Presupuestos y cobros, Documentos), con el resumen siempre
 //   visible.
@@ -75,15 +75,29 @@ describe("1I-D-2 — Rediseño visual completo (prueba del niño)", () => {
     expect(block).not.toContain('title="Atención de hoy"');
   });
 
-  it('"Clínica" mantiene retícula de 2 columnas (45/55): perfil clínico + consultas a la izquierda, odontograma a la derecha', () => {
+  it('"Clínica" apila 3 bloques full-width: perfil clínico, odontograma (con hallazgos) y consultas clínicas (1I-D-2D)', () => {
     expect(viewContent).toContain('title="Clínica"');
-    expect(viewContent).toContain("grid-cols-1 md:grid-cols-[9fr_11fr]");
     const clinicaIdx = viewContent.indexOf('title="Clínica"');
     const tratamientoIdx = viewContent.indexOf('title="Tratamiento y pagos"');
     const block = viewContent.slice(clinicaIdx, tratamientoIdx);
     expect(block).toContain("<PatientClinicalProfileSection");
-    expect(block).toContain('title="Consultas clínicas"');
     expect(block).toContain("odontogramSection");
+    expect(block).toContain('title="Consultas clínicas"');
+    // Perfil clínico debe aparecer antes del odontograma, y este antes de Consultas clínicas.
+    const perfilIdx = block.indexOf("<PatientClinicalProfileSection");
+    const odontoIdx = block.indexOf("odontogramSection");
+    const consultasIdx = block.indexOf('title="Consultas clínicas"');
+    expect(perfilIdx).toBeLessThan(odontoIdx);
+    expect(odontoIdx).toBeLessThan(consultasIdx);
+  });
+
+  it("OdontogramMasterSection divide internamente Diagrama dental (más ancho) y Hallazgos activos en una retícula 7/5", () => {
+    expect(odontogramContent).toContain("grid-cols-1 lg:grid-cols-[7fr_5fr]");
+    const gridIdx = odontogramContent.indexOf("grid-cols-1 lg:grid-cols-[7fr_5fr]");
+    const diagramaIdx = odontogramContent.indexOf('title="Diagrama dental"');
+    const hallazgosIdx = odontogramContent.indexOf('title="Hallazgos activos"');
+    expect(gridIdx).toBeLessThan(diagramaIdx);
+    expect(diagramaIdx).toBeLessThan(hallazgosIdx);
   });
 
   it('"Tratamiento y pagos" y "Datos del paciente" comparten una retícula de 2 columnas', () => {

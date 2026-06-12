@@ -347,47 +347,44 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         </SectionCard>
       )}
 
-      {/* ── Clínica: perfil médico, odontograma, hallazgos y consultas clínicas.
-          Retícula 45/55 en desktop, 1 columna en mobile. ────── */}
+      {/* ── Clínica: perfil médico resumido, odontograma + hallazgos y consultas
+          clínicas. 3 bloques full-width apilados — el odontograma divide
+          internamente diagrama (más ancho) y hallazgos activos. ────── */}
 
       <GroupHeading
         title="Clínica"
         subtitle="Perfil médico, odontograma, hallazgos activos y consultas clínicas. El detalle de tratamiento y pagos vive en “Tratamiento y pagos”, más abajo."
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-[9fr_11fr] gap-4 items-start">
-        {/* Columna izquierda */}
-        <div className="space-y-4">
-          {/* Perfil clínico — alertas médicas, alergias, medicamentos, antecedentes */}
-          <PatientClinicalProfileSection record={record} />
+      <div className="space-y-4">
+        {/* A) Riesgos clínicos / perfil clínico resumido — full width */}
+        <PatientClinicalProfileSection record={record} />
 
-          {/* Consultas clínicas — resumen + consultas con enlaces */}
-          {clinical && (
-            <SectionCard title="Consultas clínicas">
+        {/* B) Odontograma vigente: diagrama + hallazgos activos (grid interno) */}
+        {odontogramSection}
+
+        {/* C) Consultas clínicas — resumen compacto + detalle bajo demanda */}
+        {clinical && (
+          <SectionCard title="Consultas clínicas">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
               <Row label="Total consultas" value={clinical.encountersCount} />
               <Row label="Última consulta" value={fDate(clinical.lastEncounterAt)} />
               <Row label="Estado última consulta" value={clinical.lastEncounterStatus ? (ENCOUNTER_STATUS_LABELS[clinical.lastEncounterStatus] ?? clinical.lastEncounterStatus) : "—"} />
               <Row label="Notas clínicas" value={clinical.notesCount} />
               <Row label="Última nota" value={fDate(clinical.lastNoteAt)} />
-              {encounters !== undefined && patientId && (
-                <details className="pt-3 mt-1 border-t">
-                  <summary className="cursor-pointer text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                    Ver todas las consultas
-                  </summary>
-                  <div className="pt-2">
-                    <EncounterList items={encounters} patientId={patientId} canCreate={canCreateEncounter} />
-                  </div>
-                </details>
-              )}
-            </SectionCard>
-          )}
-        </div>
-
-        {/* Columna derecha */}
-        <div className="space-y-4">
-          {/* Odontograma vigente completo */}
-          {odontogramSection}
-        </div>
+            </div>
+            {encounters !== undefined && patientId && (
+              <details className="pt-3 mt-1 border-t">
+                <summary className="cursor-pointer text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                  Ver todas las consultas
+                </summary>
+                <div className="pt-2">
+                  <EncounterList items={encounters} patientId={patientId} canCreate={canCreateEncounter} />
+                </div>
+              </details>
+            )}
+          </SectionCard>
+        )}
       </div>
 
       {/* ── Tratamiento y pagos + Datos del paciente: misma retícula de 2
