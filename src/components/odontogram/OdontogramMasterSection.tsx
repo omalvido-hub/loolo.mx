@@ -53,7 +53,7 @@ export function OdontogramMasterSection({ view, patientId, activeEncounterId, ca
           en desktop), con leyenda colapsada dentro de la misma tarjeta */}
       <SectionCard title="Diagrama dental">
         <div className="overflow-x-auto pb-2">
-          <div className="w-max">
+          <div className="w-max lg:mx-auto">
             <OdontogramChartInteractive
               teeth={teeth}
               patientId={patientId}

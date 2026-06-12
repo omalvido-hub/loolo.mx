@@ -68,11 +68,11 @@ describe("1I-D-2E — Densidad visual premium", () => {
     expect(fvoContent).toContain("Ver perfil completo");
   });
 
-  it("el diagrama dental ya no se centra con mx-auto dentro del contenedor con scroll", () => {
+  it("el diagrama dental no se centra incondicionalmente dentro del contenedor con scroll (ver phase-ui-1i-d-2g.test.ts para el centrado en desktop)", () => {
     const idx = odontogramContent.indexOf("overflow-x-auto pb-2");
     expect(idx).toBeGreaterThan(-1);
     const block = odontogramContent.slice(idx, idx + 200);
-    expect(block).not.toContain("mx-auto");
+    expect(block).not.toMatch(/(?<!lg:)mx-auto/);
     expect(block).toContain("w-max");
   });
 

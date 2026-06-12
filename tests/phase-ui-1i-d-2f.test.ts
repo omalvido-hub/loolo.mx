@@ -29,11 +29,11 @@ describe("1I-D-2F — Odontograma completo visible en desktop", () => {
     expect(diagramaIdx).toBeLessThan(hallazgosIdx);
   });
 
-  it("se conserva el scroll horizontal para mobile/tablet sin centrar el contenido", () => {
+  it("se conserva el scroll horizontal para mobile/tablet (sin centrado forzado fuera de desktop)", () => {
     expect(odontogramContent).toContain("overflow-x-auto");
     const idx = odontogramContent.indexOf("overflow-x-auto");
     const block = odontogramContent.slice(idx, idx + 150);
-    expect(block).not.toContain("mx-auto");
+    expect(block).not.toMatch(/(?<!lg:)mx-auto/);
   });
 
   it('"Hallazgos activos" mantiene máximo 5 visibles y "Ver todos los hallazgos"', () => {
