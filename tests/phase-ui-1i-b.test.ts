@@ -31,8 +31,8 @@ describe("1I-B — Reorganización visual de la ficha del paciente", () => {
     expect(viewContent).not.toContain('title="Historial clínico"');
   });
 
-  it('PatientTimeline conserva "Historial clínico" sin colisión de título', () => {
-    expect(timelineContent).toContain("Historial clínico");
+  it('PatientTimeline conserva "Historial" sin colisión de título', () => {
+    expect(timelineContent).toContain("Historial");
   });
 
   it("panel clínico principal usa grid responsive de 1/2 columnas", () => {
@@ -52,15 +52,15 @@ describe("1I-B — Reorganización visual de la ficha del paciente", () => {
     expect(viewContent).toContain("<PatientFVOSectionsClient");
   });
 
-  it('"Bitácora de eventos" queda en su propio desplegable, fuera del flujo clínico principal', () => {
-    expect(viewContent).toContain('title="Bitácora de eventos"');
-    const bitacoraIdx = viewContent.indexOf('title="Bitácora de eventos"');
+  it('"Auditoría" queda en su propio desplegable, fuera del flujo clínico principal', () => {
+    expect(viewContent).toContain('title="Auditoría"');
+    const bitacoraIdx = viewContent.indexOf('title="Auditoría"');
     const sectionBefore = viewContent.lastIndexOf("PatientDisclosureSection", bitacoraIdx);
     expect(sectionBefore).toBeGreaterThan(-1);
     expect(sectionBefore).toBeLessThan(bitacoraIdx);
   });
 
-  it('"Operación" agrupa Planes, Presupuestos/Cobros y Documentos en page.tsx (vía operationDetail)', () => {
+  it('"Tratamiento y pagos" agrupa Planes, Presupuestos/Cobros y Documentos en page.tsx (vía operationDetail)', () => {
     expect(pageContent).toContain('title="Planes de tratamiento"');
     expect(pageContent).toContain('title="Presupuestos y cobros"');
     expect(pageContent).toContain('title="Documentos del paciente"');
@@ -75,8 +75,8 @@ describe("1I-B — Reorganización visual de la ficha del paciente", () => {
     expect(pageContent).toContain("historyTimeline={historyTimeline}");
   });
 
-  it("no se elimina información clave (resumen de Operación, agenda, perfil clínico)", () => {
-    expect(viewContent).toContain('title="Operación"');
+  it("no se elimina información clave (resumen de Tratamiento y pagos, agenda, perfil clínico)", () => {
+    expect(viewContent).toContain('title="Tratamiento y pagos"');
     expect(viewContent).toContain('title="Agenda"');
     expect(viewContent).toContain("<PatientClinicalProfileSection");
   });

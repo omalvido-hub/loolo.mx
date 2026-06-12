@@ -827,7 +827,7 @@ export function PatientFVOSectionsClient({
       {/* Tutor / Responsable */}
       {(guardian !== undefined || canAddGuardian) && (
         <>
-          {variant === "compact" && <GroupLabel>Contactos</GroupLabel>}
+          {variant === "compact" && <GroupLabel>Responsables y emergencia</GroupLabel>}
           <SectionCard
             title="Tutor / Responsable"
             variant={variant}

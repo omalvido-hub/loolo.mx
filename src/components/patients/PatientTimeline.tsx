@@ -246,7 +246,7 @@ export function PatientTimeline({ encounters, findings, treatmentPlans, document
   return (
     <section className="rounded-xl border bg-card">
       <div className="px-4 py-3 border-b">
-        <h2 className="text-sm font-semibold text-foreground">Historial clínico</h2>
+        <h2 className="text-sm font-semibold text-foreground">Historial</h2>
         <p className="text-xs text-muted-foreground mt-0.5">
           Consultas, hallazgos, tratamientos y documentos clínicos en orden cronológico — solo lectura.
         </p>

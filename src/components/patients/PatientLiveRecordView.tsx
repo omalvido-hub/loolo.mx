@@ -162,9 +162,9 @@ interface Props {
   odontogramSection?: React.ReactNode;
   canCreateEncounter?: boolean;
   documentsCount?: number;
-  /** Detalle bajo demanda de "Operación": planes, presupuestos/cobros y documentos. */
+  /** Detalle bajo demanda de "Tratamiento y pagos": planes, presupuestos/cobros y documentos. */
   operationDetail?: React.ReactNode;
-  /** Historial clínico cruzado (PatientTimeline), renderizado dentro de la ficha. */
+  /** Historial cruzado (PatientTimeline), renderizado dentro de la ficha. */
   historyTimeline?: React.ReactNode;
 }
 
@@ -270,12 +270,64 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         </SectionCard>
       )}
 
-      {/* ── Panel clínico principal: qué se ha encontrado y qué se propone tratar,
-          más agenda del día a día. 2 columnas en desktop, 1 en mobile. ────── */}
+      {/* ── Atención de hoy: lo que el usuario necesita para actuar hoy con
+          este paciente — agenda y tareas abiertas. ────── */}
 
       <GroupHeading
-        title="Panel clínico principal"
-        subtitle="Perfil médico, odontograma, consultas, plan/saldo y agenda. El detalle completo de planes, presupuestos y documentos vive en “Detalle operativo”, más abajo."
+        title="Atención de hoy"
+        subtitle="Agenda y tareas pendientes de este paciente."
+      />
+
+      <div className="space-y-4">
+        {/* Agenda */}
+        <SectionCard title="Agenda">
+          <Row
+            label="Próxima cita"
+            value={
+              operative.nextAppointment
+                ? `${fDatetime(operative.nextAppointment.startAt)} — ${APPT_STATUS_LABELS[operative.nextAppointment.status] ?? operative.nextAppointment.status}`
+                : "Sin cita próxima"
+            }
+          />
+          <Row
+            label="Última cita"
+            value={
+              operative.lastAppointment
+                ? `${fDate(operative.lastAppointment.startAt)} — ${APPT_STATUS_LABELS[operative.lastAppointment.status] ?? operative.lastAppointment.status}`
+                : "Sin historial"
+            }
+          />
+          <Row label="Conversaciones abiertas" value={operative.openConversationsCount} />
+          <Row label="Tareas abiertas" value={operative.openTasksCount} />
+          <Row label="Última actividad" value={fDate(operative.lastActivityAt)} />
+        </SectionCard>
+
+        {/* Tareas abiertas */}
+        {tasks && tasks.length > 0 && (
+          <SectionCard title="Tareas abiertas">
+            <ul className="space-y-2">
+              {tasks.map((t) => (
+                <li key={t.id} className="flex items-start gap-2">
+                  <span className="mt-0.5 size-2 rounded-full bg-amber-400 shrink-0" />
+                  <div>
+                    <p className="font-medium">{t.title}</p>
+                    {t.dueAt && (
+                      <p className="text-xs text-muted-foreground">Vence: {fDate(t.dueAt)}</p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </SectionCard>
+        )}
+      </div>
+
+      {/* ── Clínica: perfil médico, odontograma, hallazgos y consultas clínicas.
+          2 columnas en desktop, 1 en mobile. ────── */}
+
+      <GroupHeading
+        title="Clínica"
+        subtitle="Perfil médico, odontograma, hallazgos activos y consultas clínicas. El detalle de tratamiento y pagos vive en “Tratamiento y pagos”, más abajo."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -310,58 +362,16 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         <div className="space-y-4">
           {/* Odontograma vigente completo */}
           {odontogramSection}
-
-          {/* Agenda */}
-          <SectionCard title="Agenda">
-            <Row
-              label="Próxima cita"
-              value={
-                operative.nextAppointment
-                  ? `${fDatetime(operative.nextAppointment.startAt)} — ${APPT_STATUS_LABELS[operative.nextAppointment.status] ?? operative.nextAppointment.status}`
-                  : "Sin cita próxima"
-              }
-            />
-            <Row
-              label="Última cita"
-              value={
-                operative.lastAppointment
-                  ? `${fDate(operative.lastAppointment.startAt)} — ${APPT_STATUS_LABELS[operative.lastAppointment.status] ?? operative.lastAppointment.status}`
-                  : "Sin historial"
-              }
-            />
-            <Row label="Conversaciones abiertas" value={operative.openConversationsCount} />
-            <Row label="Tareas abiertas" value={operative.openTasksCount} />
-            <Row label="Última actividad" value={fDate(operative.lastActivityAt)} />
-          </SectionCard>
-
-          {/* Tareas abiertas */}
-          {tasks && tasks.length > 0 && (
-            <SectionCard title="Tareas abiertas">
-              <ul className="space-y-2">
-                {tasks.map((t) => (
-                  <li key={t.id} className="flex items-start gap-2">
-                    <span className="mt-0.5 size-2 rounded-full bg-amber-400 shrink-0" />
-                    <div>
-                      <p className="font-medium">{t.title}</p>
-                      {t.dueAt && (
-                        <p className="text-xs text-muted-foreground">Vence: {fDate(t.dueAt)}</p>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </SectionCard>
-          )}
         </div>
       </div>
 
-      {/* ── Operación: plan de tratamiento, presupuestos/cobros y documentos ───
-          Resumen siempre visible; detalle completo bajo demanda. ── */}
+      {/* ── Tratamiento y pagos: plan de tratamiento, presupuestos/cobros y
+          documentos. Resumen siempre visible; detalle completo bajo demanda. ── */}
 
       {(treatment || financial || documentsCount !== undefined) && (
         <PatientDisclosureSection
-          title="Operación"
-          subtitle="Plan de tratamiento, presupuestos, cobros y documentos — resumen y detalle."
+          title="Tratamiento y pagos"
+          subtitle="Plan de tratamiento, presupuesto, pagos y documentos — resumen y detalle."
           summary={
             <>
               {treatment && <Row label="Plan activo" value={treatment.activePlanId ? "Sí" : "No"} />}
@@ -455,18 +465,18 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         />
       </PatientDisclosureSection>
 
-      {/* ── Historial clínico: últimos eventos, con acceso al historial completo ── */}
+      {/* ── Historial: últimos eventos, con acceso al historial completo ── */}
       {historyTimeline}
 
-      {/* ── Bitácora de eventos: auditoría cronológica, fuera del flujo clínico ── */}
+      {/* ── Auditoría: bitácora técnica del sistema, fuera del flujo clínico ── */}
 
       {/* Bitácora de eventos del sistema (versionados) — resumen corto y reciente.
-          Distinta de "Historial clínico" (PatientTimeline, más arriba), que es el
+          Distinta de "Historial" (PatientTimeline, más arriba), que es el
           cruce de actividad clínica: consultas, hallazgos, tratamientos y documentos. */}
       {timeline.length > 0 && (
         <PatientDisclosureSection
-          title="Bitácora de eventos"
-          subtitle="Los 20 eventos más recientes del sistema — auditoría, no forma parte del historial clínico."
+          title="Auditoría"
+          subtitle="Los 20 eventos más recientes del sistema — bitácora técnica, no forma parte del historial clínico."
           tone="muted"
         >
           <ul className="space-y-2">

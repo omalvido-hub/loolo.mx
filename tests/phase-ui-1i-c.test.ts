@@ -32,8 +32,8 @@ const odontogramPath = resolve("src/components/odontogram/OdontogramMasterSectio
 const odontogramContent = readFileSync(odontogramPath, "utf-8");
 
 describe("1I-C — Compactar jerarquía de la ficha del paciente", () => {
-  it('"Operación" es una tarjeta madre con resumen y detalle bajo demanda', () => {
-    expect(viewContent).toContain('title="Operación"');
+  it('"Tratamiento y pagos" es una tarjeta madre con resumen y detalle bajo demanda', () => {
+    expect(viewContent).toContain('title="Tratamiento y pagos"');
     expect(viewContent).toContain('label="Plan activo"');
     expect(viewContent).toContain('label="Ítems vivos / aceptados"');
     expect(viewContent).toContain('label="Presupuesto aceptado"');
@@ -64,7 +64,7 @@ describe("1I-C — Compactar jerarquía de la ficha del paciente", () => {
     expect(fvoContent).toContain("function GroupLabel");
     expect(fvoContent).toContain("<GroupLabel>General</GroupLabel>");
     expect(fvoContent).toContain("<GroupLabel>Domicilio</GroupLabel>");
-    expect(fvoContent).toContain("<GroupLabel>Contactos</GroupLabel>");
+    expect(fvoContent).toContain("<GroupLabel>Responsables y emergencia</GroupLabel>");
     expect(fvoContent).toContain("<GroupLabel>Fiscal</GroupLabel>");
     expect(fvoContent).toContain("<GroupLabel>Consentimiento</GroupLabel>");
     expect(fvoContent).toContain("<GroupLabel>Origen</GroupLabel>");
@@ -88,8 +88,8 @@ describe("1I-C — Compactar jerarquía de la ficha del paciente", () => {
     expect(timelineContent).toContain("for (const it of p.items)");
   });
 
-  it('"Bitácora de eventos" queda con tono secundario (muted), cerrada por default', () => {
-    const idx = viewContent.indexOf('title="Bitácora de eventos"');
+  it('"Auditoría" queda con tono secundario (muted), cerrada por default', () => {
+    const idx = viewContent.indexOf('title="Auditoría"');
     expect(idx).toBeGreaterThan(-1);
     const block = viewContent.slice(idx, idx + 400);
     expect(block).toContain('tone="muted"');
