@@ -10,7 +10,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { TreatmentPlansPatientView, TreatmentPlanView, TreatmentItemView } from "@/server/domain/clinical/treatment-views";
-import { PLAN_TRANSITIONS, ITEM_TRANSITIONS, ITEM_TERMINAL, ProcedureTypeZ, TreatmentPriorityZ } from "@/server/domain/clinical/treatment-schemas";
+import { PLAN_TRANSITIONS, ITEM_TRANSITIONS, ITEM_TERMINAL, PLAN_TERMINAL, ProcedureTypeZ, TreatmentPriorityZ } from "@/server/domain/clinical/treatment-schemas";
 import { ToothSurfaceZ } from "@/server/domain/clinical/odontogram-schemas";
 import { TreatmentPlanStatusBadge } from "./TreatmentPlanStatusBadge";
 import { TreatmentEmpty } from "./TreatmentEmpty";
@@ -652,6 +652,72 @@ function PlanCardClient({ patientId, plan, permissions, highlighted = false }: P
   );
 }
 
+// ─── Subcomponente: tarjeta compacta de plan histórico (solo lectura) ──────
+// COMPLETED / CANCELED / REJECTED — sin acciones de plan ni de ítems, sin
+// "Editar" ni "+ Agregar tratamiento". Colapsado por defecto.
+
+function PlanHistoryCard({ plan }: { plan: TreatmentPlanView }) {
+  const [expanded, setExpanded] = useState(false);
+  const title = plan.title ?? "Plan de tratamiento";
+  const dateLabel = plan.completedAt
+    ? `Completado el ${fDate(plan.completedAt)}`
+    : plan.rejectedAt
+    ? `Rechazado el ${fDate(plan.rejectedAt)}`
+    : plan.canceledAt
+    ? `Cancelado el ${fDate(plan.canceledAt)}`
+    : `Creado el ${fDate(plan.createdAt)}`;
+
+  return (
+    <div className="rounded-lg border bg-muted/10 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setExpanded((e) => !e)}
+        className="w-full flex items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-muted/30 transition-colors"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <TreatmentPlanStatusBadge status={plan.status} variant="plan" />
+          <span className="truncate font-medium">{title}</span>
+        </div>
+        <div className="flex items-center gap-2 shrink-0 text-xs text-muted-foreground">
+          <span>{plan.itemsCount} ítem{plan.itemsCount !== 1 ? "s" : ""}</span>
+          <span>{dateLabel}</span>
+          <span aria-hidden="true">{expanded ? "▾" : "▸"}</span>
+        </div>
+      </button>
+      {expanded && plan.items.length > 0 && (
+        <div className="px-3 pb-2 border-t divide-y">
+          {plan.items.map((item) => {
+            const procedureLabel = PROCEDURE_LABELS[item.procedureType] ?? item.procedureType;
+            const surfaceLabel = item.surface ? SURFACE_LABELS[item.surface] ?? item.surface : null;
+            return (
+              <div key={item.id} className="flex items-center gap-3 py-1.5 text-sm">
+                <div className="w-14 shrink-0 text-center">
+                  {item.toothFdi ? (
+                    <span className="font-mono font-medium text-foreground">
+                      {item.toothFdi}
+                      {surfaceLabel && (
+                        <span className="text-xs text-muted-foreground ml-0.5">{surfaceLabel.slice(0, 1)}</span>
+                      )}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="truncate">{procedureLabel}</span>
+                </div>
+                <div className="shrink-0">
+                  <TreatmentPlanStatusBadge status={item.status} variant="item" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Componente principal ───────────────────────────────────────────────────
 
 interface Props {
@@ -663,7 +729,8 @@ interface Props {
 export function TreatmentPlansSectionClient({ view, patientId, permissions }: Props) {
   const router = useRouter();
   const { plans, activePlan, totalPlans } = view;
-  const otherPlans = plans.filter((p) => p.status !== "ACTIVE");
+  const currentPlans = plans.filter((p) => !PLAN_TERMINAL.has(p.status));
+  const historicalPlans = plans.filter((p) => PLAN_TERMINAL.has(p.status));
   const hasOpenPlan = plans.some((p) => p.status === "ACTIVE" || p.status === "DRAFT");
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -711,12 +778,27 @@ export function TreatmentPlansSectionClient({ view, patientId, permissions }: Pr
         </div>
       ) : (
         <div className="space-y-3">
-          {activePlan && (
-            <PlanCardClient patientId={patientId} plan={activePlan} permissions={permissions} highlighted />
-          )}
-          {otherPlans.map((plan) => (
-            <PlanCardClient key={plan.id} patientId={patientId} plan={plan} permissions={permissions} />
+          {currentPlans.map((plan) => (
+            <PlanCardClient
+              key={plan.id}
+              patientId={patientId}
+              plan={plan}
+              permissions={permissions}
+              highlighted={plan.status === "ACTIVE"}
+            />
           ))}
+          {historicalPlans.length > 0 && (
+            <div className="pt-2">
+              <p className="px-1 mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Historial de planes
+              </p>
+              <div className="space-y-2">
+                {historicalPlans.map((plan) => (
+                  <PlanHistoryCard key={plan.id} plan={plan} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
