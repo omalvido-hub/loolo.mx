@@ -19,6 +19,9 @@ function SectionCard({ title, children }: { title: string; children: React.React
   );
 }
 
+/** Hallazgos visibles por default en "Hallazgos activos"; el resto queda bajo "Ver todos los hallazgos". */
+const VISIBLE_FINDINGS = 5;
+
 interface Props {
   view: OdontogramMasterView;
   patientId: string;
@@ -29,6 +32,9 @@ interface Props {
 
 export function OdontogramMasterSection({ view, patientId, activeEncounterId, canVoid, canActOnFindings }: Props) {
   const { teeth, findingsPanel, summary } = view;
+
+  const visibleFindings = findingsPanel.slice(0, VISIBLE_FINDINGS);
+  const restFindings = findingsPanel.slice(VISIBLE_FINDINGS);
 
   return (
     <div className="space-y-4">
@@ -43,7 +49,7 @@ export function OdontogramMasterSection({ view, patientId, activeEncounterId, ca
         </p>
       </div>
 
-      {/* Diagrama dental interactivo */}
+      {/* Diagrama dental interactivo, con leyenda colapsada dentro de la misma tarjeta */}
       <SectionCard title="Diagrama dental">
         <div className="overflow-x-auto pb-2">
           <div className="w-max mx-auto">
@@ -56,11 +62,8 @@ export function OdontogramMasterSection({ view, patientId, activeEncounterId, ca
             />
           </div>
         </div>
-      </SectionCard>
 
-      {/* Leyenda — colapsada por default para no ocupar altura. */}
-      <SectionCard title="Leyenda">
-        <details>
+        <details className="mt-3 pt-3 border-t">
           <summary className="cursor-pointer text-sm text-muted-foreground">Ver leyenda</summary>
           <div className="pt-2">
             <OdontogramLegend />
@@ -68,12 +71,24 @@ export function OdontogramMasterSection({ view, patientId, activeEncounterId, ca
         </details>
       </SectionCard>
 
-      {/* Panel de hallazgos activos */}
+      {/* Panel de hallazgos activos — máximo VISIBLE_FINDINGS por default */}
       <SectionCard title="Hallazgos activos">
         {findingsPanel.length === 0 ? (
           <OdontogramEmpty />
         ) : (
-          <FindingsPanel findings={findingsPanel} patientId={patientId} />
+          <>
+            <FindingsPanel findings={visibleFindings} patientId={patientId} title="" />
+            {restFindings.length > 0 && (
+              <details className="mt-2 pt-2 border-t">
+                <summary className="cursor-pointer text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Ver todos los hallazgos ({findingsPanel.length})
+                </summary>
+                <div className="pt-2">
+                  <FindingsPanel findings={restFindings} patientId={patientId} title="" />
+                </div>
+              </details>
+            )}
+          </>
         )}
       </SectionCard>
     </div>

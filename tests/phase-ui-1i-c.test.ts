@@ -108,7 +108,7 @@ describe("1I-C — Compactar jerarquía de la ficha del paciente", () => {
   });
 
   it("leyenda del odontograma queda colapsada por default", () => {
-    expect(odontogramContent).toContain("<details>");
+    expect(odontogramContent).toContain("<details");
     expect(odontogramContent).toContain("Ver leyenda");
     expect(odontogramContent).toContain("<OdontogramLegend />");
   });

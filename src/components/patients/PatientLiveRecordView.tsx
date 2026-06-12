@@ -103,6 +103,23 @@ function Row({ label, value }: RowProps) {
   );
 }
 
+/** Mini-métrica del bloque superior: etiqueta corta + valor + acción opcional. */
+interface MiniStatProps {
+  label: string;
+  value: React.ReactNode;
+  valueClassName?: string;
+  action?: React.ReactNode;
+}
+function MiniStat({ label, value, valueClassName, action }: MiniStatProps) {
+  return (
+    <div className="rounded-lg bg-muted/40 px-3 py-2 min-w-0">
+      <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className={`text-sm font-semibold truncate ${valueClassName ?? ""}`}>{value}</p>
+      {action && <div className="mt-0.5">{action}</div>}
+    </div>
+  );
+}
+
 const PATIENT_STATUS_LABELS: Record<string, string> = {
   NEW: "Nuevo",
   ACTIVE: "Activo",
@@ -184,8 +201,8 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
   const balance = financial?.balanceCents ?? null;
 
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-6">
-      {/* Cabecera */}
+    <div className="p-8 max-w-5xl mx-auto space-y-4">
+      {/* Volver */}
       <div className="flex items-center gap-4">
         <Link
           href="/pacientes"
@@ -195,86 +212,121 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         </Link>
       </div>
 
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-4 min-w-0">
-          <span className="flex items-center justify-center size-14 shrink-0 rounded-full bg-primary/10 text-primary font-semibold text-xl ring-2 ring-background">
-            {initials(identity.fullName)}
-          </span>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl font-bold">
-                {identity.fullName ?? <span className="text-muted-foreground italic">Sin nombre</span>}
-              </h1>
-              <span
-                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                  PATIENT_STATUS_BADGE_CLASS[identity.patientStatus] ?? "bg-muted text-muted-foreground"
-                }`}
-              >
-                {PATIENT_STATUS_LABELS[identity.patientStatus] ?? identity.patientStatus}
+      {/* ── Bloque superior único: identidad del paciente + resumen operativo
+          (mini-métricas) + Atención de hoy, todo dentro de la misma tarjeta. ── */}
+      <div className="rounded-xl border bg-card ring-1 ring-foreground/10 overflow-hidden">
+        <div className="p-4 md:p-5 space-y-4">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            {/* Identidad */}
+            <div className="flex items-start gap-4 min-w-0">
+              <span className="flex items-center justify-center size-14 shrink-0 rounded-full bg-primary/10 text-primary font-semibold text-xl ring-2 ring-background">
+                {initials(identity.fullName)}
               </span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-2xl font-bold">
+                    {identity.fullName ?? <span className="text-muted-foreground italic">Sin nombre</span>}
+                  </h1>
+                  <span
+                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      PATIENT_STATUS_BADGE_CLASS[identity.patientStatus] ?? "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {PATIENT_STATUS_LABELS[identity.patientStatus] ?? identity.patientStatus}
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {identity.phone ?? "Sin teléfono"}{identity.email ? ` · ${identity.email}` : ""}
+                </p>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {identity.phone ?? "Sin teléfono"}{identity.email ? ` · ${identity.email}` : ""}
-            </p>
 
-            {/* Resumen compacto: lo esencial de un vistazo, sin tarjetas grandes */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm">
-              <span>
-                <span className="text-muted-foreground">Próxima cita: </span>
-                {nextAppt ? (
-                  <span className="font-medium">{fDatetime(nextAppt.startAt)}</span>
-                ) : (
-                  <>
-                    <span className="text-muted-foreground">Sin cita próxima</span>{" "}
-                    <Link href="/agenda" className="text-xs font-medium text-primary/70 hover:text-primary transition-colors">
+            {/* Resumen operativo: mini-métricas en retícula, no una línea que se rompe */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 lg:w-auto lg:shrink-0">
+              <MiniStat
+                label="Próxima cita"
+                value={nextAppt ? fDatetime(nextAppt.startAt) : "Sin cita"}
+                action={
+                  !nextAppt && (
+                    <Link href="/agenda" className="text-[11px] font-medium text-primary/70 hover:text-primary transition-colors">
                       Ir a agenda →
                     </Link>
-                  </>
-                )}
-              </span>
-
-              <span>
-                <span className="text-muted-foreground">Consulta activa: </span>
-                {activeEncounter ? (
-                  <>
-                    <span className="font-medium">
-                      {activeEncounter.status === "IN_PROGRESS" ? "En consulta" : "Borrador"}
-                    </span>{" "}
+                  )
+                }
+              />
+              <MiniStat
+                label="Consulta activa"
+                value={activeEncounter ? (activeEncounter.status === "IN_PROGRESS" ? "En consulta" : "Borrador") : "Ninguna"}
+                action={
+                  activeEncounter && (
                     <Link
                       href={`/pacientes/${patientId}/consultas/${activeEncounter.encounterId}`}
-                      className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                      className="text-[11px] font-medium text-blue-600 dark:text-blue-400 hover:underline"
                     >
                       Continuar →
                     </Link>
-                  </>
-                ) : (
-                  <span className="text-muted-foreground">Ninguna</span>
-                )}
-              </span>
-
-              <span>
-                <span className="text-muted-foreground">Plan: </span>
-                <span className="font-medium">{hasPlan ? "Sí" : "No"}</span>
-              </span>
-
-              <span>
-                <span className="text-muted-foreground">Saldo: </span>
-                {balance === null ? (
-                  <span className="text-muted-foreground">—</span>
-                ) : balance > 0 ? (
-                  <span className="font-semibold text-amber-700 dark:text-amber-400">{fCents(balance)}</span>
-                ) : (
-                  <span className="font-medium text-green-700 dark:text-green-400">{fCents(balance)}</span>
-                )}
-              </span>
-
-              {odontogramSummary && odontogramSummary.totalFindings > 0 && (
-                <span>
-                  <span className="text-muted-foreground">Hallazgos: </span>
-                  <span className="font-medium">{odontogramSummary.totalFindings}</span>
-                </span>
-              )}
+                  )
+                }
+              />
+              <MiniStat label="Plan" value={hasPlan ? "Sí" : "No"} />
+              <MiniStat
+                label="Saldo"
+                value={balance === null ? "—" : fCents(balance)}
+                valueClassName={
+                  balance === null
+                    ? ""
+                    : balance > 0
+                    ? "text-amber-700 dark:text-amber-400"
+                    : "text-green-700 dark:text-green-400"
+                }
+              />
+              <MiniStat label="Hallazgos" value={odontogramSummary?.totalFindings ?? 0} />
             </div>
+          </div>
+
+          {/* Atención de hoy — integrada al bloque superior, no es tarjeta aparte */}
+          <div className="pt-4 border-t">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 mb-2">Atención de hoy</p>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+              <span>
+                <span className="text-muted-foreground">Última cita: </span>
+                <span className="font-medium">
+                  {operative.lastAppointment
+                    ? `${fDate(operative.lastAppointment.startAt)} — ${APPT_STATUS_LABELS[operative.lastAppointment.status] ?? operative.lastAppointment.status}`
+                    : "Sin historial"}
+                </span>
+              </span>
+              <span>
+                <span className="text-muted-foreground">Conversaciones abiertas: </span>
+                <span className="font-medium">{operative.openConversationsCount}</span>
+              </span>
+              <span>
+                <span className="text-muted-foreground">Tareas abiertas: </span>
+                <span className="font-medium">{operative.openTasksCount}</span>
+              </span>
+              <span>
+                <span className="text-muted-foreground">Última actividad: </span>
+                <span className="font-medium">{fDate(operative.lastActivityAt)}</span>
+              </span>
+              <Link href="/agenda" className="text-xs font-medium text-primary/70 hover:text-primary transition-colors">
+                Ir a agenda →
+              </Link>
+            </div>
+
+            {/* Tareas abiertas — lista corta, dentro de la misma franja */}
+            {tasks && tasks.length > 0 && (
+              <ul className="mt-3 space-y-1.5 border-t pt-3">
+                {tasks.map((t) => (
+                  <li key={t.id} className="flex items-start gap-2 text-sm">
+                    <span className="mt-1.5 size-1.5 rounded-full bg-amber-400 shrink-0" />
+                    <span>
+                      <span className="font-medium">{t.title}</span>
+                      {t.dueAt && <span className="text-xs text-muted-foreground"> — Vence: {fDate(t.dueAt)}</span>}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </div>
@@ -295,63 +347,15 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         </SectionCard>
       )}
 
-      {/* ── Atención de hoy: lo que el usuario necesita para actuar hoy con
-          este paciente. Franja compacta, no tarjeta gigante. ────── */}
-
-      <GroupHeading title="Atención de hoy" />
-
-      <div className="rounded-xl border bg-muted/20 px-4 py-3">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-          <span>
-            <span className="text-muted-foreground">Última cita: </span>
-            <span className="font-medium">
-              {operative.lastAppointment
-                ? `${fDate(operative.lastAppointment.startAt)} — ${APPT_STATUS_LABELS[operative.lastAppointment.status] ?? operative.lastAppointment.status}`
-                : "Sin historial"}
-            </span>
-          </span>
-          <span>
-            <span className="text-muted-foreground">Conversaciones abiertas: </span>
-            <span className="font-medium">{operative.openConversationsCount}</span>
-          </span>
-          <span>
-            <span className="text-muted-foreground">Tareas abiertas: </span>
-            <span className="font-medium">{operative.openTasksCount}</span>
-          </span>
-          <span>
-            <span className="text-muted-foreground">Última actividad: </span>
-            <span className="font-medium">{fDate(operative.lastActivityAt)}</span>
-          </span>
-          <Link href="/agenda" className="text-xs font-medium text-primary/70 hover:text-primary transition-colors">
-            Ir a agenda →
-          </Link>
-        </div>
-
-        {/* Tareas abiertas — lista corta, dentro de la misma franja */}
-        {tasks && tasks.length > 0 && (
-          <ul className="mt-3 space-y-1.5 border-t pt-3">
-            {tasks.map((t) => (
-              <li key={t.id} className="flex items-start gap-2 text-sm">
-                <span className="mt-1.5 size-1.5 rounded-full bg-amber-400 shrink-0" />
-                <span>
-                  <span className="font-medium">{t.title}</span>
-                  {t.dueAt && <span className="text-xs text-muted-foreground"> — Vence: {fDate(t.dueAt)}</span>}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
       {/* ── Clínica: perfil médico, odontograma, hallazgos y consultas clínicas.
-          2 columnas en desktop, 1 en mobile. ────── */}
+          Retícula 45/55 en desktop, 1 columna en mobile. ────── */}
 
       <GroupHeading
         title="Clínica"
         subtitle="Perfil médico, odontograma, hallazgos activos y consultas clínicas. El detalle de tratamiento y pagos vive en “Tratamiento y pagos”, más abajo."
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-[9fr_11fr] gap-4 items-start">
         {/* Columna izquierda */}
         <div className="space-y-4">
           {/* Perfil clínico — alertas médicas, alergias, medicamentos, antecedentes */}
@@ -386,102 +390,105 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         </div>
       </div>
 
-      {/* ── Tratamiento y pagos: plan de tratamiento, presupuestos/cobros y
-          documentos. Resumen siempre visible; detalle completo bajo demanda. ── */}
+      {/* ── Tratamiento y pagos + Datos del paciente: misma retícula de 2
+          columnas, mismo estilo y ancho. 1 columna en mobile. ── */}
 
-      {(treatment || financial || documentsCount !== undefined) && (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:items-start">
+        {/* Tratamiento y pagos: plan de tratamiento, presupuestos/cobros y
+            documentos. Resumen siempre visible; detalle completo bajo demanda. */}
+        {(treatment || financial || documentsCount !== undefined) && (
+          <PatientDisclosureSection
+            title="Tratamiento y pagos"
+            subtitle="Plan de tratamiento, presupuesto, pagos y documentos — resumen y detalle."
+            summary={
+              <>
+                {treatment && <Row label="Plan activo" value={treatment.activePlanId ? "Sí" : "No"} />}
+                {treatment && <Row label="Ítems vivos / aceptados" value={`${itemsVivos} / ${itemsAceptados}`} />}
+                {financial && <Row label="Presupuesto aceptado" value={fCents(financial.totalAcceptedCents)} />}
+                {financial && <Row label="Pagado" value={fCents(financial.paidCents)} />}
+                {financial && (
+                  <Row
+                    label="Saldo"
+                    value={
+                      <span className={financial.balanceCents > 0 ? "text-destructive font-semibold" : ""}>
+                        {fCents(financial.balanceCents)}
+                      </span>
+                    }
+                  />
+                )}
+                {documentsCount !== undefined && <Row label="Documentos" value={documentsCount} />}
+              </>
+            }
+          >
+            {operationDetail}
+          </PatientDisclosureSection>
+        )}
+
+        {/* Datos del paciente: identidad, contacto y datos administrativos.
+            Tarjeta madre única, colapsada por default — resumen compacto siempre
+            visible; subsecciones internas compactas (no tarjetas sueltas) al expandir. */}
         <PatientDisclosureSection
-          title="Tratamiento y pagos"
-          subtitle="Plan de tratamiento, presupuesto, pagos y documentos — resumen y detalle."
+          title="Datos del paciente"
+          subtitle="Identidad, contacto, domicilio, tutores, datos fiscales y consentimiento."
           summary={
             <>
-              {treatment && <Row label="Plan activo" value={treatment.activePlanId ? "Sí" : "No"} />}
-              {treatment && <Row label="Ítems vivos / aceptados" value={`${itemsVivos} / ${itemsAceptados}`} />}
-              {financial && <Row label="Presupuesto aceptado" value={fCents(financial.totalAcceptedCents)} />}
-              {financial && <Row label="Pagado" value={fCents(financial.paidCents)} />}
-              {financial && (
+              <Row label="Teléfono" value={identity.phone} />
+              {record.address && (
                 <Row
-                  label="Saldo"
-                  value={
-                    <span className={financial.balanceCents > 0 ? "text-destructive font-semibold" : ""}>
-                      {fCents(financial.balanceCents)}
-                    </span>
-                  }
+                  label="Domicilio"
+                  value={record.address.street || record.address.municipality || record.address.postalCode ? "Registrado" : "No registrado"}
                 />
               )}
-              {documentsCount !== undefined && <Row label="Documentos" value={documentsCount} />}
+              {record.tax && (
+                <Row
+                  label="Fiscal"
+                  value={record.tax.rfc && record.tax.legalName ? "Completo" : "Incompleto"}
+                />
+              )}
+              {record.emergencyContact && (
+                <Row
+                  label="Contacto de emergencia"
+                  value={record.emergencyContact.name ? "Registrado" : "No registrado"}
+                />
+              )}
+              {record.consent && (
+                <Row
+                  label="Consentimiento"
+                  value={record.consent.status === "GRANTED" ? "Otorgado" : "Pendiente"}
+                />
+              )}
             </>
           }
         >
-          {operationDetail}
-        </PatientDisclosureSection>
-      )}
-
-      {/* ── Datos del paciente: identidad, contacto y datos administrativos ───
-          Tarjeta madre única, colapsada por default — resumen compacto siempre
-          visible; subsecciones internas compactas (no tarjetas sueltas) al expandir. ── */}
-
-      <PatientDisclosureSection
-        title="Datos del paciente"
-        subtitle="Identidad, contacto, domicilio, tutores, datos fiscales y consentimiento."
-        summary={
-          <>
-            <Row label="Teléfono" value={identity.phone} />
-            {record.address && (
-              <Row
-                label="Domicilio"
-                value={record.address.street || record.address.municipality || record.address.postalCode ? "Registrado" : "No registrado"}
-              />
-            )}
-            {record.tax && (
-              <Row
-                label="Fiscal"
-                value={record.tax.rfc && record.tax.legalName ? "Completo" : "Incompleto"}
-              />
-            )}
-            {record.emergencyContact && (
-              <Row
-                label="Contacto de emergencia"
-                value={record.emergencyContact.name ? "Registrado" : "No registrado"}
-              />
-            )}
-            {record.consent && (
-              <Row
-                label="Consentimiento"
-                value={record.consent.status === "GRANTED" ? "Otorgado" : "Pendiente"}
-              />
-            )}
-          </>
-        }
-      >
-        {/* Identidad — bloque compacto, agrupado bajo "General" junto con datos personales (FVO).
-            El encabezado de grupo "General" lo aporta PatientFVOSectionsClient (Datos personales),
-            justo debajo de este bloque, para no duplicar el rótulo. */}
-        <div className="py-3 border-b">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-            Identidad y contacto
-          </h3>
-          <div className="space-y-2 text-sm">
-            <Row label="ID paciente" value={<span className="font-mono text-xs">{identity.patientId}</span>} />
-            <Row label="Teléfono" value={identity.phone} />
-            <Row label="Correo" value={identity.email} />
-            <Row label="Fuente" value={identity.source} />
-            <Row label="Alta" value={fDate(identity.createdAt)} />
-            {identity.archivedAt && <Row label="Archivado" value={fDate(identity.archivedAt)} />}
+          {/* Identidad — bloque compacto, agrupado bajo "General" junto con datos personales (FVO).
+              El encabezado de grupo "General" lo aporta PatientFVOSectionsClient (Datos personales),
+              justo debajo de este bloque, para no duplicar el rótulo. */}
+          <div className="py-3 border-b">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+              Identidad y contacto
+            </h3>
+            <div className="space-y-2 text-sm">
+              <Row label="ID paciente" value={<span className="font-mono text-xs">{identity.patientId}</span>} />
+              <Row label="Teléfono" value={identity.phone} />
+              <Row label="Correo" value={identity.email} />
+              <Row label="Fuente" value={identity.source} />
+              <Row label="Alta" value={fDate(identity.createdAt)} />
+              {identity.archivedAt && <Row label="Archivado" value={fDate(identity.archivedAt)} />}
+            </div>
           </div>
-        </div>
 
-        {/* Secciones extendidas FVO — datos personales, domicilio, tutor, contacto, fiscal, consentimiento, origen — en modo compacto */}
-        <PatientFVOSectionsClient
-          record={record}
-          patientId={patientId ?? ""}
-          canEditDemographics={fvoPermissions?.canEditDemographics ?? false}
-          canAddGuardian={fvoPermissions?.canAddGuardian ?? false}
-          canAddEmergencyContact={fvoPermissions?.canAddEmergencyContact ?? false}
-          canManageConsent={fvoPermissions?.canManageConsent ?? false}
-          variant="compact"
-        />
-      </PatientDisclosureSection>
+          {/* Secciones extendidas FVO — datos personales, domicilio, tutor, contacto, fiscal, consentimiento, origen — en modo compacto */}
+          <PatientFVOSectionsClient
+            record={record}
+            patientId={patientId ?? ""}
+            canEditDemographics={fvoPermissions?.canEditDemographics ?? false}
+            canAddGuardian={fvoPermissions?.canAddGuardian ?? false}
+            canAddEmergencyContact={fvoPermissions?.canAddEmergencyContact ?? false}
+            canManageConsent={fvoPermissions?.canManageConsent ?? false}
+            variant="compact"
+          />
+        </PatientDisclosureSection>
+      </div>
 
       {/* ── Historial: últimos eventos, con acceso al historial completo ── */}
       {historyTimeline}
