@@ -73,6 +73,25 @@ export interface PatientQuotesView {
   totalQuotes: number;
 }
 
+export interface QuoteOverviewItem {
+  id: string;
+  status: string;
+  quoteNumber: string | null;
+  patientId: string;
+  patientName: string;
+  totalCents: number;
+  paidCents: number;
+  balanceCents: number;
+  liquidado: boolean;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface QuotesOverviewView {
+  quotes: QuoteOverviewItem[];
+  totalQuotes: number;
+}
+
 // ─── getQuotesSafeView ──────────────────────────────────────────────────────
 
 /**
@@ -224,6 +243,110 @@ export async function getQuotesSafeView(
 
     return ok<PatientQuotesView>({
       patientId,
+      quotes,
+      totalQuotes: quotes.length,
+    });
+  });
+}
+
+// ─── getQuotesOverviewSafeView ─────────────────────────────────────────────
+
+/**
+ * Listado global (todo el tenant) de presupuestos con saldo calculado.
+ * Exige quote.view. Fail-closed si falta tenant, actor o permiso.
+ * NUNCA devuelve notes, reference, createdBy ni organizationId.
+ * Audita el acceso sin contenido financiero libre.
+ */
+export async function getQuotesOverviewSafeView(
+  run: TenantRunner,
+  ctx: ActorContext,
+  options?: { limit?: number },
+): Promise<Result<QuotesOverviewView>> {
+  if (!ctx.organizationId || !ctx.userId) {
+    return fail("FORBIDDEN", "Actor o tenant no válido (fail-closed).");
+  }
+
+  if (!can(ctx.permissions, "quote.view")) {
+    await run(async (exec) => {
+      await recordPermissionDenied(exec, {
+        organizationId: ctx.organizationId,
+        actorUserId: ctx.userId,
+        permission: "quote.view",
+        entityType: "organization",
+        entityId: ctx.organizationId,
+      });
+    });
+    return fail("FORBIDDEN", "Falta el permiso: quote.view");
+  }
+
+  const limit = options?.limit ?? 100;
+
+  return run(async (exec) => {
+    // SELECT explícito — sin notes, sin createdBy, sin organizationId.
+    const quoteRows = await exec(
+      `SELECT q."id",q."status",q."quoteNumber",q."patientId",q."totalCents",
+              q."createdAt",q."updatedAt",c."fullName" AS "patientName"
+       FROM "quotes" q
+       JOIN "patients" p ON p."id" = q."patientId"
+       JOIN "contacts" c ON c."id" = p."contactId"
+       ORDER BY q."createdAt" DESC
+       LIMIT $1`,
+      [limit],
+    );
+
+    const quoteIds: string[] = quoteRows.map((q: any) => q.id);
+    let allPayments: any[] = [];
+
+    if (quoteIds.length > 0) {
+      // Payment entries — sin reference, sin recordedByUserId, sin organizationId.
+      allPayments = await exec(
+        `SELECT "id","quoteId","entryKind","amountCents"
+         FROM "payments"
+         WHERE "quoteId" = ANY($1)`,
+        [quoteIds],
+      );
+    }
+
+    const paymentsByQuote: Record<string, any[]> = {};
+    for (const p of allPayments) {
+      if (!paymentsByQuote[p.quoteId]) paymentsByQuote[p.quoteId] = [];
+      paymentsByQuote[p.quoteId].push(p);
+    }
+
+    const quotes: QuoteOverviewItem[] = quoteRows.map((q: any) => {
+      const payRows = paymentsByQuote[q.id] ?? [];
+      const entries = payRows.map((p: any) => ({
+        entryKind: p.entryKind as "PAYMENT" | "REVERSAL",
+        amountCents: Number(p.amountCents),
+      }));
+      const { paidCents, balanceCents, liquidado } = computeBalance(Number(q.totalCents), entries);
+
+      return {
+        id: q.id,
+        status: q.status,
+        quoteNumber: q.quoteNumber ?? null,
+        patientId: q.patientId,
+        patientName: q.patientName ?? "—",
+        totalCents: Number(q.totalCents),
+        paidCents,
+        balanceCents,
+        liquidado,
+        createdAt: toIso(q.createdAt) ?? new Date().toISOString(),
+        updatedAt: toIso(q.updatedAt),
+      };
+    });
+
+    await recordAudit(exec, {
+      organizationId: ctx.organizationId,
+      actorUserId: ctx.userId,
+      actorType: "USER",
+      action: "quote.viewed",
+      entityType: "organization",
+      entityId: ctx.organizationId,
+      metadata: { accessType: "getQuotesOverviewSafeView", count: quotes.length },
+    });
+
+    return ok<QuotesOverviewView>({
       quotes,
       totalQuotes: quotes.length,
     });
