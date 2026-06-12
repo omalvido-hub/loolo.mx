@@ -11,10 +11,10 @@ import { OdontogramEmpty } from "./OdontogramEmpty";
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border bg-card ring-1 ring-foreground/10 overflow-hidden">
-      <div className="px-4 py-3 border-b bg-muted/30">
+      <div className="px-3 py-2.5 border-b bg-muted/30">
         <h2 className="font-medium text-base">{title}</h2>
       </div>
-      <div className="px-4 py-4">{children}</div>
+      <div className="px-3 py-3">{children}</div>
     </div>
   );
 }
@@ -54,7 +54,7 @@ export function OdontogramMasterSection({ view, patientId, activeEncounterId, ca
         {/* Diagrama dental interactivo, con leyenda colapsada dentro de la misma tarjeta */}
         <SectionCard title="Diagrama dental">
           <div className="overflow-x-auto pb-2">
-            <div className="w-max mx-auto">
+            <div className="w-max">
               <OdontogramChartInteractive
                 teeth={teeth}
                 patientId={patientId}

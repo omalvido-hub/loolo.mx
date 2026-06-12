@@ -268,62 +268,77 @@ export function PatientClinicalProfileSection({ record }: { record: PatientLiveR
               : "default"
           }
         >
-          {visibleAlerts.length > 0 && (
-            <div className="pb-2 space-y-2">
+          {/* Resumen crítico en retícula: alertas | alergias y medicamentos | nota de seguridad */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+            <div className="min-w-0 space-y-1.5">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Alertas médicas
               </p>
-              {visibleAlerts.map((alert) => (
-                <AlertRow key={alert.id} alert={alert} />
-              ))}
+              {visibleAlerts.length > 0 ? (
+                <div className="space-y-1.5">
+                  {visibleAlerts.map((alert) => (
+                    <AlertRow key={alert.id} alert={alert} />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Sin alertas registradas</p>
+              )}
             </div>
-          )}
-          <Row
-            label="Alergias conocidas"
-            value={
-              clinicalProfile.knownAllergies.length > 0 ? (
-                <div className="flex flex-wrap gap-1">
-                  {clinicalProfile.knownAllergies.map((a, i) => (
-                    <span
-                      key={i}
-                      className="inline-flex items-center rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 px-2 py-0.5 text-xs font-medium"
-                    >
-                      {a}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                "Ninguna registrada"
-              )
-            }
-          />
-          <Row
-            label="Medicamentos actuales"
-            value={
-              clinicalProfile.currentMedications.length > 0 ? (
-                <div className="flex flex-wrap gap-1">
-                  {clinicalProfile.currentMedications.map((m, i) => (
-                    <span
-                      key={i}
-                      className="inline-flex items-center rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-0.5 text-xs font-medium"
-                    >
-                      {m}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                "Ninguno registrado"
-              )
-            }
-          />
-          {clinicalProfile.safetyNotes && (
-            <div className="flex gap-2">
-              <span className="w-44 shrink-0 text-muted-foreground">Notas de seguridad</span>
-              <p className="font-medium text-sm leading-relaxed text-orange-700 dark:text-orange-400 line-clamp-2">
-                {clinicalProfile.safetyNotes}
+
+            <div className="min-w-0 space-y-2">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+                  Alergias conocidas
+                </p>
+                {clinicalProfile.knownAllergies.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {clinicalProfile.knownAllergies.map((a, i) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 px-2 py-0.5 text-xs font-medium"
+                      >
+                        {a}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Ninguna registrada</p>
+                )}
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+                  Medicamentos actuales
+                </p>
+                {clinicalProfile.currentMedications.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {clinicalProfile.currentMedications.map((m, i) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-0.5 text-xs font-medium"
+                      >
+                        {m}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Ninguno registrado</p>
+                )}
+              </div>
+            </div>
+
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+                Notas de seguridad
               </p>
+              {clinicalProfile.safetyNotes ? (
+                <p className="text-sm leading-relaxed text-orange-700 dark:text-orange-400 line-clamp-2">
+                  {clinicalProfile.safetyNotes}
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">Sin notas registradas</p>
+              )}
             </div>
-          )}
+          </div>
 
           {hasMoreDetail && (
             <details className="pt-2 mt-1 border-t">

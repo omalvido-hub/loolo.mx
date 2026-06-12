@@ -67,7 +67,7 @@ function SectionCard({ title, badge, hint, children }: SectionCardProps) {
         </div>
         {hint && <p className="text-xs text-muted-foreground mt-0.5">{hint}</p>}
       </div>
-      <div className="px-4 py-4 space-y-2">{children}</div>
+      <div className="px-4 py-3 space-y-2">{children}</div>
     </div>
   );
 }
@@ -112,9 +112,9 @@ interface MiniStatProps {
 }
 function MiniStat({ label, value, valueClassName, action }: MiniStatProps) {
   return (
-    <div className="rounded-lg bg-muted/40 px-3 py-2 min-w-0">
+    <div className="rounded-lg bg-muted/40 px-2.5 py-1.5 min-w-0">
       <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className={`text-sm font-semibold truncate ${valueClassName ?? ""}`}>{value}</p>
+      <p className={`text-sm font-semibold truncate leading-tight ${valueClassName ?? ""}`}>{value}</p>
       {action && <div className="mt-0.5">{action}</div>}
     </div>
   );
@@ -215,16 +215,16 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
       {/* ── Bloque superior único: identidad del paciente + resumen operativo
           (mini-métricas) + Atención de hoy, todo dentro de la misma tarjeta. ── */}
       <div className="rounded-xl border bg-card ring-1 ring-foreground/10 overflow-hidden">
-        <div className="p-4 md:p-5 space-y-4">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+        <div className="p-3 md:p-4 space-y-3">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
             {/* Identidad */}
-            <div className="flex items-start gap-4 min-w-0">
-              <span className="flex items-center justify-center size-14 shrink-0 rounded-full bg-primary/10 text-primary font-semibold text-xl ring-2 ring-background">
+            <div className="flex items-start gap-3 min-w-0">
+              <span className="flex items-center justify-center size-10 shrink-0 rounded-full bg-primary/10 text-primary font-semibold text-base ring-2 ring-background">
                 {initials(identity.fullName)}
               </span>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-2xl font-bold">
+                  <h1 className="text-xl font-bold">
                     {identity.fullName ?? <span className="text-muted-foreground italic">Sin nombre</span>}
                   </h1>
                   <span
@@ -285,8 +285,8 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
           </div>
 
           {/* Atención de hoy — integrada al bloque superior, no es tarjeta aparte */}
-          <div className="pt-4 border-t">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 mb-2">Atención de hoy</p>
+          <div className="pt-3 border-t">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 mb-1.5">Atención de hoy</p>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
               <span>
                 <span className="text-muted-foreground">Última cita: </span>
@@ -315,7 +315,7 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
 
             {/* Tareas abiertas — lista corta, dentro de la misma franja */}
             {tasks && tasks.length > 0 && (
-              <ul className="mt-3 space-y-1.5 border-t pt-3">
+              <ul className="mt-2 space-y-1.5 border-t pt-2">
                 {tasks.map((t) => (
                   <li key={t.id} className="flex items-start gap-2 text-sm">
                     <span className="mt-1.5 size-1.5 rounded-full bg-amber-400 shrink-0" />
