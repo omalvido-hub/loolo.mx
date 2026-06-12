@@ -27,6 +27,7 @@ export interface TreatmentItemView {
   createdAt: string;
   completedAt: string | null;
   canceledAt: string | null;
+  hasQuoteLine: boolean;
 }
 
 export interface TreatmentPlanView {
@@ -120,6 +121,21 @@ export async function getTreatmentPlansSafeView(
       itemsByPlan[item.planId].push(item);
     }
 
+    // Ítems ya referenciados por al menos una línea de presupuesto (cualquier
+    // estado del presupuesto). Solo se usa para bloquear edición — no expone
+    // IDs ni datos del presupuesto.
+    const itemIds: string[] = allItems.map((it: any) => it.id);
+    const quotedItemIds = new Set<string>();
+    if (itemIds.length > 0) {
+      const quotedRows = await exec(
+        `SELECT DISTINCT "treatmentPlanItemId" FROM "quote_lines" WHERE "treatmentPlanItemId" = ANY($1)`,
+        [itemIds],
+      );
+      for (const row of quotedRows) {
+        quotedItemIds.add(row.treatmentPlanItemId);
+      }
+    }
+
     const LIVE = new Set(["PROPOSED", "ACCEPTED", "IN_PROGRESS"]);
 
     const plans: TreatmentPlanView[] = planRows.map((p: any) => {
@@ -134,6 +150,7 @@ export async function getTreatmentPlansSafeView(
         createdAt: toIso(it.createdAt) ?? new Date().toISOString(),
         completedAt: toIso(it.completedAt),
         canceledAt: toIso(it.canceledAt),
+        hasQuoteLine: quotedItemIds.has(it.id),
       }));
 
       return {

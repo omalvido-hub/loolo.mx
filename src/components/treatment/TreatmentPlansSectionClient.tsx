@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import {
   createPlanAction,
   addItemAction,
+  updateItemAction,
   setPlanStatusAction,
   setItemStatusAction,
 } from "@/server/actions/treatment";
@@ -221,6 +222,129 @@ function AddItemForm({ patientId, planId, onCancel, onDone }: AddItemFormProps) 
   );
 }
 
+// ─── Subcomponente: formulario "Editar tratamiento" ────────────────────────
+// Solo se usa para ítems PROPOSED sin presupuesto asociado (regla 1C-B).
+// No edita "note": treatment-views.ts no lo expone (texto clínico libre).
+
+interface EditItemFormProps {
+  patientId: string;
+  item: TreatmentItemView;
+  onCancel: () => void;
+  onDone: () => void;
+}
+
+function EditItemForm({ patientId, item, onCancel, onDone }: EditItemFormProps) {
+  const [procedureType, setProcedureType] = useState<string>(item.procedureType);
+  const [toothFdi, setToothFdi] = useState(item.toothFdi != null ? String(item.toothFdi) : "");
+  const [surface, setSurface] = useState(item.surface ?? "");
+  const [priority, setPriority] = useState<string>(item.priority);
+  const [sequence, setSequence] = useState(String(item.sequence));
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  function handleSubmit() {
+    setError(null);
+    const raw: Record<string, unknown> = { itemId: item.id, procedureType, priority };
+
+    if (toothFdi.trim() !== "") {
+      const fdi = Number(toothFdi);
+      if (!Number.isInteger(fdi)) {
+        setError("La pieza debe ser un número FDI válido (11-48).");
+        return;
+      }
+      raw.toothFdi = fdi;
+    }
+    if (surface !== "") raw.surface = surface;
+
+    const seq = Number(sequence);
+    if (!Number.isInteger(seq) || seq < 0) {
+      setError("El orden debe ser un número entero igual o mayor a 0.");
+      return;
+    }
+    raw.sequence = seq;
+
+    startTransition(async () => {
+      const result = await updateItemAction(patientId, raw);
+      if (!result.ok) setError(result.error);
+      else onDone();
+    });
+  }
+
+  return (
+    <div className="mt-2 p-3 rounded-lg border bg-muted/20 space-y-2">
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        Editar tratamiento
+      </p>
+      <div className="flex items-center gap-2 flex-wrap">
+        <select
+          value={procedureType}
+          onChange={(e) => setProcedureType(e.target.value)}
+          className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+          disabled={isPending}
+          aria-label="Tipo de procedimiento"
+        >
+          {ProcedureTypeZ.options.map((value) => (
+            <option key={value} value={value}>{PROCEDURE_LABELS[value] ?? value}</option>
+          ))}
+        </select>
+        <Input
+          type="number"
+          min={11}
+          max={48}
+          placeholder="Pieza (opcional)"
+          value={toothFdi}
+          onChange={(e) => setToothFdi(e.target.value)}
+          className="w-32 h-8 text-sm"
+          disabled={isPending}
+          aria-label="Pieza dental FDI (opcional)"
+        />
+        <select
+          value={surface}
+          onChange={(e) => setSurface(e.target.value)}
+          className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+          disabled={isPending}
+          aria-label="Superficie (opcional)"
+        >
+          <option value="">Superficie (opcional)</option>
+          {ToothSurfaceZ.options.map((value) => (
+            <option key={value} value={value}>{SURFACE_LABELS[value] ?? value}</option>
+          ))}
+        </select>
+        <select
+          value={priority}
+          onChange={(e) => setPriority(e.target.value)}
+          className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+          disabled={isPending}
+          aria-label="Prioridad"
+        >
+          {TreatmentPriorityZ.options.map((value) => (
+            <option key={value} value={value}>{PRIORITY_LABELS[value] ?? value}</option>
+          ))}
+        </select>
+        <Input
+          type="number"
+          min={0}
+          placeholder="Orden"
+          value={sequence}
+          onChange={(e) => setSequence(e.target.value)}
+          className="w-24 h-8 text-sm"
+          disabled={isPending}
+          aria-label="Orden dentro del plan"
+        />
+      </div>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+      <div className="flex gap-2">
+        <Button size="sm" onClick={handleSubmit} disabled={isPending}>
+          {isPending ? "Guardando…" : "Guardar"}
+        </Button>
+        <Button size="sm" variant="outline" onClick={onCancel} disabled={isPending}>
+          Cancelar
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Subcomponente: fila de ítem con acciones de estado ────────────────────
 
 interface ItemRowClientProps {
@@ -233,6 +357,7 @@ interface ItemRowClientProps {
 function ItemRowClient({ patientId, item, permissions, onChanged }: ItemRowClientProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [showEdit, setShowEdit] = useState(false);
 
   const procedureLabel = PROCEDURE_LABELS[item.procedureType] ?? item.procedureType;
   const surfaceLabel = item.surface ? SURFACE_LABELS[item.surface] ?? item.surface : null;
@@ -241,6 +366,10 @@ function ItemRowClient({ patientId, item, permissions, onChanged }: ItemRowClien
   const targets = (ITEM_TRANSITIONS[item.status] ?? []).filter(
     (to) => permissions[ITEM_PERM_FLAG[to]],
   );
+
+  // Editar solo si: ítem PROPOSED, sin presupuesto asociado y permiso treatment.edit
+  // (regla 1C-B — evita desalinear plan vs presupuesto/cobro).
+  const canEditItem = item.status === "PROPOSED" && !item.hasQuoteLine && permissions.canEdit;
 
   function handleTransition(to: string) {
     setError(null);
@@ -276,10 +405,21 @@ function ItemRowClient({ patientId, item, permissions, onChanged }: ItemRowClien
           <TreatmentPlanStatusBadge status={item.status} variant="item" />
         </div>
       </div>
-      {targets.length > 0 && (() => {
+      {(targets.length > 0 || canEditItem) && !showEdit && (() => {
         const { primary, destructive } = splitTargets(targets);
         return (
           <div className="flex items-center gap-2 mt-1 pl-1 flex-wrap">
+            {canEditItem && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 px-2 text-xs"
+                onClick={() => setShowEdit(true)}
+                disabled={isPending}
+              >
+                Editar
+              </Button>
+            )}
             {primary.map((to) => (
               <Button
                 key={to}
@@ -312,6 +452,14 @@ function ItemRowClient({ patientId, item, permissions, onChanged }: ItemRowClien
           </div>
         );
       })()}
+      {showEdit && (
+        <EditItemForm
+          patientId={patientId}
+          item={item}
+          onCancel={() => setShowEdit(false)}
+          onDone={() => { setShowEdit(false); onChanged(); }}
+        />
+      )}
     </div>
   );
 }
