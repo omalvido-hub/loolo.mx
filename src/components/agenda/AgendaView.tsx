@@ -1,5 +1,6 @@
 import type { AppointmentListResult, ResourceListResult } from "@/server/domain/agenda/queries";
 import { AppointmentStatusBadge } from "./AppointmentStatusBadge";
+import { AppointmentForm } from "./AppointmentForm";
 
 const FMT_TIME = new Intl.DateTimeFormat("es-MX", {
   timeZone: "America/Mexico_City",
@@ -36,9 +37,11 @@ const KIND_LABEL: Record<string, string> = {
 interface Props {
   appointments: AppointmentListResult;
   resources: ResourceListResult | null;
+  patientId?: string;
+  canCreateAppointment: boolean;
 }
 
-export function AgendaView({ appointments, resources }: Props) {
+export function AgendaView({ appointments, resources, patientId, canCreateAppointment }: Props) {
   const { items, from } = appointments;
 
   const resourceMap = new Map(
@@ -54,6 +57,10 @@ export function AgendaView({ appointments, resources }: Props) {
           {items.length === 1 ? "cita" : "citas"}
         </p>
       </div>
+
+      {canCreateAppointment && (
+        <AppointmentForm resources={resources} patientId={patientId} defaultDate={from.slice(0, 10)} />
+      )}
 
       {items.length === 0 ? (
         <div className="rounded-lg border border-dashed p-12 text-center text-muted-foreground">

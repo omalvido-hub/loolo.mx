@@ -3,6 +3,7 @@ import { requireOrganization, UnauthorizedError, NoOrganizationError } from "@/s
 import { getActorContext } from "@/server/auth/context";
 import { makeTenantRunner } from "@/server/db/tenant";
 import { listAppointmentsByRange, listResources } from "@/server/domain/agenda/queries";
+import { can } from "@/server/domain/identity/permissions";
 import { AgendaView } from "@/components/agenda/AgendaView";
 
 function parseDate(s: string | undefined): Date | undefined {
@@ -14,7 +15,7 @@ function parseDate(s: string | undefined): Date | undefined {
 export default async function AgendaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string; resourceId?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; resourceId?: string; patientId?: string }>;
 }) {
   const params = await searchParams;
 
@@ -38,6 +39,8 @@ export default async function AgendaPage({
   const from = parseDate(params.from);
   const to = parseDate(params.to);
   const resourceId = typeof params.resourceId === "string" ? params.resourceId : undefined;
+  const patientId = typeof params.patientId === "string" ? params.patientId : undefined;
+  const canCreateAppointment = can(ctx.permissions, "appointments.create");
 
   const [apptResult, resResult] = await Promise.all([
     listAppointmentsByRange(run, ctx, { from, to, resourceId }),
@@ -68,6 +71,8 @@ export default async function AgendaPage({
     <AgendaView
       appointments={apptResult.value}
       resources={resResult.ok ? resResult.value : null}
+      patientId={patientId}
+      canCreateAppointment={canCreateAppointment}
     />
   );
 }

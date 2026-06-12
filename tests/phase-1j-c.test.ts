@@ -41,10 +41,11 @@ describe("1J-C — Próxima cita real en la Ficha Viva", () => {
     expect(block).toContain("APPT_STATUS_LABELS[nextAppt.status]");
     expect(block).toContain("nextApptResourceLine");
 
-    // CTA: a la cita concreta si existe, a la agenda si no.
+    // CTA: a la cita concreta si existe, a /agenda?patientId=<id> si no (1K-C).
     expect(block).toContain("`/agenda?appointmentId=${nextAppt.id}`");
     expect(block).toContain('"Ver cita →"');
-    expect(block).toContain('"Ir a agenda →"');
+    expect(block).toContain("`/agenda?patientId=${patientId}`");
+    expect(block).toContain('"Agendar →"');
   });
 
   it('"Atención de hoy" resalta la cita del día sin perder los campos previos', () => {

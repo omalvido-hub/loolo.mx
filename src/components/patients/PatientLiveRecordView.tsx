@@ -298,10 +298,10 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
                       </p>
                     )}
                     <Link
-                      href={nextAppt ? `/agenda?appointmentId=${nextAppt.id}` : "/agenda"}
+                      href={nextAppt ? `/agenda?appointmentId=${nextAppt.id}` : `/agenda?patientId=${patientId}`}
                       className="text-[11px] font-medium text-primary/70 hover:text-primary transition-colors"
                     >
-                      {nextAppt ? "Ver cita →" : "Ir a agenda →"}
+                      {nextAppt ? "Ver cita →" : "Agendar →"}
                     </Link>
                   </div>
                 }
