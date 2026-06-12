@@ -30,6 +30,18 @@ const FMT_CURRENCY = new Intl.NumberFormat("es-MX", {
   maximumFractionDigits: 2,
 });
 
+const FMT_TIME = new Intl.DateTimeFormat("es-MX", {
+  timeZone: "America/Mexico_City",
+  timeStyle: "short",
+});
+
+const FMT_DAY_KEY = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "America/Mexico_City",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
 function fDate(iso: string | null | undefined): string {
   if (!iso) return "—";
   try { return FMT_DATE.format(new Date(iso)); } catch { return "—"; }
@@ -42,6 +54,30 @@ function fDatetime(iso: string | null | undefined): string {
 
 function fCents(cents: number): string {
   return FMT_CURRENCY.format(cents / 100);
+}
+
+/** Fecha de una cita en formato corto ("12 jun 2026"). */
+function formatAppointmentDate(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  try { return FMT_DATE.format(new Date(iso)); } catch { return "—"; }
+}
+
+/** Hora de una cita ("10:00 a.m."). */
+function formatAppointmentTime(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  try { return FMT_TIME.format(new Date(iso)); } catch { return "—"; }
+}
+
+/** True si dos fechas ISO caen en el mismo día calendario en America/Mexico_City. */
+function isSameLocalDay(isoA: string | null | undefined, isoB: string | null | undefined): boolean {
+  if (!isoA || !isoB) return false;
+  try { return FMT_DAY_KEY.format(new Date(isoA)) === FMT_DAY_KEY.format(new Date(isoB)); } catch { return false; }
+}
+
+/** Línea "profesional · sillón" para una cita, omitiendo lo que no esté disponible (sin permiso o sin asignar). */
+function formatResourceLine(professionalName?: string | null, chairName?: string | null): string | null {
+  const parts = [professionalName, chairName].filter((v): v is string => !!v);
+  return parts.length > 0 ? parts.join(" · ") : null;
 }
 
 interface SectionCardProps {
@@ -199,6 +235,8 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
   const nextAppt = operative.nextAppointment;
   const hasPlan = !!treatment?.activePlanId;
   const balance = financial?.balanceCents ?? null;
+  const nextApptIsToday = nextAppt ? isSameLocalDay(nextAppt.startAt, new Date().toISOString()) : false;
+  const nextApptResourceLine = nextAppt ? formatResourceLine(nextAppt.professionalName, nextAppt.chairName) : null;
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-4">
@@ -245,13 +283,27 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 lg:w-auto lg:shrink-0">
               <MiniStat
                 label="Próxima cita"
-                value={nextAppt ? fDatetime(nextAppt.startAt) : "Sin cita"}
+                value={
+                  nextAppt
+                    ? `${nextApptIsToday ? "Hoy" : formatAppointmentDate(nextAppt.startAt)} · ${formatAppointmentTime(nextAppt.startAt)}`
+                    : "Sin cita"
+                }
+                valueClassName={nextAppt ? "" : "text-muted-foreground"}
                 action={
-                  !nextAppt && (
-                    <Link href="/agenda" className="text-[11px] font-medium text-primary/70 hover:text-primary transition-colors">
-                      Ir a agenda →
+                  <div className="space-y-0.5">
+                    {nextAppt && (
+                      <p className="text-[11px] text-muted-foreground truncate">
+                        {APPT_STATUS_LABELS[nextAppt.status] ?? nextAppt.status}
+                        {nextApptResourceLine ? ` · ${nextApptResourceLine}` : ""}
+                      </p>
+                    )}
+                    <Link
+                      href={nextAppt ? `/agenda?appointmentId=${nextAppt.id}` : "/agenda"}
+                      className="text-[11px] font-medium text-primary/70 hover:text-primary transition-colors"
+                    >
+                      {nextAppt ? "Ver cita →" : "Ir a agenda →"}
                     </Link>
-                  )
+                  </div>
                 }
               />
               <MiniStat
@@ -288,6 +340,15 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
           <div className="pt-3 border-t">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 mb-1.5">Atención de hoy</p>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+              {nextAppt && nextApptIsToday && (
+                <span>
+                  <span className="text-muted-foreground">Cita de hoy: </span>
+                  <span className="font-medium">
+                    {formatAppointmentTime(nextAppt.startAt)} — {APPT_STATUS_LABELS[nextAppt.status] ?? nextAppt.status}
+                    {nextApptResourceLine ? ` · ${nextApptResourceLine}` : ""}
+                  </span>
+                </span>
+              )}
               <span>
                 <span className="text-muted-foreground">Última cita: </span>
                 <span className="font-medium">
