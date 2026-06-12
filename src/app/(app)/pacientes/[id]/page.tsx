@@ -146,7 +146,7 @@ export default async function PacienteDetallePage({
           encounters={encounters}
           findings={odoResult.ok ? odoResult.value.findingsPanel : []}
           treatmentPlans={treatmentResult.ok ? treatmentResult.value.plans : []}
-          quotes={quotesResult.ok ? quotesResult.value.quotes : []}
+          documents={documentsResult.ok ? documentsResult.value.items : []}
         />
         {treatmentResult.ok ? (
           <TreatmentPlansSectionClient
