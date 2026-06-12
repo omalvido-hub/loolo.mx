@@ -4,6 +4,7 @@ import { EncounterList } from "@/components/clinical/EncounterList";
 import { PatientFVOSectionsClient, PatientClinicalProfileSection } from "@/components/patients/PatientFVOSectionsClient";
 import { PatientStatusBar } from "@/components/patients/PatientStatusBar";
 import { PatientCareChain } from "@/components/patients/PatientCareChain";
+import { PatientDisclosureSection } from "@/components/patients/PatientDisclosureSection";
 import type { EncounterListItem } from "@/server/domain/clinical/encounter-views";
 
 interface FVOPermissions {
@@ -269,171 +270,198 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
         </SectionCard>
       )}
 
-      {/* ── Bloque clínico: qué se ha encontrado y qué se propone tratar ────── */}
+      {/* ── Panel clínico principal: qué se ha encontrado y qué se propone tratar,
+          más agenda del día a día. 2 columnas en desktop, 1 en mobile. ────── */}
 
       <GroupHeading
-        title="Expediente clínico"
-        subtitle="Resumen rápido — perfil médico, odontograma, consultas y plan/saldo. El detalle completo de planes y presupuestos vive más abajo, en sus propios módulos."
+        title="Panel clínico principal"
+        subtitle="Perfil médico, odontograma, consultas, plan/saldo y agenda. El detalle completo de planes, presupuestos y documentos vive en “Detalle operativo”, más abajo."
       />
 
-      {/* Perfil clínico — alertas médicas, alergias, medicamentos, antecedentes */}
-      <PatientClinicalProfileSection record={record} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Columna izquierda */}
+        <div className="space-y-4">
+          {/* Perfil clínico — alertas médicas, alergias, medicamentos, antecedentes */}
+          <PatientClinicalProfileSection record={record} />
 
-      {/* Odontograma vigente completo */}
-      {odontogramSection}
-
-      {/* Historial clínico — resumen + consultas con enlaces */}
-      {clinical && (
-        <SectionCard title="Historial clínico">
-          <Row label="Total consultas" value={clinical.encountersCount} />
-          <Row label="Última consulta" value={fDate(clinical.lastEncounterAt)} />
-          <Row label="Estado última consulta" value={clinical.lastEncounterStatus ? (ENCOUNTER_STATUS_LABELS[clinical.lastEncounterStatus] ?? clinical.lastEncounterStatus) : "—"} />
-          <Row label="Notas clínicas" value={clinical.notesCount} />
-          <Row label="Última nota" value={fDate(clinical.lastNoteAt)} />
-          {encounters !== undefined && patientId && (
-            <div className="pt-3 mt-1 border-t">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                Consultas registradas
-              </p>
-              <EncounterList items={encounters} patientId={patientId} canCreate={canCreateEncounter} />
-            </div>
-          )}
-        </SectionCard>
-      )}
-
-      {/* Resumen corto del plan — el módulo "Planes de tratamiento — detalle" (más abajo)
-          tiene la lista completa de planes, ítems y acciones. */}
-      {treatment && (
-        <SectionCard
-          title="Resumen de plan de tratamiento"
-          badge="Resumen"
-          hint="Vista rápida. El detalle completo (planes, ítems y acciones) está en “Planes de tratamiento — detalle”, más abajo."
-        >
-          <Row label="Planes registrados" value={treatment.plansCount} />
-          <Row label="Plan activo" value={treatment.activePlanId ? "Sí" : "No"} />
-          {Object.entries(treatment.itemsByStatus).map(([status, count]) => (
-            <Row key={status} label={`Ítems ${TREATMENT_ITEM_STATUS_LABELS[status] ?? status.toLowerCase()}`} value={count} />
-          ))}
-        </SectionCard>
-      )}
-
-      {/* Resumen corto de presupuestos/cobros — el módulo "Presupuestos y cobros — detalle"
-          (más abajo) tiene las líneas, estados y registro de pagos. */}
-      {financial && (
-        <SectionCard
-          title="Resumen de presupuestos y cobros"
-          badge="Resumen"
-          hint="Vista rápida del saldo. El detalle completo (presupuestos, líneas y pagos) está en “Presupuestos y cobros — detalle”, más abajo."
-        >
-          <Row label="Presupuestos" value={financial.quotesCount} />
-          <Row label="Total propuesto" value={fCents(financial.totalProposedCents)} />
-          <Row label="Total aceptado" value={fCents(financial.totalAcceptedCents)} />
-          <Row label="Pagado" value={fCents(financial.paidCents)} />
-          <Row
-            label="Saldo pendiente"
-            value={
-              <span className={financial.balanceCents > 0 ? "text-destructive font-semibold" : ""}>
-                {fCents(financial.balanceCents)}
-              </span>
-            }
-          />
-          {financial.hasReversals && (
-            <p className="text-xs text-muted-foreground">Incluye reversiones de pago.</p>
-          )}
-        </SectionCard>
-      )}
-
-      {/* ── Bloque operativo: agenda y seguimiento del día a día ────────────── */}
-
-      <GroupHeading
-        title="Agenda y seguimiento"
-        subtitle="Citas, conversaciones abiertas y tareas pendientes con este paciente."
-      />
-
-      {/* Agenda */}
-      <SectionCard title="Agenda">
-        <Row
-          label="Próxima cita"
-          value={
-            operative.nextAppointment
-              ? `${fDatetime(operative.nextAppointment.startAt)} — ${APPT_STATUS_LABELS[operative.nextAppointment.status] ?? operative.nextAppointment.status}`
-              : "Sin cita próxima"
-          }
-        />
-        <Row
-          label="Última cita"
-          value={
-            operative.lastAppointment
-              ? `${fDate(operative.lastAppointment.startAt)} — ${APPT_STATUS_LABELS[operative.lastAppointment.status] ?? operative.lastAppointment.status}`
-              : "Sin historial"
-          }
-        />
-        <Row label="Conversaciones abiertas" value={operative.openConversationsCount} />
-        <Row label="Tareas abiertas" value={operative.openTasksCount} />
-        <Row label="Última actividad" value={fDate(operative.lastActivityAt)} />
-      </SectionCard>
-
-      {/* Tareas abiertas */}
-      {tasks && tasks.length > 0 && (
-        <SectionCard title="Tareas abiertas">
-          <ul className="space-y-2">
-            {tasks.map((t) => (
-              <li key={t.id} className="flex items-start gap-2">
-                <span className="mt-0.5 size-2 rounded-full bg-amber-400 shrink-0" />
-                <div>
-                  <p className="font-medium">{t.title}</p>
-                  {t.dueAt && (
-                    <p className="text-xs text-muted-foreground">Vence: {fDate(t.dueAt)}</p>
-                  )}
+          {/* Consultas clínicas — resumen + consultas con enlaces */}
+          {clinical && (
+            <SectionCard title="Consultas clínicas">
+              <Row label="Total consultas" value={clinical.encountersCount} />
+              <Row label="Última consulta" value={fDate(clinical.lastEncounterAt)} />
+              <Row label="Estado última consulta" value={clinical.lastEncounterStatus ? (ENCOUNTER_STATUS_LABELS[clinical.lastEncounterStatus] ?? clinical.lastEncounterStatus) : "—"} />
+              <Row label="Notas clínicas" value={clinical.notesCount} />
+              <Row label="Última nota" value={fDate(clinical.lastNoteAt)} />
+              {encounters !== undefined && patientId && (
+                <div className="pt-3 mt-1 border-t">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                    Consultas registradas
+                  </p>
+                  <EncounterList items={encounters} patientId={patientId} canCreate={canCreateEncounter} />
                 </div>
-              </li>
-            ))}
-          </ul>
-        </SectionCard>
-      )}
+              )}
+            </SectionCard>
+          )}
+        </div>
 
-      {/* ── Bloque administrativo: datos del paciente y su expediente ───────── */}
+        {/* Columna derecha */}
+        <div className="space-y-4">
+          {/* Odontograma vigente completo */}
+          {odontogramSection}
 
-      <GroupHeading
+          {/* Resumen corto del plan — el módulo "Planes de tratamiento — detalle"
+              (en "Detalle operativo") tiene la lista completa de planes, ítems y acciones. */}
+          {treatment && (
+            <SectionCard
+              title="Resumen de plan de tratamiento"
+              badge="Resumen"
+              hint="Vista rápida. El detalle completo (planes, ítems y acciones) está en “Detalle operativo → Planes de tratamiento — detalle”."
+            >
+              <Row label="Planes registrados" value={treatment.plansCount} />
+              <Row label="Plan activo" value={treatment.activePlanId ? "Sí" : "No"} />
+              {Object.entries(treatment.itemsByStatus).map(([status, count]) => (
+                <Row key={status} label={`Ítems ${TREATMENT_ITEM_STATUS_LABELS[status] ?? status.toLowerCase()}`} value={count} />
+              ))}
+            </SectionCard>
+          )}
+
+          {/* Resumen corto de presupuestos/cobros — el módulo "Presupuestos y cobros — detalle"
+              (en "Detalle operativo") tiene las líneas, estados y registro de pagos. */}
+          {financial && (
+            <SectionCard
+              title="Resumen de presupuestos y cobros"
+              badge="Resumen"
+              hint="Vista rápida del saldo. El detalle completo (presupuestos, líneas y pagos) está en “Detalle operativo → Presupuestos y cobros — detalle”."
+            >
+              <Row label="Presupuestos" value={financial.quotesCount} />
+              <Row label="Total propuesto" value={fCents(financial.totalProposedCents)} />
+              <Row label="Total aceptado" value={fCents(financial.totalAcceptedCents)} />
+              <Row label="Pagado" value={fCents(financial.paidCents)} />
+              <Row
+                label="Saldo pendiente"
+                value={
+                  <span className={financial.balanceCents > 0 ? "text-destructive font-semibold" : ""}>
+                    {fCents(financial.balanceCents)}
+                  </span>
+                }
+              />
+              {financial.hasReversals && (
+                <p className="text-xs text-muted-foreground">Incluye reversiones de pago.</p>
+              )}
+            </SectionCard>
+          )}
+
+          {/* Agenda */}
+          <SectionCard title="Agenda">
+            <Row
+              label="Próxima cita"
+              value={
+                operative.nextAppointment
+                  ? `${fDatetime(operative.nextAppointment.startAt)} — ${APPT_STATUS_LABELS[operative.nextAppointment.status] ?? operative.nextAppointment.status}`
+                  : "Sin cita próxima"
+              }
+            />
+            <Row
+              label="Última cita"
+              value={
+                operative.lastAppointment
+                  ? `${fDate(operative.lastAppointment.startAt)} — ${APPT_STATUS_LABELS[operative.lastAppointment.status] ?? operative.lastAppointment.status}`
+                  : "Sin historial"
+              }
+            />
+            <Row label="Conversaciones abiertas" value={operative.openConversationsCount} />
+            <Row label="Tareas abiertas" value={operative.openTasksCount} />
+            <Row label="Última actividad" value={fDate(operative.lastActivityAt)} />
+          </SectionCard>
+
+          {/* Tareas abiertas */}
+          {tasks && tasks.length > 0 && (
+            <SectionCard title="Tareas abiertas">
+              <ul className="space-y-2">
+                {tasks.map((t) => (
+                  <li key={t.id} className="flex items-start gap-2">
+                    <span className="mt-0.5 size-2 rounded-full bg-amber-400 shrink-0" />
+                    <div>
+                      <p className="font-medium">{t.title}</p>
+                      {t.dueAt && (
+                        <p className="text-xs text-muted-foreground">Vence: {fDate(t.dueAt)}</p>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </SectionCard>
+          )}
+        </div>
+      </div>
+
+      {/* ── Datos del paciente: identidad, contacto y datos administrativos ───
+          Tarjeta madre única, colapsada por default — resumen compacto siempre
+          visible; subsecciones internas (no tarjetas sueltas) al expandir. ── */}
+
+      <PatientDisclosureSection
         title="Datos del paciente"
         subtitle="Identidad, contacto, domicilio, tutores, datos fiscales y consentimiento."
-      />
+        summary={
+          <>
+            <Row label="Teléfono" value={identity.phone} />
+            {record.address && (
+              <Row
+                label="Domicilio"
+                value={record.address.street || record.address.municipality || record.address.postalCode ? "Registrado" : "No registrado"}
+              />
+            )}
+            {record.tax && (
+              <Row
+                label="Fiscal"
+                value={record.tax.rfc && record.tax.legalName ? "Completo" : "Incompleto"}
+              />
+            )}
+            {record.emergencyContact && (
+              <Row
+                label="Contacto de emergencia"
+                value={record.emergencyContact.name ? "Registrado" : "No registrado"}
+              />
+            )}
+            {record.consent && (
+              <Row
+                label="Consentimiento"
+                value={record.consent.status === "GRANTED" ? "Otorgado" : "Pendiente"}
+              />
+            )}
+          </>
+        }
+      >
+        {/* Identidad */}
+        <SectionCard title="Identidad y contacto">
+          <Row label="ID paciente" value={<span className="font-mono text-xs">{identity.patientId}</span>} />
+          <Row label="Teléfono" value={identity.phone} />
+          <Row label="Correo" value={identity.email} />
+          <Row label="Fuente" value={identity.source} />
+          <Row label="Alta" value={fDate(identity.createdAt)} />
+          {identity.archivedAt && <Row label="Archivado" value={fDate(identity.archivedAt)} />}
+        </SectionCard>
 
-      {/* Identidad */}
-      <SectionCard title="Identidad y contacto">
-        <Row label="ID paciente" value={<span className="font-mono text-xs">{identity.patientId}</span>} />
-        <Row label="Teléfono" value={identity.phone} />
-        <Row label="Correo" value={identity.email} />
-        <Row label="Fuente" value={identity.source} />
-        <Row label="Alta" value={fDate(identity.createdAt)} />
-        {identity.archivedAt && <Row label="Archivado" value={fDate(identity.archivedAt)} />}
-      </SectionCard>
+        {/* Secciones extendidas FVO — datos personales, domicilio, tutor, contacto, fiscal, comercial, consentimiento */}
+        <PatientFVOSectionsClient
+          record={record}
+          patientId={patientId ?? ""}
+          canEditDemographics={fvoPermissions?.canEditDemographics ?? false}
+          canAddGuardian={fvoPermissions?.canAddGuardian ?? false}
+          canAddEmergencyContact={fvoPermissions?.canAddEmergencyContact ?? false}
+          canManageConsent={fvoPermissions?.canManageConsent ?? false}
+        />
+      </PatientDisclosureSection>
 
-      {/* Secciones extendidas FVO — datos personales, domicilio, tutor, contacto, fiscal, comercial, consentimiento */}
-      <PatientFVOSectionsClient
-        record={record}
-        patientId={patientId ?? ""}
-        canEditDemographics={fvoPermissions?.canEditDemographics ?? false}
-        canAddGuardian={fvoPermissions?.canAddGuardian ?? false}
-        canAddEmergencyContact={fvoPermissions?.canAddEmergencyContact ?? false}
-        canManageConsent={fvoPermissions?.canManageConsent ?? false}
-      />
-
-      {/* ── Actividad: bitácora cronológica de todo lo anterior ─────────────── */}
-
-      <GroupHeading
-        title="Actividad reciente"
-        subtitle="Eventos del sistema más recientes, en orden cronológico — útil para retomar el contexto rápido."
-      />
+      {/* ── Bitácora de eventos: auditoría cronológica, fuera del flujo clínico ── */}
 
       {/* Bitácora de eventos del sistema (versionados) — resumen corto y reciente.
-          Distinta de "Historial del paciente" (más abajo, fuera de esta vista), que
-          es el detalle completo cruzando encuentros + hallazgos + planes + cobros. */}
+          Distinta de "Historial clínico" (PatientTimeline, más abajo), que es el
+          cruce de actividad clínica: consultas, hallazgos, tratamientos y documentos. */}
       {timeline.length > 0 && (
-        <SectionCard
+        <PatientDisclosureSection
           title="Bitácora de eventos"
-          badge="Resumen"
-          hint="Los 20 eventos más recientes del sistema. Para el cruce completo de actividad clínica y administrativa, ve “Historial del paciente”, en la parte inferior de esta ficha."
+          subtitle="Los 20 eventos más recientes del sistema — auditoría, no forma parte del historial clínico."
         >
           <ul className="space-y-2">
             {timeline.slice(0, 20).map((ev, i) => (
@@ -450,7 +478,7 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
               Mostrando los 20 eventos más recientes.
             </p>
           )}
-        </SectionCard>
+        </PatientDisclosureSection>
       )}
 
       {/* Metadatos de resolución */}

@@ -9,7 +9,8 @@ import { getTreatmentPlansSafeView } from "@/server/domain/clinical/treatment-vi
 import { getQuotesSafeView } from "@/server/domain/billing/billing-views";
 import { listPatientDocumentsSafeForPatient } from "@/server/domain/clinical/patient-documents-views";
 import { can } from "@/server/domain/identity/permissions";
-import { PatientLiveRecordView, GroupHeading } from "@/components/patients/PatientLiveRecordView";
+import { PatientLiveRecordView } from "@/components/patients/PatientLiveRecordView";
+import { PatientDisclosureSection } from "@/components/patients/PatientDisclosureSection";
 import { OdontogramMasterSection } from "@/components/odontogram/OdontogramMasterSection";
 import { OdontogramNoPermission } from "@/components/odontogram/OdontogramNoPermission";
 import { TreatmentPlansSectionClient } from "@/components/treatment/TreatmentPlansSectionClient";
@@ -136,63 +137,65 @@ export default async function PacienteDetallePage({
         documentsCount={documentsCount}
       />
       <div className="px-8 pb-10 max-w-4xl mx-auto space-y-6">
-        <div className="pt-2 border-t">
-          <GroupHeading
-            title="Detalle completo"
-            subtitle="Historial cronológico cruzado y módulos extendidos — aquí están las acciones, líneas y registros completos detrás de los resúmenes de arriba."
-          />
-        </div>
+        {/* Historial clínico — timeline cruzado, visible y abierto. */}
         <PatientTimeline
           encounters={encounters}
           findings={odoResult.ok ? odoResult.value.findingsPanel : []}
           treatmentPlans={treatmentResult.ok ? treatmentResult.value.plans : []}
           documents={documentsResult.ok ? documentsResult.value.items : []}
         />
-        {treatmentResult.ok ? (
-          <TreatmentPlansSectionClient
-            view={treatmentResult.value}
-            patientId={id}
-            findings={odoResult.ok ? odoResult.value.findingsPanel : []}
-            permissions={{
-              canCreate: can(ctx.permissions, "treatment.create"),
-              canEdit: can(ctx.permissions, "treatment.edit"),
-              canPropose: can(ctx.permissions, "treatment.propose"),
-              canAccept: can(ctx.permissions, "treatment.accept"),
-              canComplete: can(ctx.permissions, "treatment.complete"),
-              canCancel: can(ctx.permissions, "treatment.cancel"),
-            }}
-          />
-        ) : treatmentResult.reason === "FORBIDDEN" ? (
-          <TreatmentNoPermission />
-        ) : null}
-        {quotesResult.ok ? (
-          <QuotesSectionClient
-            view={quotesResult.value}
-            patientId={id}
-            activePlan={activePlanForBilling}
-            canCreate={can(ctx.permissions, "quote.create")}
-            canEdit={can(ctx.permissions, "quote.edit")}
-            canPropose={can(ctx.permissions, "quote.propose")}
-            canAccept={can(ctx.permissions, "quote.accept")}
-            canCancel={can(ctx.permissions, "quote.cancel")}
-            canRecordPayment={can(ctx.permissions, "payment.record")}
-            canViewPayments={can(ctx.permissions, "payment.view")}
-            canReverse={can(ctx.permissions, "payment.reverse")}
-          />
-        ) : quotesResult.reason === "FORBIDDEN" ? (
-          <BillingNoPermission />
-        ) : null}
-        {documentsResult.ok ? (
-          <PatientDocumentsSection
-            items={documentsResult.value.items}
-            patientId={id}
-            canUpload={can(ctx.permissions, "patient_documents.upload")}
-            canDownload={can(ctx.permissions, "patient_documents.download")}
-            storageConfigured={isDocumentStorageConfigured()}
-          />
-        ) : documentsResult.reason === "FORBIDDEN" ? (
-          <PatientDocumentsNoPermission />
-        ) : null}
+
+        {/* Detalle operativo — planes, presupuestos/cobros y documentos completos. Colapsado por default. */}
+        <PatientDisclosureSection
+          title="Detalle operativo"
+          subtitle="Planes de tratamiento, presupuestos y cobros, y documentos del paciente — detalle completo, acciones y registros."
+        >
+          {treatmentResult.ok ? (
+            <TreatmentPlansSectionClient
+              view={treatmentResult.value}
+              patientId={id}
+              findings={odoResult.ok ? odoResult.value.findingsPanel : []}
+              permissions={{
+                canCreate: can(ctx.permissions, "treatment.create"),
+                canEdit: can(ctx.permissions, "treatment.edit"),
+                canPropose: can(ctx.permissions, "treatment.propose"),
+                canAccept: can(ctx.permissions, "treatment.accept"),
+                canComplete: can(ctx.permissions, "treatment.complete"),
+                canCancel: can(ctx.permissions, "treatment.cancel"),
+              }}
+            />
+          ) : treatmentResult.reason === "FORBIDDEN" ? (
+            <TreatmentNoPermission />
+          ) : null}
+          {quotesResult.ok ? (
+            <QuotesSectionClient
+              view={quotesResult.value}
+              patientId={id}
+              activePlan={activePlanForBilling}
+              canCreate={can(ctx.permissions, "quote.create")}
+              canEdit={can(ctx.permissions, "quote.edit")}
+              canPropose={can(ctx.permissions, "quote.propose")}
+              canAccept={can(ctx.permissions, "quote.accept")}
+              canCancel={can(ctx.permissions, "quote.cancel")}
+              canRecordPayment={can(ctx.permissions, "payment.record")}
+              canViewPayments={can(ctx.permissions, "payment.view")}
+              canReverse={can(ctx.permissions, "payment.reverse")}
+            />
+          ) : quotesResult.reason === "FORBIDDEN" ? (
+            <BillingNoPermission />
+          ) : null}
+          {documentsResult.ok ? (
+            <PatientDocumentsSection
+              items={documentsResult.value.items}
+              patientId={id}
+              canUpload={can(ctx.permissions, "patient_documents.upload")}
+              canDownload={can(ctx.permissions, "patient_documents.download")}
+              storageConfigured={isDocumentStorageConfigured()}
+            />
+          ) : documentsResult.reason === "FORBIDDEN" ? (
+            <PatientDocumentsNoPermission />
+          ) : null}
+        </PatientDisclosureSection>
       </div>
     </div>
   );
