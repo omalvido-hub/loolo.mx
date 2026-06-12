@@ -10,6 +10,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { TreatmentPlansPatientView, TreatmentPlanView, TreatmentItemView } from "@/server/domain/clinical/treatment-views";
+import type { FindingPanelItem } from "@/server/domain/clinical/odontogram-views";
 import { PLAN_TRANSITIONS, ITEM_TRANSITIONS, ITEM_TERMINAL, PLAN_TERMINAL, ProcedureTypeZ, TreatmentPriorityZ } from "@/server/domain/clinical/treatment-schemas";
 import { ToothSurfaceZ } from "@/server/domain/clinical/odontogram-schemas";
 import { TreatmentPlanStatusBadge } from "./TreatmentPlanStatusBadge";
@@ -66,6 +67,26 @@ const PRIORITY_LABELS: Record<string, string> = {
   NORMAL: "Normal",
   LOW: "Baja",
 };
+
+// Etiquetas de tipo de hallazgo — usadas solo para el selector "Vincular
+// hallazgo del odontograma" (1G-A). Copia local intencional: esta sección no
+// importa componentes del odontograma.
+const FINDING_TYPE_LABELS: Record<string, string> = {
+  CARIES: "Caries",
+  RESTORATION: "Restauración",
+  CROWN: "Corona",
+  ENDODONTICS: "Endodoncia",
+  IMPLANT: "Implante",
+  FRACTURE: "Fractura",
+  MOBILITY: "Movilidad",
+  MISSING: "Ausente",
+  SEALANT: "Sellante",
+  OTHER: "Otro",
+};
+
+// Hallazgos elegibles para vincular a un nuevo ítem de plan (1G-A): mismas
+// reglas que valida el dominio en addItem (treatment.ts).
+const LINKABLE_FINDING_STATUS = new Set(["ACTIVE", "OBSERVATION"]);
 
 // Etiqueta del botón de transición según el estado destino.
 const TRANSITION_LABELS: Record<string, string> = {
@@ -136,17 +157,36 @@ function FormField({ label, children }: { label: string; children: React.ReactNo
 interface AddItemFormProps {
   patientId: string;
   planId: string;
+  linkableFindings: FindingPanelItem[];
   onCancel: () => void;
   onDone: () => void;
 }
 
-function AddItemForm({ patientId, planId, onCancel, onDone }: AddItemFormProps) {
+function findingOptionLabel(f: FindingPanelItem): string {
+  const typeLabel = FINDING_TYPE_LABELS[f.findingType] ?? f.findingType;
+  const surfaceLabel = f.surface ? ` · ${SURFACE_LABELS[f.surface] ?? f.surface}` : "";
+  return `Pieza ${f.toothFdi}${surfaceLabel} — ${typeLabel}`;
+}
+
+function AddItemForm({ patientId, planId, linkableFindings, onCancel, onDone }: AddItemFormProps) {
   const [procedureType, setProcedureType] = useState<string>(ProcedureTypeZ.options[0]);
   const [toothFdi, setToothFdi] = useState("");
   const [surface, setSurface] = useState("");
   const [priority, setPriority] = useState<string>("NORMAL");
+  const [linkedFindingId, setLinkedFindingId] = useState("");
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+
+  const hasLinkedFinding = linkedFindingId !== "";
+
+  function handleFindingSelect(value: string) {
+    setLinkedFindingId(value);
+    if (value === "") return;
+    const finding = linkableFindings.find((f) => f.findingId === value);
+    if (!finding) return;
+    setToothFdi(String(finding.toothFdi));
+    setSurface(finding.surface ?? "");
+  }
 
   function handleSubmit() {
     setError(null);
@@ -160,6 +200,7 @@ function AddItemForm({ patientId, planId, onCancel, onDone }: AddItemFormProps) 
       raw.toothFdi = fdi;
     }
     if (surface !== "") raw.surface = surface;
+    if (hasLinkedFinding) raw.linkedFindingId = linkedFindingId;
 
     startTransition(async () => {
       const result = await addItemAction(patientId, raw);
@@ -196,7 +237,7 @@ function AddItemForm({ patientId, planId, onCancel, onDone }: AddItemFormProps) 
             value={toothFdi}
             onChange={(e) => setToothFdi(e.target.value)}
             className="w-32 h-8 text-sm"
-            disabled={isPending}
+            disabled={isPending || hasLinkedFinding}
             aria-label="Pieza dental FDI (opcional)"
           />
         </FormField>
@@ -205,7 +246,7 @@ function AddItemForm({ patientId, planId, onCancel, onDone }: AddItemFormProps) 
             value={surface}
             onChange={(e) => setSurface(e.target.value)}
             className="h-8 rounded-md border border-input bg-background px-2 text-sm"
-            disabled={isPending}
+            disabled={isPending || hasLinkedFinding}
             aria-label="Superficie (opcional)"
           >
             <option value="">Opcional</option>
@@ -228,6 +269,27 @@ function AddItemForm({ patientId, planId, onCancel, onDone }: AddItemFormProps) 
           </select>
         </FormField>
       </div>
+      {linkableFindings.length > 0 && (
+        <FormField label="Vincular hallazgo del odontograma (opcional)">
+          <select
+            value={linkedFindingId}
+            onChange={(e) => handleFindingSelect(e.target.value)}
+            className="h-8 w-full max-w-md rounded-md border border-input bg-background px-2 text-sm"
+            disabled={isPending}
+            aria-label="Vincular hallazgo del odontograma (opcional)"
+          >
+            <option value="">Ninguno</option>
+            {linkableFindings.map((f) => (
+              <option key={f.findingId} value={f.findingId}>{findingOptionLabel(f)}</option>
+            ))}
+          </select>
+        </FormField>
+      )}
+      {hasLinkedFinding && (
+        <p className="text-xs text-muted-foreground">
+          Pieza y superficie se tomaron del hallazgo seleccionado y no se pueden modificar.
+        </p>
+      )}
       {error && <p className="text-xs text-destructive">{error}</p>}
       <div className="flex gap-2">
         <Button size="sm" onClick={handleSubmit} disabled={isPending}>
@@ -499,10 +561,11 @@ interface PlanCardClientProps {
   patientId: string;
   plan: TreatmentPlanView;
   permissions: TreatmentPermissions;
+  linkableFindings: FindingPanelItem[];
   highlighted?: boolean;
 }
 
-function PlanCardClient({ patientId, plan, permissions, highlighted = false }: PlanCardClientProps) {
+function PlanCardClient({ patientId, plan, permissions, linkableFindings, highlighted = false }: PlanCardClientProps) {
   const router = useRouter();
   const [showAddItem, setShowAddItem] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -615,6 +678,7 @@ function PlanCardClient({ patientId, plan, permissions, highlighted = false }: P
             <AddItemForm
               patientId={patientId}
               planId={plan.id}
+              linkableFindings={linkableFindings}
               onCancel={() => setShowAddItem(false)}
               onDone={() => { setShowAddItem(false); router.refresh(); }}
             />
@@ -753,9 +817,10 @@ interface Props {
   view: TreatmentPlansPatientView;
   patientId: string;
   permissions: TreatmentPermissions;
+  findings: FindingPanelItem[];
 }
 
-export function TreatmentPlansSectionClient({ view, patientId, permissions }: Props) {
+export function TreatmentPlansSectionClient({ view, patientId, permissions, findings }: Props) {
   const router = useRouter();
   const { plans, activePlan, totalPlans } = view;
   const currentPlans = plans.filter((p) => !PLAN_TERMINAL.has(p.status));
@@ -763,6 +828,20 @@ export function TreatmentPlansSectionClient({ view, patientId, permissions }: Pr
   const hasOpenPlan = plans.some((p) => p.status === "ACTIVE" || p.status === "DRAFT");
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+
+  // Hallazgos ya vinculados a un ítem de plan no terminal (en cualquier plan
+  // no terminal) — se excluyen del selector para evitar duplicados (1G-A).
+  const linkedFindingIds = new Set(
+    plans
+      .filter((p) => !PLAN_TERMINAL.has(p.status))
+      .flatMap((p) => p.items)
+      .filter((it) => !ITEM_TERMINAL.has(it.status) && it.linkedFindingId)
+      .map((it) => it.linkedFindingId as string),
+  );
+
+  const linkableFindings = findings.filter(
+    (f) => LINKABLE_FINDING_STATUS.has(f.lifecycleStatus) && !linkedFindingIds.has(f.findingId),
+  );
 
   const subtitle =
     totalPlans === 0
@@ -813,6 +892,7 @@ export function TreatmentPlansSectionClient({ view, patientId, permissions }: Pr
               patientId={patientId}
               plan={plan}
               permissions={permissions}
+              linkableFindings={linkableFindings}
               highlighted={plan.status === "ACTIVE"}
             />
           ))}

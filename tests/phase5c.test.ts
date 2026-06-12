@@ -6,7 +6,7 @@ import { PERMISSIONS, ROLES } from "../src/server/domain/identity/rbac.js";
 import { guardConfigOperation, PermissionDeniedError } from "../src/server/domain/identity/authorize.js";
 import type { ActorContext } from "../src/server/domain/identity/authorize.js";
 import { createEncounter } from "../src/server/domain/clinical/encounters.js";
-import { recordFinding } from "../src/server/domain/clinical/odontogram.js";
+import { recordFinding, voidFinding, treatFinding, resolveFinding } from "../src/server/domain/clinical/odontogram.js";
 import {
   createPlan, addItem, updateItem, setPlanStatus, setItemStatus, getPlan, listPlansForPatient,
   OrgRefError, CoherenceError, TransitionError, ItemsStillOpenError, PlanActiveConflictError,
@@ -82,6 +82,68 @@ describe("Crear / same-org / coherencia", () => {
     // coincidente → ok
     const it = await runA((e) => addItem(e, clinicianCtxA, { planId, procedureType: "RESTORATION", toothFdi: 16, surface: "OCCLUSAL", linkedFindingId: fnd.findingId }));
     expect(it.itemId).toBeTruthy();
+  });
+});
+
+describe("addItem — vinculación con hallazgo según lifecycleStatus (1G-A)", () => {
+  async function newFinding(toothFdi: number) {
+    const enc = await runA((e) => createEncounter(e, clinicianCtxA, { patientId: patA, chiefComplaint: "x" }));
+    return runA((e) => recordFinding(e, clinicianCtxA, { patientId: patA, encounterId: enc.encounterId, toothFdi, surface: "OCCLUSAL", findingType: "CARIES", toothStatus: "PRESENT" }));
+  }
+
+  it("hallazgo ACTIVE → vinculación permitida", async () => {
+    const fnd = await newFinding(24);
+    const { planId } = await mkPlan();
+    const it = await runA((e) => addItem(e, clinicianCtxA, { planId, procedureType: "RESTORATION", toothFdi: 24, surface: "OCCLUSAL", linkedFindingId: fnd.findingId }));
+    expect(it.itemId).toBeTruthy();
+  });
+
+  it("hallazgo OBSERVATION → vinculación permitida", async () => {
+    const fnd = await newFinding(25);
+    const obs = await runA((e) => resolveFinding(e, clinicianCtxA, { findingId: fnd.findingId, targetStatus: "OBSERVATION" }));
+    const { planId } = await mkPlan();
+    const it = await runA((e) => addItem(e, clinicianCtxA, { planId, procedureType: "RESTORATION", toothFdi: 25, surface: "OCCLUSAL", linkedFindingId: obs.findingId }));
+    expect(it.itemId).toBeTruthy();
+  });
+
+  it("hallazgo TREATED → CoherenceError", async () => {
+    const fnd = await newFinding(26);
+    const treated = await runA((e) => treatFinding(e, clinicianCtxA, { findingId: fnd.findingId, lifecycleReason: "ya tratado" }));
+    const { planId } = await mkPlan();
+    await expect(runA((e) => addItem(e, clinicianCtxA, { planId, procedureType: "RESTORATION", toothFdi: 26, surface: "OCCLUSAL", linkedFindingId: treated.findingId }))).rejects.toBeInstanceOf(CoherenceError);
+  });
+
+  it("hallazgo RESOLVED → CoherenceError", async () => {
+    const fnd = await newFinding(27);
+    const resolved = await runA((e) => resolveFinding(e, clinicianCtxA, { findingId: fnd.findingId, targetStatus: "RESOLVED" }));
+    const { planId } = await mkPlan();
+    await expect(runA((e) => addItem(e, clinicianCtxA, { planId, procedureType: "RESTORATION", toothFdi: 27, surface: "OCCLUSAL", linkedFindingId: resolved.findingId }))).rejects.toBeInstanceOf(CoherenceError);
+  });
+
+  it("hallazgo CONTROLLED → CoherenceError", async () => {
+    const fnd = await newFinding(28);
+    const controlled = await runA((e) => resolveFinding(e, clinicianCtxA, { findingId: fnd.findingId, targetStatus: "CONTROLLED" }));
+    const { planId } = await mkPlan();
+    await expect(runA((e) => addItem(e, clinicianCtxA, { planId, procedureType: "RESTORATION", toothFdi: 28, surface: "OCCLUSAL", linkedFindingId: controlled.findingId }))).rejects.toBeInstanceOf(CoherenceError);
+  });
+
+  it("hallazgo VOIDED → CoherenceError", async () => {
+    const fnd = await newFinding(18);
+    const voided = await runA((e) => voidFinding(e, clinicianCtxA, { findingId: fnd.findingId, lifecycleReason: "error de registro" }));
+    const { planId } = await mkPlan();
+    await expect(runA((e) => addItem(e, clinicianCtxA, { planId, procedureType: "RESTORATION", toothFdi: 18, surface: "OCCLUSAL", linkedFindingId: voided.findingId }))).rejects.toBeInstanceOf(CoherenceError);
+  });
+
+  it("hallazgo de otro paciente/tenant → OrgRefError", async () => {
+    const encB = await forTenantPg(orgB, async (c) => {
+      const ctxB = await member(orgB, "clinician");
+      const e = execOf(c);
+      const enc = await createEncounter(e, ctxB, { patientId: patB, chiefComplaint: "x" });
+      const fnd = await recordFinding(e, ctxB, { patientId: patB, encounterId: enc.encounterId, toothFdi: 17, surface: "OCCLUSAL", findingType: "CARIES", toothStatus: "PRESENT" });
+      return fnd;
+    });
+    const { planId } = await mkPlan();
+    await expect(runA((e) => addItem(e, clinicianCtxA, { planId, procedureType: "RESTORATION", toothFdi: 17, surface: "OCCLUSAL", linkedFindingId: encB.findingId }))).rejects.toBeInstanceOf(OrgRefError);
   });
 });
 

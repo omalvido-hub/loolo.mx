@@ -18,6 +18,9 @@ export class NotFoundError extends Error { constructor(m: string) { super(m); th
 export class ItemsStillOpenError extends Error { constructor(m: string) { super(m); this.name = "ItemsStillOpenError"; } }
 export class PlanActiveConflictError extends Error { constructor(m = "Ya existe un plan ACTIVE para el paciente.") { super(m); this.name = "PlanActiveConflictError"; } }
 
+// Estados de hallazgo que pueden vincularse a un nuevo ítem de plan (1G-A).
+const LINKABLE_FINDING_STATUS = new Set(["ACTIVE", "OBSERVATION"]);
+
 // Permiso requerido según estado destino (plan e ítem).
 const PLAN_PERM: Record<string, string> = { PROPOSED: "treatment.propose", ACCEPTED: "treatment.accept", REJECTED: "treatment.accept", ACTIVE: "treatment.accept", COMPLETED: "treatment.complete", CANCELED: "treatment.cancel" };
 const ITEM_PERM: Record<string, string> = { ACCEPTED: "treatment.accept", REJECTED: "treatment.accept", IN_PROGRESS: "treatment.edit", COMPLETED: "treatment.complete", CANCELED: "treatment.cancel" };
@@ -75,12 +78,15 @@ export async function addItem(exec: Exec, ctx: ActorContext, raw: unknown) {
   await existsInOrg(exec, "resources", input.professionalResourceId, "professionalResourceId");
   // Coherencia linkedFindingId↔pieza (ajuste 6/E)
   if (input.linkedFindingId) {
-    const fnd = (await exec(`SELECT "patientId","toothFdi","surface" FROM "odontogram_findings" WHERE "id"=$1`, [input.linkedFindingId]))[0];
+    const fnd = (await exec(`SELECT "patientId","toothFdi","surface","lifecycleStatus" FROM "odontogram_findings" WHERE "id"=$1`, [input.linkedFindingId]))[0];
     if (!fnd) throw new OrgRefError("linkedFindingId no pertenece a la organización (fail-closed).");
     if (fnd.patientId !== plan.patientId) throw new CoherenceError("El hallazgo no corresponde al paciente del plan.");
     if (input.toothFdi !== undefined && input.toothFdi !== fnd.toothFdi) throw new CoherenceError("toothFdi del ítem no coincide con el hallazgo.");
     if (input.toothFdi === undefined) throw new CoherenceError("Un ítem con linkedFindingId debe declarar toothFdi coincidente.");
     if (input.surface !== undefined && (input.surface ?? null) !== (fnd.surface ?? null)) throw new CoherenceError("surface del ítem no coincide con el hallazgo.");
+    // Solo hallazgos vigentes (1G-A) — un hallazgo ya tratado/resuelto/controlado/anulado
+    // no debe poder vincularse a un nuevo ítem de plan.
+    if (!LINKABLE_FINDING_STATUS.has(fnd.lifecycleStatus)) throw new CoherenceError("El hallazgo no está en un estado vinculable a un tratamiento (debe estar ACTIVE u OBSERVATION).");
   }
   const id = (await exec(
     `INSERT INTO "treatment_plan_items"

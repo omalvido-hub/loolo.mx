@@ -152,6 +152,7 @@ export default async function PacienteDetallePage({
           <TreatmentPlansSectionClient
             view={treatmentResult.value}
             patientId={id}
+            findings={odoResult.ok ? odoResult.value.findingsPanel : []}
             permissions={{
               canCreate: can(ctx.permissions, "treatment.create"),
               canEdit: can(ctx.permissions, "treatment.edit"),

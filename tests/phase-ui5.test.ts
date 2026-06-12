@@ -365,13 +365,13 @@ describe("getTreatmentPlansSafeView — DTO seguro", () => {
     expect(raw).not.toContain(orgA);
   });
 
-  it("DTO no contiene linkedFindingId", async () => {
+  it("DTO expone linkedFindingId (1G-A: necesario para vincular hallazgos sin duplicar)", async () => {
     const run = makeTenantRunner(orgA);
     const result = await getTreatmentPlansSafeView(run, ownerA, patientAId);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const raw = JSON.stringify(result.value);
-    expect(raw).not.toContain('"linkedFindingId"');
+    expect(raw).toContain('"linkedFindingId"');
   });
 
   it("DTO de plan tiene los campos esperados", async () => {
@@ -410,7 +410,7 @@ describe("getTreatmentPlansSafeView — DTO seguro", () => {
     expect(item).not.toHaveProperty("note");
     expect(item).not.toHaveProperty("createdBy");
     expect(item).not.toHaveProperty("organizationId");
-    expect(item).not.toHaveProperty("linkedFindingId");
+    expect(item).toHaveProperty("linkedFindingId");
     expect(item).not.toHaveProperty("planId");
   });
 });

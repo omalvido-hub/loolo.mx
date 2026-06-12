@@ -28,6 +28,7 @@ export interface TreatmentItemView {
   completedAt: string | null;
   canceledAt: string | null;
   hasQuoteLine: boolean;
+  linkedFindingId: string | null;
 }
 
 export interface TreatmentPlanView {
@@ -105,9 +106,11 @@ export async function getTreatmentPlansSafeView(
     let allItems: any[] = [];
 
     if (planIds.length > 0) {
-      // SELECT explícito — sin note, sin createdBy, sin organizationId, sin linkedFindingId.
+      // SELECT explícito — sin note, sin createdBy, sin organizationId.
+      // linkedFindingId sí se expone (1G-A): es un ID de hallazgo clínico, no
+      // contenido sensible, y la UI lo necesita para vincular/evitar duplicados.
       allItems = await exec(
-        `SELECT "id","planId","toothFdi","surface","procedureType","status","priority","sequence","createdAt","completedAt","canceledAt"
+        `SELECT "id","planId","toothFdi","surface","procedureType","status","priority","sequence","createdAt","completedAt","canceledAt","linkedFindingId"
          FROM "treatment_plan_items"
          WHERE "planId" = ANY($1)
          ORDER BY "planId" ASC, "sequence" ASC, "createdAt" ASC`,
@@ -151,6 +154,7 @@ export async function getTreatmentPlansSafeView(
         completedAt: toIso(it.completedAt),
         canceledAt: toIso(it.canceledAt),
         hasQuoteLine: quotedItemIds.has(it.id),
+        linkedFindingId: it.linkedFindingId ?? null,
       }));
 
       return {
