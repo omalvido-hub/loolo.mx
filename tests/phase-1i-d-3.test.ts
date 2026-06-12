@@ -171,6 +171,18 @@ describe('1I-D-3 — UI: "Cobertura / aseguradora" dentro de "Datos del paciente
     expect(emergIdx).toBeLessThan(consentIdx);
   });
 
+  it('la fila "Aseguradora" se muestra siempre que record.demographics !== undefined, con 4 valores posibles (Sin registrar/Sin seguro/nombre/Registrada)', () => {
+    const idx = viewContent.indexOf('title="Datos del paciente"');
+    const block = viewContent.slice(idx, idx + 1800);
+    const asegIdx = block.indexOf('label="Aseguradora"');
+    const around = block.slice(Math.max(0, asegIdx - 300), asegIdx + 300);
+    expect(around).toContain("record.demographics !== undefined");
+    expect(around).toContain("Sin registrar");
+    expect(around).toContain("Sin seguro");
+    expect(around).toContain("Registrada");
+    expect(around).toContain("record.insurance.providerName");
+  });
+
   it("no se toca DB, permisos ni server actions desde la UI", () => {
     for (const content of [fvoClientContent, viewContent]) {
       expect(content).not.toContain("makeTenantRunner");

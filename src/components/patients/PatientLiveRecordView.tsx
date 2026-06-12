@@ -436,10 +436,16 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
                   value={record.address.street || record.address.municipality || record.address.postalCode ? "Registrado" : "No registrado"}
                 />
               )}
-              {record.insurance && (
+              {record.demographics !== undefined && (
                 <Row
                   label="Aseguradora"
-                  value={record.insurance.hasInsurance ? (record.insurance.providerName || "Registrada") : "Sin seguro"}
+                  value={
+                    !record.insurance
+                      ? "Sin registrar"
+                      : !record.insurance.hasInsurance
+                        ? "Sin seguro"
+                        : record.insurance.providerName || "Registrada"
+                  }
                 />
               )}
               {record.tax && (
