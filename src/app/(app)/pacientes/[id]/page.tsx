@@ -12,7 +12,7 @@ import { can } from "@/server/domain/identity/permissions";
 import { PatientLiveRecordView, GroupHeading } from "@/components/patients/PatientLiveRecordView";
 import { OdontogramMasterSection } from "@/components/odontogram/OdontogramMasterSection";
 import { OdontogramNoPermission } from "@/components/odontogram/OdontogramNoPermission";
-import { TreatmentPlansSection } from "@/components/treatment/TreatmentPlansSection";
+import { TreatmentPlansSectionClient } from "@/components/treatment/TreatmentPlansSectionClient";
 import { TreatmentNoPermission } from "@/components/treatment/TreatmentNoPermission";
 import { QuotesSectionClient } from "@/components/billing/QuotesSectionClient";
 import { BillingNoPermission } from "@/components/billing/BillingNoPermission";
@@ -149,7 +149,18 @@ export default async function PacienteDetallePage({
           quotes={quotesResult.ok ? quotesResult.value.quotes : []}
         />
         {treatmentResult.ok ? (
-          <TreatmentPlansSection view={treatmentResult.value} />
+          <TreatmentPlansSectionClient
+            view={treatmentResult.value}
+            patientId={id}
+            permissions={{
+              canCreate: can(ctx.permissions, "treatment.create"),
+              canEdit: can(ctx.permissions, "treatment.edit"),
+              canPropose: can(ctx.permissions, "treatment.propose"),
+              canAccept: can(ctx.permissions, "treatment.accept"),
+              canComplete: can(ctx.permissions, "treatment.complete"),
+              canCancel: can(ctx.permissions, "treatment.cancel"),
+            }}
+          />
         ) : treatmentResult.reason === "FORBIDDEN" ? (
           <TreatmentNoPermission />
         ) : null}
