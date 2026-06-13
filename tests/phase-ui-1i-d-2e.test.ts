@@ -35,7 +35,7 @@ describe("1I-D-2E — Densidad visual premium", () => {
   });
 
   it("StatCard (antes MiniStat) usa padding compacto tipo chip", () => {
-    expect(statCardContent).toContain("px-2.5 py-1.5");
+    expect(statCardContent).toContain("px-2.5 pb-1.5 pt-2.5");
   });
 
   it('"Atención de hoy" reduce el aire vertical respecto a 1I-D-2C/2D', () => {

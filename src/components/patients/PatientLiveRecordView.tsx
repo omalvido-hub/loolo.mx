@@ -267,6 +267,7 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 min-w-0">
               <StatCard
                 label="Próxima cita"
+                tone="accent"
                 value={
                   nextAppt ? (
                     <>
@@ -300,6 +301,7 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
               />
               <StatCard
                 label="Consulta activa"
+                tone={activeEncounter ? "accent" : "muted"}
                 value={activeEncounter ? (activeEncounter.status === "IN_PROGRESS" ? "En consulta" : "Borrador") : "Ninguna"}
                 action={
                   activeEncounter && (
@@ -312,9 +314,10 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
                   )
                 }
               />
-              <StatCard label="Plan" value={hasPlan ? "Sí" : "No"} />
+              <StatCard label="Plan" tone={hasPlan ? "accent" : "muted"} value={hasPlan ? "Sí" : "No"} />
               <StatCard
                 label="Saldo"
+                tone={balance !== null && balance > 0 ? "warning" : "success"}
                 value={balance === null ? "—" : fCents(balance)}
                 valueClassName={
                   balance === null
@@ -324,7 +327,7 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
                     : "text-green-700 dark:text-green-400"
                 }
               />
-              <StatCard label="Hallazgos" value={odontogramSummary?.totalFindings ?? 0} />
+              <StatCard label="Hallazgos" tone="muted" value={odontogramSummary?.totalFindings ?? 0} />
             </div>
           </div>
 
