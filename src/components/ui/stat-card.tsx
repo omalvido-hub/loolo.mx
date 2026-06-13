@@ -2,14 +2,21 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-export type StatCardTone = "accent" | "success" | "warning" | "muted";
+export type StatCardTone = "accent" | "accent-soft" | "success" | "warning" | "muted";
 
 /** Estilo por tono: barra superior + tinte de superficie + color de etiqueta, sutiles. */
 const TONE_STYLES: Record<StatCardTone, { bar: string; surface: string; label: string }> = {
   accent: {
-    bar: "bg-brand-accent",
-    surface: "bg-brand-accent-soft/50",
+    bar: "bg-brand-accent/80",
+    surface: "bg-brand-accent-soft/25",
     label: "text-brand-accent",
+  },
+  /** Versión atenuada del acento: para módulos relacionados pero secundarios
+      frente a la tarjeta "accent" principal (evita 3 tarjetas azules seguidas). */
+  "accent-soft": {
+    bar: "bg-brand-accent/35",
+    surface: "bg-brand-accent-soft/12",
+    label: "text-muted-foreground",
   },
   success: {
     bar: "bg-emerald-500/70 dark:bg-emerald-400/60",
@@ -41,6 +48,8 @@ export interface StatCardProps {
   multiline?: boolean;
   /** Acento visual del módulo: barra superior + tinte muy sutil de superficie. Default "muted". */
   tone?: StatCardTone;
+  /** Texto corto bajo el valor (p. ej. "Plan activo", "registrados") — da densidad a tarjetas sin acción. */
+  description?: React.ReactNode;
   className?: string;
 }
 
@@ -50,7 +59,7 @@ export interface StatCardProps {
  * MiniStat original (label/value/action/multiline), con `tone` opcional
  * para dar carácter visual sin tocar lógica.
  */
-export function StatCard({ label, value, valueClassName, action, multiline, tone = "muted", className }: StatCardProps) {
+export function StatCard({ label, value, valueClassName, action, multiline, tone = "muted", description, className }: StatCardProps) {
   const t = TONE_STYLES[tone];
   return (
     <div
@@ -60,11 +69,12 @@ export function StatCard({ label, value, valueClassName, action, multiline, tone
         className
       )}
     >
-      <span aria-hidden className={cn("absolute inset-x-0 top-0 h-[3px]", t.bar)} />
+      <span aria-hidden className={cn("absolute inset-x-0 top-0 h-[2px]", t.bar)} />
       <p className={cn("text-[10px] font-semibold uppercase tracking-wide", t.label)}>{label}</p>
       <div className={cn("text-sm font-semibold leading-tight mt-0.5", multiline ? "" : "truncate", valueClassName)}>
         {value}
       </div>
+      {description && <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{description}</p>}
       {action && <div className="mt-1 pt-1 border-t border-foreground/5">{action}</div>}
     </div>
   );
