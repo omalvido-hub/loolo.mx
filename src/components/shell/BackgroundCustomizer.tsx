@@ -7,7 +7,7 @@
 // servidor, sin subir archivos.
 
 import { useRef, useState } from "react";
-import { ImageIcon, Upload, X } from "lucide-react";
+import { ImageIcon, Upload, X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   useVisualPreferences,
@@ -15,6 +15,8 @@ import {
   VISUAL_BACKGROUND_INTENSITIES,
   VISUAL_BACKGROUND_BLURS,
   MAX_BACKGROUND_IMAGE_BYTES,
+  BACKGROUND_GALLERY,
+  BACKGROUND_GALLERY_CATEGORIES,
   type VisualBackgroundStyle,
   type VisualBackgroundIntensity,
   type VisualBackgroundBlur,
@@ -68,6 +70,7 @@ export function BackgroundCustomizer() {
     setBackgroundBlur,
     setBackgroundImageDataUrl,
     clearBackgroundImage,
+    setBackgroundPresetId,
     resetBackground,
   } = useVisualPreferences();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -106,6 +109,45 @@ export function BackgroundCustomizer() {
         Elige el estilo, intensidad y blur del fondo de tu Dashboard — o sube tu propia imagen. Todo se
         aplica de inmediato y se guarda en este navegador.
       </p>
+
+      <div className="space-y-3">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Galería de fondos</p>
+        {BACKGROUND_GALLERY_CATEGORIES.map((category) => (
+          <div key={category} className="space-y-1.5">
+            <p className="text-[10px] text-muted-foreground/70">{category}</p>
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+              {BACKGROUND_GALLERY.filter((entry) => entry.category === category).map((entry) => {
+                const active = preferences.backgroundPresetId === entry.id;
+                return (
+                  <button
+                    key={entry.id}
+                    type="button"
+                    title={entry.label}
+                    aria-pressed={active}
+                    onClick={() => setBackgroundPresetId(entry.id)}
+                    className={cn(
+                      "group relative flex flex-col gap-1 rounded-lg border p-1 text-left transition-all",
+                      active ? "border-brand-accent/50 ring-2 ring-brand-accent/30" : "border-transparent hover:border-foreground/10"
+                    )}
+                  >
+                    <span
+                      aria-hidden
+                      className="block h-10 w-full rounded-md ring-1 ring-foreground/[0.06]"
+                      style={{ backgroundImage: entry.preview, backgroundSize: entry.id.startsWith("patron-") ? "16px 16px" : "cover" }}
+                    />
+                    <span className="truncate text-[10px] leading-snug text-muted-foreground">{entry.label}</span>
+                    {active && (
+                      <span className="absolute right-1 top-1 flex size-4 items-center justify-center rounded-full bg-brand-accent text-brand-accent-foreground">
+                        <Check className="h-2.5 w-2.5" />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
 
       <Segmented
         label="Estilo de fondo"

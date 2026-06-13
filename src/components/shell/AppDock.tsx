@@ -45,7 +45,7 @@ export function AppDock({ roleKey, open, onToggleOpen, onOpenCatalog }: AppDockP
   const visibleItems = DOCK_ITEMS.filter((item) => hasPermission(roleKey, item.permission));
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-4">
+    <div className="app-dock pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-4">
       {open ? (
         <div className="pointer-events-auto relative">
           <button
@@ -59,7 +59,7 @@ export function AppDock({ roleKey, open, onToggleOpen, onOpenCatalog }: AppDockP
           </button>
 
           <nav
-            className="flex max-w-[94vw] items-center gap-0.5 overflow-x-auto rounded-[1.5rem] border bg-card/90 px-2 py-1.5 shadow-[0_16px_44px_-20px_rgba(0,0,0,0.22)] ring-1 ring-foreground/[0.06] backdrop-blur-md"
+            className="app-dock-nav flex max-w-[94vw] items-center gap-0.5 overflow-x-auto rounded-[1.5rem] border bg-card/90 px-2 py-1.5 shadow-[0_16px_44px_-20px_rgba(0,0,0,0.22)] ring-1 ring-foreground/[0.06] backdrop-blur-md"
             aria-label="Accesos rápidos"
           >
             {visibleItems.map((item) => {
@@ -71,10 +71,10 @@ export function AppDock({ roleKey, open, onToggleOpen, onOpenCatalog }: AppDockP
                     key={item.href}
                     title={`${item.label} — próximamente`}
                     aria-disabled="true"
-                    className="flex shrink-0 cursor-default flex-col items-center gap-0.5 rounded-xl px-2.5 py-1.5 text-[10px] font-medium text-muted-foreground/50"
+                    className="app-dock-item flex shrink-0 cursor-default flex-col items-center gap-0.5 rounded-xl px-2.5 py-1.5 text-[10px] font-medium text-muted-foreground/50"
                   >
-                    <Icon className="h-4 w-4" />
-                    <span className="flex items-center gap-1">
+                    <Icon className="app-dock-icon h-4 w-4" />
+                    <span className="app-dock-label flex items-center gap-1">
                       {item.label}
                       <span className="rounded-full bg-muted/70 px-1.5 py-px text-[8px] font-medium tracking-wide text-muted-foreground/80">
                         Pronto
@@ -91,28 +91,28 @@ export function AppDock({ roleKey, open, onToggleOpen, onOpenCatalog }: AppDockP
                   href={item.href}
                   title={item.label}
                   className={cn(
-                    "flex shrink-0 flex-col items-center gap-0.5 rounded-xl px-2.5 py-1.5 text-[10px] font-medium transition-all",
+                    "app-dock-item flex shrink-0 flex-col items-center gap-0.5 rounded-xl px-2.5 py-1.5 text-[10px] font-medium transition-all",
                     active
-                      ? "bg-primary/10 text-primary"
+                      ? "app-dock-item-active bg-primary/10 text-primary"
                       : "text-muted-foreground hover:-translate-y-0.5 hover:bg-muted/70 hover:text-foreground"
                   )}
                 >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
+                  <Icon className="app-dock-icon h-4 w-4" />
+                  <span className="app-dock-label">{item.label}</span>
                 </Link>
               );
             })}
 
-            <div className="mx-1 h-7 w-px shrink-0 bg-border/70" />
+            <div className="app-dock-separator mx-1 h-7 w-px shrink-0 bg-border/70" />
 
             <button
               type="button"
               onClick={onOpenCatalog}
               title="Agregar — abrir catálogo de módulos"
-              className="flex shrink-0 flex-col items-center gap-0.5 rounded-xl px-2.5 py-1.5 text-[10px] font-medium text-muted-foreground transition-all hover:-translate-y-0.5 hover:bg-muted/70 hover:text-foreground"
+              className="app-dock-item flex shrink-0 flex-col items-center gap-0.5 rounded-xl px-2.5 py-1.5 text-[10px] font-medium text-muted-foreground transition-all hover:-translate-y-0.5 hover:bg-muted/70 hover:text-foreground"
             >
-              <Plus className="h-4 w-4" />
-              Agregar
+              <Plus className="app-dock-icon h-4 w-4" />
+              <span className="app-dock-label">Agregar</span>
             </button>
           </nav>
         </div>

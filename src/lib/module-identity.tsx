@@ -68,6 +68,26 @@ export type ModuleIconStyle =
 export type ModuleAccentColor = "teal" | "violet" | "emerald" | "amber" | "rose" | "slate" | "blue" | "cyan" | "neutral";
 export type ModuleShape = "circle" | "square" | "pill";
 
+// FASE 1M-E — Personalización avanzada por KPI/widget.
+export type ModuleIconPosition = "auto" | "top-right" | "top-left" | "top-center" | "center-large" | "watermark" | "none";
+export type ModuleIconSize = "auto" | "small" | "normal" | "large" | "hero";
+export type ModuleContentAlign = "auto" | "left" | "center" | "right";
+export type ModuleCardAppearance =
+  | "auto"
+  | "limpia"
+  | "pastel"
+  | "solida"
+  | "glass"
+  | "elevada"
+  | "premium"
+  | "ejecutiva"
+  | "clinica"
+  | "taller"
+  | "intensa";
+export type ModuleCardBackground = "auto" | "blanco" | "suave-color" | "degradado" | "glass" | "solido";
+export type ModuleCardBorder = "auto" | "ninguno" | "suave" | "acento" | "superior" | "lateral";
+export type ModuleCardShadow = "auto" | "ninguna" | "suave" | "media" | "elevada";
+
 export interface ModuleIdentity {
   type: ModuleIdentityType;
   emoji: string;
@@ -77,6 +97,15 @@ export interface ModuleIdentity {
   color: ModuleAccentColor;
   shape: ModuleShape;
   hidden: boolean;
+
+  // FASE 1M-E
+  iconPosition: ModuleIconPosition;
+  iconSize: ModuleIconSize;
+  contentAlign: ModuleContentAlign;
+  cardAppearance: ModuleCardAppearance;
+  cardBackground: ModuleCardBackground;
+  cardBorder: ModuleCardBorder;
+  cardShadow: ModuleCardShadow;
 }
 
 export type ModuleIconCategory = "clinico" | "dinero" | "agenda" | "documentos" | "metas" | "reportes" | "operacion" | "usuarios";
@@ -241,6 +270,72 @@ export const MODULE_SHAPES: { key: ModuleShape; label: string }[] = [
   { key: "pill", label: "Píldora" },
 ];
 
+// FASE 1M-E — opciones de personalización avanzada por KPI/widget.
+export const MODULE_ICON_POSITIONS: { key: ModuleIconPosition; label: string }[] = [
+  { key: "auto", label: "Automática" },
+  { key: "top-right", label: "Arriba derecha" },
+  { key: "top-left", label: "Arriba izquierda" },
+  { key: "top-center", label: "Arriba centro" },
+  { key: "center-large", label: "Grande al centro" },
+  { key: "watermark", label: "Marca de agua" },
+  { key: "none", label: "Sin icono" },
+];
+
+export const MODULE_ICON_SIZES: { key: ModuleIconSize; label: string }[] = [
+  { key: "auto", label: "Automático" },
+  { key: "small", label: "Pequeño" },
+  { key: "normal", label: "Normal" },
+  { key: "large", label: "Grande" },
+  { key: "hero", label: "Protagonista" },
+];
+
+export const MODULE_CONTENT_ALIGNS: { key: ModuleContentAlign; label: string }[] = [
+  { key: "auto", label: "Automático" },
+  { key: "left", label: "Izquierda" },
+  { key: "center", label: "Centro" },
+  { key: "right", label: "Derecha" },
+];
+
+export const MODULE_CARD_APPEARANCES: { key: ModuleCardAppearance; label: string }[] = [
+  { key: "auto", label: "Automática" },
+  { key: "limpia", label: "Limpia" },
+  { key: "pastel", label: "Pastel" },
+  { key: "solida", label: "Color sólido" },
+  { key: "glass", label: "Glass" },
+  { key: "elevada", label: "Elevada" },
+  { key: "premium", label: "Premium" },
+  { key: "ejecutiva", label: "Ejecutiva" },
+  { key: "clinica", label: "Clínica" },
+  { key: "taller", label: "Taller" },
+  { key: "intensa", label: "Intensa" },
+];
+
+export const MODULE_CARD_BACKGROUNDS: { key: ModuleCardBackground; label: string }[] = [
+  { key: "auto", label: "Automático" },
+  { key: "blanco", label: "Blanco" },
+  { key: "suave-color", label: "Suave con color" },
+  { key: "degradado", label: "Degradado sutil" },
+  { key: "glass", label: "Glass" },
+  { key: "solido", label: "Sólido" },
+];
+
+export const MODULE_CARD_BORDERS: { key: ModuleCardBorder; label: string }[] = [
+  { key: "auto", label: "Automático" },
+  { key: "ninguno", label: "Ninguno" },
+  { key: "suave", label: "Suave" },
+  { key: "acento", label: "Acento" },
+  { key: "superior", label: "Superior" },
+  { key: "lateral", label: "Lateral" },
+];
+
+export const MODULE_CARD_SHADOWS: { key: ModuleCardShadow; label: string }[] = [
+  { key: "auto", label: "Automática" },
+  { key: "ninguna", label: "Ninguna" },
+  { key: "suave", label: "Suave" },
+  { key: "media", label: "Media" },
+  { key: "elevada", label: "Elevada" },
+];
+
 export type ModuleSection = "dashboard-widget" | "module";
 
 export interface ModuleIdentityDefinition {
@@ -256,6 +351,13 @@ function identity(partial: Partial<ModuleIdentity> & Pick<ModuleIdentity, "iconK
     style: "solid-soft",
     shape: "square",
     hidden: false,
+    iconPosition: "auto",
+    iconSize: "auto",
+    contentAlign: "auto",
+    cardAppearance: "auto",
+    cardBackground: "auto",
+    cardBorder: "auto",
+    cardShadow: "auto",
     ...partial,
   };
 }
@@ -364,7 +466,16 @@ export function ModuleIdentityProvider({ children }: { children: ReactNode }) {
     setOverrides((prev) => {
       const next: ModuleIdentityOverrides = {};
       for (const [id, override] of Object.entries(prev)) {
-        if (typeof override.hidden === "boolean") next[id] = { hidden: override.hidden };
+        const preserved: Partial<ModuleIdentity> = {};
+        if (typeof override.hidden === "boolean") preserved.hidden = override.hidden;
+        if (override.iconPosition !== undefined) preserved.iconPosition = override.iconPosition;
+        if (override.iconSize !== undefined) preserved.iconSize = override.iconSize;
+        if (override.contentAlign !== undefined) preserved.contentAlign = override.contentAlign;
+        if (override.cardAppearance !== undefined) preserved.cardAppearance = override.cardAppearance;
+        if (override.cardBackground !== undefined) preserved.cardBackground = override.cardBackground;
+        if (override.cardBorder !== undefined) preserved.cardBorder = override.cardBorder;
+        if (override.cardShadow !== undefined) preserved.cardShadow = override.cardShadow;
+        if (Object.keys(preserved).length > 0) next[id] = preserved;
       }
       return next;
     });

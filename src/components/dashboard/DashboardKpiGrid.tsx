@@ -84,6 +84,7 @@ function StatusTrend({ status, footer, href }: Pick<CardProps, "status" | "foote
 export function VerticalKpiCard({ cardId, icon: Icon, label, value, status, footer, href }: CardProps) {
   const { getIdentity } = useModuleIdentities();
   if (getIdentity(cardId).hidden) return null;
+  const identity = getIdentity(cardId);
 
   const widget = (
     <KpiWidget
@@ -94,6 +95,13 @@ export function VerticalKpiCard({ cardId, icon: Icon, label, value, status, foot
       tone={STATUS_TONE[status]}
       trend={<StatusTrend status={status} footer={footer} href={href} />}
       className={cn("flex h-[220px] sm:h-[290px] flex-col justify-between", !href && "opacity-90")}
+      iconPosition={identity.iconPosition}
+      iconSize={identity.iconSize}
+      contentAlign={identity.contentAlign}
+      cardAppearance={identity.cardAppearance}
+      cardBackground={identity.cardBackground}
+      cardBorder={identity.cardBorder}
+      cardShadow={identity.cardShadow}
     />
   );
 
@@ -112,6 +120,7 @@ export function VerticalKpiCard({ cardId, icon: Icon, label, value, status, foot
 export function HorizontalKpiCard({ cardId, icon: Icon, label, value, status, footer, href }: CardProps) {
   const { getIdentity } = useModuleIdentities();
   if (getIdentity(cardId).hidden) return null;
+  const identity = getIdentity(cardId);
 
   const widget = (
     <KpiWidget
@@ -122,6 +131,13 @@ export function HorizontalKpiCard({ cardId, icon: Icon, label, value, status, fo
       tone={STATUS_TONE[status]}
       trend={<StatusTrend status={status} footer={footer} href={href} />}
       className={cn("flex h-[118px] sm:h-[132px] flex-col justify-between", !href && "opacity-90")}
+      iconPosition={identity.iconPosition}
+      iconSize={identity.iconSize}
+      contentAlign={identity.contentAlign}
+      cardAppearance={identity.cardAppearance}
+      cardBackground={identity.cardBackground}
+      cardBorder={identity.cardBorder}
+      cardShadow={identity.cardShadow}
     />
   );
 

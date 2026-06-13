@@ -19,12 +19,27 @@ import {
   MODULE_ICON_STYLES,
   MODULE_ACCENT_COLORS,
   MODULE_SHAPES,
+  MODULE_ICON_POSITIONS,
+  MODULE_ICON_SIZES,
+  MODULE_CONTENT_ALIGNS,
+  MODULE_CARD_APPEARANCES,
+  MODULE_CARD_BACKGROUNDS,
+  MODULE_CARD_BORDERS,
+  MODULE_CARD_SHADOWS,
   type ModuleIdentityDefinition,
   type ModuleIdentityType,
   type ModuleAccentColor,
   type ModuleIconStyle,
   type ModuleShape,
+  type ModuleIconPosition,
+  type ModuleIconSize,
+  type ModuleContentAlign,
+  type ModuleCardAppearance,
+  type ModuleCardBackground,
+  type ModuleCardBorder,
+  type ModuleCardShadow,
 } from "@/lib/module-identity";
+import { useVisualPreferences, MODULE_TILE_STYLES, type ModuleTileStyle } from "@/lib/visual-preferences";
 
 const TYPE_OPTIONS: { key: ModuleIdentityType; label: string }[] = [
   { key: "icon", label: "Icono" },
@@ -244,6 +259,54 @@ function ModuleIdentityEditor({ def }: { def: ModuleIdentityDefinition }) {
             </p>
           )}
 
+          {def.section === "dashboard-widget" && (
+            <div className="space-y-3 border-t pt-3">
+              <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Tarjeta avanzada</p>
+              <Segmented
+                label="Posición del icono"
+                options={MODULE_ICON_POSITIONS}
+                value={view.iconPosition}
+                onChange={(iconPosition: ModuleIconPosition) => setIdentity(def.id, { iconPosition })}
+              />
+              <Segmented
+                label="Tamaño del icono"
+                options={MODULE_ICON_SIZES}
+                value={view.iconSize}
+                onChange={(iconSize: ModuleIconSize) => setIdentity(def.id, { iconSize })}
+              />
+              <Segmented
+                label="Alineación del contenido"
+                options={MODULE_CONTENT_ALIGNS}
+                value={view.contentAlign}
+                onChange={(contentAlign: ModuleContentAlign) => setIdentity(def.id, { contentAlign })}
+              />
+              <Segmented
+                label="Apariencia de la tarjeta"
+                options={MODULE_CARD_APPEARANCES}
+                value={view.cardAppearance}
+                onChange={(cardAppearance: ModuleCardAppearance) => setIdentity(def.id, { cardAppearance })}
+              />
+              <Segmented
+                label="Fondo de la tarjeta"
+                options={MODULE_CARD_BACKGROUNDS}
+                value={view.cardBackground}
+                onChange={(cardBackground: ModuleCardBackground) => setIdentity(def.id, { cardBackground })}
+              />
+              <Segmented
+                label="Borde de la tarjeta"
+                options={MODULE_CARD_BORDERS}
+                value={view.cardBorder}
+                onChange={(cardBorder: ModuleCardBorder) => setIdentity(def.id, { cardBorder })}
+              />
+              <Segmented
+                label="Sombra de la tarjeta"
+                options={MODULE_CARD_SHADOWS}
+                value={view.cardShadow}
+                onChange={(cardShadow: ModuleCardShadow) => setIdentity(def.id, { cardShadow })}
+              />
+            </div>
+          )}
+
           <div className="flex justify-end">
             <button
               type="button"
@@ -261,6 +324,7 @@ function ModuleIdentityEditor({ def }: { def: ModuleIdentityDefinition }) {
 
 export function ModuleIdentityCustomizer() {
   const { registry, resetAllIcons, resetAllIdentities } = useModuleIdentities();
+  const { preferences, setModuleTileStyle } = useVisualPreferences();
   const [showAllModules, setShowAllModules] = useState(false);
 
   const dashboardWidgets = registry.filter((def) => def.section === "dashboard-widget");
@@ -274,6 +338,34 @@ export function ModuleIdentityCustomizer() {
           Elige el icono, emoji, iniciales o badge de cada módulo, su color, estilo y forma — y muestra u
           oculta widgets del Dashboard. Todo se guarda en este navegador.
         </p>
+      </div>
+
+      <div className="space-y-2 rounded-xl border bg-muted/20 p-3">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Estilo de módulos</p>
+        <p className="text-[11px] leading-snug text-muted-foreground">
+          Define la forma y textura de las tarjetas de módulo en todo nelzzon.
+        </p>
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+          {MODULE_TILE_STYLES.map((opt) => {
+            const active = preferences.moduleTileStyle === opt.key;
+            return (
+              <button
+                key={opt.key}
+                type="button"
+                aria-pressed={active}
+                title={opt.description}
+                onClick={() => setModuleTileStyle(opt.key as ModuleTileStyle)}
+                className={cn(
+                  "flex flex-col items-center gap-1 rounded-lg border p-2 text-center transition-all",
+                  active ? "border-brand-accent/50 ring-2 ring-brand-accent/30 bg-brand-accent-soft" : "border-transparent bg-background/60 hover:border-foreground/10"
+                )}
+              >
+                <span aria-hidden className="block h-6 w-full rounded-md bg-foreground/10" />
+                <span className="truncate text-[10px] font-medium">{opt.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2">

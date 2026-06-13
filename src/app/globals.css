@@ -430,3 +430,505 @@
 [data-visual-brand-symbol="monochrome"] .brand-symbol {
   filter: grayscale(1);
 }
+
+/* ============================================================
+   Personalizar Studio (FASE 1M-E) — Galería de fondos (30 presets)
+   .dashboard-shell / .personalization-preview-shell ya soportan el overlay
+   por estilo (1M-D); aquí se agrega un fondo concreto elegido de
+   BACKGROUND_GALLERY, debajo del overlay y de la imagen propia.
+   ============================================================ */
+
+[data-visual-background-preset="clean-blanco"] .dashboard-shell,
+[data-visual-background-preset="clean-blanco"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
+}
+[data-visual-background-preset="clean-niebla"] .dashboard-shell,
+[data-visual-background-preset="clean-niebla"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(180deg, #f8fafc 0%, #eef2f6 100%);
+}
+[data-visual-background-preset="clean-arena"] .dashboard-shell,
+[data-visual-background-preset="clean-arena"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(180deg, #fafaf9 0%, #f1efec 100%);
+}
+
+[data-visual-background-preset="clinico-azul"] .dashboard-shell,
+[data-visual-background-preset="clinico-azul"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(180deg, #eef6ff 0%, #ffffff 70%);
+}
+[data-visual-background-preset="clinico-menta"] .dashboard-shell,
+[data-visual-background-preset="clinico-menta"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(180deg, #eafff5 0%, #ffffff 70%);
+}
+[data-visual-background-preset="clinico-porcelana"] .dashboard-shell,
+[data-visual-background-preset="clinico-porcelana"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(180deg, #ffffff 0%, #f4f8fb 100%);
+}
+
+[data-visual-background-preset="ejecutivo-slate"] .dashboard-shell,
+[data-visual-background-preset="ejecutivo-slate"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(160deg, #f1f5f9 0%, #e2e8f0 100%);
+}
+[data-visual-background-preset="ejecutivo-navy"] .dashboard-shell,
+[data-visual-background-preset="ejecutivo-navy"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(160deg, #eef2f7 0%, #dbe4f0 100%);
+}
+[data-visual-background-preset="ejecutivo-grafito"] .dashboard-shell,
+[data-visual-background-preset="ejecutivo-grafito"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(160deg, #f4f4f5 0%, #e4e4e7 100%);
+}
+
+[data-visual-background-preset="estetica-rosa"] .dashboard-shell,
+[data-visual-background-preset="estetica-rosa"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(135deg, #fff1f5 0%, #ffe4ec 100%);
+}
+[data-visual-background-preset="estetica-champan"] .dashboard-shell,
+[data-visual-background-preset="estetica-champan"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(135deg, #fdf6ec 0%, #f5e8d3 100%);
+}
+[data-visual-background-preset="estetica-lavanda"] .dashboard-shell,
+[data-visual-background-preset="estetica-lavanda"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(135deg, #f5f0ff 0%, #ece3fb 100%);
+}
+
+[data-visual-background-preset="taller-grafito"] .dashboard-shell,
+[data-visual-background-preset="taller-grafito"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(160deg, #f1f1f2 0%, #d8dadd 100%);
+}
+[data-visual-background-preset="taller-naranja"] .dashboard-shell,
+[data-visual-background-preset="taller-naranja"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(160deg, #fff4ec 0%, #ffe2cc 100%);
+}
+[data-visual-background-preset="taller-acero"] .dashboard-shell,
+[data-visual-background-preset="taller-acero"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(160deg, #eef3f7 0%, #d7e3ec 100%);
+}
+
+[data-visual-background-preset="edu-amarillo"] .dashboard-shell,
+[data-visual-background-preset="edu-amarillo"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(135deg, #fffbea 0%, #fef3c7 100%);
+}
+[data-visual-background-preset="edu-azul"] .dashboard-shell,
+[data-visual-background-preset="edu-azul"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(135deg, #eef6ff 0%, #dbeafe 100%);
+}
+[data-visual-background-preset="edu-verde"] .dashboard-shell,
+[data-visual-background-preset="edu-verde"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+[data-visual-background-preset="degradado-amanecer"] .dashboard-shell,
+[data-visual-background-preset="degradado-amanecer"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(135deg, #fef3c7 0%, #fecaca 50%, #fbcfe8 100%);
+}
+[data-visual-background-preset="degradado-oceano"] .dashboard-shell,
+[data-visual-background-preset="degradado-oceano"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #c7d2fe 100%);
+}
+[data-visual-background-preset="degradado-aurora"] .dashboard-shell,
+[data-visual-background-preset="degradado-aurora"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(135deg, #ede9fe 0%, #fce7f3 50%, #e0f2fe 100%);
+}
+
+[data-visual-background-preset="glass-claro"] .dashboard-shell,
+[data-visual-background-preset="glass-claro"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(160deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.25) 100%);
+}
+[data-visual-background-preset="glass-oscuro"] .dashboard-shell,
+[data-visual-background-preset="glass-oscuro"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(160deg, rgba(30,41,59,0.55) 0%, rgba(30,41,59,0.15) 100%);
+}
+[data-visual-background-preset="glass-azul"] .dashboard-shell,
+[data-visual-background-preset="glass-azul"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(160deg, rgba(186,230,253,0.5) 0%, rgba(224,242,254,0.18) 100%);
+}
+
+[data-visual-background-preset="intenso-teal"] .dashboard-shell,
+[data-visual-background-preset="intenso-teal"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(160deg, #99f6e4 0%, #5eead4 100%);
+}
+[data-visual-background-preset="intenso-violeta"] .dashboard-shell,
+[data-visual-background-preset="intenso-violeta"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(160deg, #ddd6fe 0%, #a78bfa 100%);
+}
+[data-visual-background-preset="intenso-esmeralda"] .dashboard-shell,
+[data-visual-background-preset="intenso-esmeralda"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), linear-gradient(160deg, #bbf7d0 0%, #4ade80 100%);
+}
+
+[data-visual-background-preset="patron-puntos"] .dashboard-shell,
+[data-visual-background-preset="patron-puntos"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), radial-gradient(circle, #d4d4d8 1px, transparent 1.4px);
+  background-size: auto, 16px 16px;
+}
+[data-visual-background-preset="patron-rejilla"] .dashboard-shell,
+[data-visual-background-preset="patron-rejilla"] .personalization-preview-shell {
+  background-image:
+    var(--visual-bg-image, none),
+    repeating-linear-gradient(0deg, #e4e4e7 0px, #e4e4e7 1px, transparent 1px, transparent 16px),
+    repeating-linear-gradient(90deg, #e4e4e7 0px, #e4e4e7 1px, transparent 1px, transparent 16px);
+}
+[data-visual-background-preset="patron-diagonal"] .dashboard-shell,
+[data-visual-background-preset="patron-diagonal"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none), repeating-linear-gradient(45deg, #f4f4f5 0px, #f4f4f5 10px, #ffffff 10px, #ffffff 20px);
+}
+
+/* ============================================================
+   Personalizar Studio (FASE 1M-E) — Estilo de módulos
+   [data-visual-module-tile="X"] cambia la textura/forma de .module-card en
+   toda la app (Dashboard, catálogo, etc.), de forma aditiva.
+   ============================================================ */
+
+[data-visual-module-tile="app-pastel"] .module-card {
+  border-radius: var(--radius-2xl);
+  border-color: transparent;
+  background-color: color-mix(in oklch, var(--brand-accent-soft) 70%, var(--surface-elevated));
+}
+[data-visual-module-tile="app-solido"] .module-card {
+  border-radius: var(--radius-xl);
+  border-color: transparent;
+  background-color: var(--brand-accent);
+  color: var(--brand-accent-foreground);
+}
+[data-visual-module-tile="app-solido"] .module-card .text-muted-foreground {
+  color: color-mix(in oklch, var(--brand-accent-foreground) 75%, transparent);
+}
+[data-visual-module-tile="clase"] .module-card {
+  border-radius: var(--radius-2xl);
+  border-color: color-mix(in oklch, var(--brand-accent) 18%, transparent);
+  box-shadow: var(--shadow-soft);
+}
+[data-visual-module-tile="glass-premium"] .module-card {
+  background-color: color-mix(in oklch, var(--surface-elevated) 65%, transparent);
+  backdrop-filter: blur(14px);
+  border-color: color-mix(in oklch, var(--brand-accent) 14%, transparent);
+}
+[data-visual-module-tile="clinico"] .module-card {
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-elevated);
+  border-color: var(--border);
+}
+[data-visual-module-tile="ejecutivo"] .module-card {
+  border-radius: var(--radius-sm);
+  border-color: var(--border);
+  box-shadow: none;
+}
+[data-visual-module-tile="estetica"] .module-card {
+  border-radius: var(--radius-3xl);
+  border-color: color-mix(in oklch, var(--brand-accent) 12%, transparent);
+  box-shadow: var(--shadow-soft);
+}
+[data-visual-module-tile="taller"] .module-card {
+  border-radius: var(--radius-sm);
+  border-width: 2px;
+  border-color: color-mix(in oklch, var(--brand-accent) 30%, var(--border));
+}
+[data-visual-module-tile="minimal"] .module-card {
+  border-color: transparent;
+  box-shadow: none;
+  background-color: transparent;
+}
+
+/* ============================================================
+   Personalizar Studio (FASE 1M-E) — Tarjetas KPI / widgets avanzados
+   .kpi-widget[data-card-appearance], data-card-background/border/shadow,
+   más data-icon-position/size y data-content-align dentro de .kpi-widget.
+   "auto" en el widget hereda la apariencia del dashboardCardStyle global
+   (data-visual-dashboard-card) — un valor explícito en el widget gana.
+   ============================================================ */
+
+/* ---- Apariencia: 10 estilos, aplicables por widget o como default global ---- */
+.kpi-widget[data-card-appearance="limpia"],
+[data-visual-dashboard-card="limpia"] .kpi-widget[data-card-appearance="auto"] {
+  background-color: var(--surface-elevated);
+  border-color: var(--border);
+  box-shadow: none;
+}
+.kpi-widget[data-card-appearance="pastel"],
+[data-visual-dashboard-card="pastel"] .kpi-widget[data-card-appearance="auto"] {
+  background-color: color-mix(in oklch, var(--brand-accent-soft) 75%, var(--surface-elevated));
+  border-color: transparent;
+}
+.kpi-widget[data-card-appearance="solida"],
+[data-visual-dashboard-card="solida"] .kpi-widget[data-card-appearance="auto"] {
+  background-color: var(--brand-accent);
+  color: var(--brand-accent-foreground);
+  border-color: transparent;
+}
+.kpi-widget[data-card-appearance="solida"] .text-muted-foreground,
+[data-visual-dashboard-card="solida"] .kpi-widget[data-card-appearance="auto"] .text-muted-foreground {
+  color: color-mix(in oklch, var(--brand-accent-foreground) 75%, transparent);
+}
+.kpi-widget[data-card-appearance="glass"],
+[data-visual-dashboard-card="glass"] .kpi-widget[data-card-appearance="auto"] {
+  background-color: color-mix(in oklch, var(--surface-elevated) 65%, transparent);
+  backdrop-filter: blur(14px);
+  border-color: color-mix(in oklch, var(--brand-accent) 14%, transparent);
+}
+.kpi-widget[data-card-appearance="elevada"],
+[data-visual-dashboard-card="elevada"] .kpi-widget[data-card-appearance="auto"] {
+  border-color: transparent;
+  box-shadow: var(--shadow-elevated-value);
+}
+.kpi-widget[data-card-appearance="premium"],
+[data-visual-dashboard-card="premium"] .kpi-widget[data-card-appearance="auto"] {
+  background-image: linear-gradient(160deg, color-mix(in oklch, var(--brand-accent-soft) 80%, var(--surface-elevated)) 0%, var(--surface-elevated) 100%);
+  border-color: color-mix(in oklch, var(--brand-accent) 20%, transparent);
+  box-shadow: var(--shadow-elevated-value);
+}
+.kpi-widget[data-card-appearance="ejecutiva"],
+[data-visual-dashboard-card="ejecutiva"] .kpi-widget[data-card-appearance="auto"] {
+  border-radius: var(--radius-sm);
+  border-color: var(--border);
+  box-shadow: none;
+}
+.kpi-widget[data-card-appearance="clinica"],
+[data-visual-dashboard-card="clinica"] .kpi-widget[data-card-appearance="auto"] {
+  background-color: var(--surface-elevated);
+  border-color: color-mix(in oklch, var(--brand-accent) 18%, var(--border));
+}
+.kpi-widget[data-card-appearance="taller"],
+[data-visual-dashboard-card="taller"] .kpi-widget[data-card-appearance="auto"] {
+  border-radius: var(--radius-sm);
+  border-left-width: 4px;
+  border-left-color: var(--brand-accent);
+}
+.kpi-widget[data-card-appearance="intensa"],
+[data-visual-dashboard-card="intensa"] .kpi-widget[data-card-appearance="auto"] {
+  background-image: linear-gradient(160deg, var(--brand-accent) 0%, color-mix(in oklch, var(--brand-accent) 60%, var(--surface-elevated)) 100%);
+  color: var(--brand-accent-foreground);
+  border-color: transparent;
+}
+.kpi-widget[data-card-appearance="intensa"] .text-muted-foreground,
+[data-visual-dashboard-card="intensa"] .kpi-widget[data-card-appearance="auto"] .text-muted-foreground {
+  color: color-mix(in oklch, var(--brand-accent-foreground) 75%, transparent);
+}
+
+/* ---- Fondo de la tarjeta (independiente de "apariencia") ---- */
+.kpi-widget[data-card-background="blanco"] {
+  background-color: var(--surface-elevated);
+}
+.kpi-widget[data-card-background="suave-color"] {
+  background-color: color-mix(in oklch, var(--brand-accent-soft) 75%, var(--surface-elevated));
+}
+.kpi-widget[data-card-background="degradado"] {
+  background-image: linear-gradient(160deg, color-mix(in oklch, var(--brand-accent-soft) 80%, var(--surface-elevated)) 0%, var(--surface-elevated) 100%);
+}
+.kpi-widget[data-card-background="glass"] {
+  background-color: color-mix(in oklch, var(--surface-elevated) 65%, transparent);
+  backdrop-filter: blur(14px);
+}
+.kpi-widget[data-card-background="solido"] {
+  background-color: var(--brand-accent);
+  color: var(--brand-accent-foreground);
+}
+.kpi-widget[data-card-background="solido"] .text-muted-foreground {
+  color: color-mix(in oklch, var(--brand-accent-foreground) 75%, transparent);
+}
+
+/* ---- Borde de la tarjeta ---- */
+.kpi-widget[data-card-border="ninguno"] {
+  border-color: transparent;
+}
+.kpi-widget[data-card-border="suave"] {
+  border-color: var(--border);
+}
+.kpi-widget[data-card-border="acento"] {
+  border-color: color-mix(in oklch, var(--brand-accent) 35%, transparent);
+}
+.kpi-widget[data-card-border="superior"] {
+  border-color: transparent;
+  border-top-width: 3px;
+  border-top-color: var(--brand-accent);
+}
+.kpi-widget[data-card-border="lateral"] {
+  border-color: transparent;
+  border-left-width: 4px;
+  border-left-color: var(--brand-accent);
+}
+
+/* ---- Sombra de la tarjeta ---- */
+.kpi-widget[data-card-shadow="ninguna"] {
+  box-shadow: none;
+}
+.kpi-widget[data-card-shadow="suave"] {
+  box-shadow: var(--shadow-soft-value);
+}
+.kpi-widget[data-card-shadow="media"] {
+  box-shadow: 0 8px 24px -12px rgb(0 0 0 / 0.18), 0 2px 6px -2px rgb(0 0 0 / 0.06);
+}
+.kpi-widget[data-card-shadow="elevada"] {
+  box-shadow: var(--shadow-elevated-value);
+}
+
+/* ---- Icono: posición y tamaño ---- */
+.kpi-widget-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.kpi-widget-icon[data-icon-size="small"] {
+  transform: scale(0.75);
+}
+.kpi-widget-icon[data-icon-size="normal"] {
+  transform: scale(1);
+}
+.kpi-widget-icon[data-icon-size="large"] {
+  transform: scale(1.35);
+}
+.kpi-widget-icon[data-icon-size="hero"] {
+  transform: scale(1.9);
+}
+
+.kpi-widget[data-icon-position="top-left"] .kpi-widget-content {
+  flex-direction: row-reverse;
+}
+.kpi-widget[data-icon-position="top-center"] .kpi-widget-content {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Marca de agua: icono grande, de fondo, detrás del contenido */
+.kpi-widget-icon-watermark {
+  position: absolute;
+  right: -0.5rem;
+  bottom: -0.5rem;
+  opacity: 0.08;
+  pointer-events: none;
+  transform: scale(3.2);
+  transform-origin: bottom right;
+}
+
+/* Grande al centro: icono protagonista, arriba del contenido */
+.kpi-widget-icon-center {
+  display: flex;
+  justify-content: center;
+  margin: 0.25rem 0 0.5rem;
+}
+.kpi-widget-icon-center[data-icon-size="large"] {
+  transform: scale(1.35);
+}
+.kpi-widget-icon-center[data-icon-size="hero"] {
+  transform: scale(1.9);
+}
+
+/* ---- Alineación del contenido ---- */
+.kpi-widget-content[data-content-align="left"] {
+  justify-content: flex-start;
+  text-align: left;
+}
+.kpi-widget-content[data-content-align="center"] {
+  justify-content: center;
+  text-align: center;
+}
+.kpi-widget-content[data-content-align="right"] {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+/* ============================================================
+   Personalizar Studio (FASE 1M-E) — Dock inferior
+   .app-dock-nav / .app-dock-item / .app-dock-item-active / .app-dock-icon /
+   .app-dock-label / .app-dock-separator son hooks en AppDock.tsx, puramente
+   visuales — la navegación y permisos no cambian.
+   ============================================================ */
+
+[data-visual-dock-style="limpio"] .app-dock-nav {
+  background-color: var(--surface-elevated);
+  box-shadow: var(--shadow-soft-value);
+}
+[data-visual-dock-style="glass"] .app-dock-nav {
+  background-color: color-mix(in oklch, var(--surface-elevated) 70%, transparent);
+  backdrop-filter: blur(16px);
+}
+[data-visual-dock-style="flotante-premium"] .app-dock-nav {
+  box-shadow: var(--shadow-elevated-value);
+  border-color: color-mix(in oklch, var(--brand-accent) 16%, transparent);
+}
+[data-visual-dock-style="ejecutivo"] .app-dock-nav {
+  border-radius: var(--radius-sm);
+  border-color: var(--border);
+  box-shadow: none;
+}
+[data-visual-dock-style="compacto"] .app-dock-nav {
+  gap: 0;
+  padding: 0.25rem;
+}
+[data-visual-dock-style="app-moderna"] .app-dock-nav {
+  border-color: transparent;
+  background-image: linear-gradient(135deg, color-mix(in oklch, var(--brand-accent-soft) 80%, var(--surface-elevated)) 0%, var(--surface-elevated) 100%);
+}
+[data-visual-dock-style="color-solido"] .app-dock-nav {
+  background-color: var(--brand-accent);
+  border-color: transparent;
+}
+[data-visual-dock-style="color-solido"] .app-dock-item {
+  color: color-mix(in oklch, var(--brand-accent-foreground) 85%, transparent);
+}
+[data-visual-dock-style="minimal"] .app-dock-nav {
+  border-color: transparent;
+  background-color: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+/* ---- Tamaño del dock ---- */
+[data-visual-dock-size="compacto"] .app-dock-item {
+  padding: 0.25rem 0.5rem;
+}
+[data-visual-dock-size="compacto"] .app-dock-icon {
+  transform: scale(0.85);
+}
+[data-visual-dock-size="grande"] .app-dock-item {
+  padding: 0.5rem 1rem;
+}
+[data-visual-dock-size="grande"] .app-dock-icon {
+  transform: scale(1.2);
+}
+
+/* ---- Estilo del ítem activo ---- */
+[data-visual-dock-active="pill"] .app-dock-item-active {
+  border-radius: 9999px;
+}
+[data-visual-dock-active="subrayado"] .app-dock-item-active {
+  border-radius: 0;
+  box-shadow: inset 0 -2px 0 0 var(--brand-accent);
+}
+[data-visual-dock-active="bloque"] .app-dock-item-active {
+  border-radius: var(--radius-sm);
+}
+[data-visual-dock-active="glow"] .app-dock-item-active {
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--brand-accent) 18%, transparent);
+}
+
+/* ---- Visibilidad de etiquetas ---- */
+[data-visual-dock-labels="oculto"] .app-dock-label {
+  display: none;
+}
+
+/* ---- Sombra y radio del dock ---- */
+[data-visual-dock-shadow="elevated"] .app-dock-nav {
+  box-shadow: var(--shadow-elevated-value);
+}
+[data-visual-dock-shadow="glass"] .app-dock-nav {
+  backdrop-filter: blur(16px);
+  background-color: color-mix(in oklch, var(--surface-elevated) 70%, transparent);
+}
+[data-visual-dock-radius="rounded"] .app-dock-nav {
+  border-radius: var(--radius-2xl);
+}
+[data-visual-dock-radius="square"] .app-dock-nav {
+  border-radius: var(--radius-sm);
+}
+
+/* ============================================================
+   Personalizar Studio (FASE 1M-E) — Plantilla de negocio activa
+   [data-visual-business-template] marca que hay una plantilla aplicada;
+   el resto del estilo lo deciden los data-visual-* individuales que la
+   plantilla configura (preset, fondo, módulos, dock, etc.).
+   ============================================================ */
+
+[data-visual-business-template] .dashboard-shell,
+[data-visual-business-template] .personalization-preview-shell {
+  transition: background-image 0.2s ease;
+}

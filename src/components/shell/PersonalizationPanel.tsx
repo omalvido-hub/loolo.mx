@@ -27,7 +27,156 @@ import { PersonalizationPreviewCanvas } from "@/components/shell/Personalization
 import { ModuleIdentityCustomizer } from "@/components/shell/ModuleIdentityCustomizer";
 import { BackgroundCustomizer } from "@/components/shell/BackgroundCustomizer";
 import { BrandCustomizer } from "@/components/shell/BrandCustomizer";
-import { useVisualPreferences } from "@/lib/visual-preferences";
+import {
+  useVisualPreferences,
+  BUSINESS_VISUAL_TEMPLATES,
+  BUSINESS_TEMPLATE_KEYS,
+  BACKGROUND_GALLERY,
+  DOCK_STYLES,
+  DOCK_SIZES,
+  DOCK_ACTIVE_STYLES,
+  DOCK_LABEL_VISIBILITIES,
+  type BusinessTemplateId,
+  type DockStyle,
+  type DockSize,
+  type DockActiveStyle,
+  type DockLabelVisibility,
+  type VisualShadow,
+  type VisualRadius,
+} from "@/lib/visual-preferences";
+
+const DOCK_SHADOW_OPTIONS: { key: VisualShadow; label: string }[] = [
+  { key: "soft", label: "Suave" },
+  { key: "elevated", label: "Elevada" },
+  { key: "glass", label: "Glass" },
+];
+
+const DOCK_RADIUS_OPTIONS: { key: VisualRadius; label: string }[] = [
+  { key: "soft", label: "Suave" },
+  { key: "rounded", label: "Redondo" },
+  { key: "square", label: "Cuadrado" },
+];
+
+function Segmented<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: { key: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <div className="flex flex-wrap gap-1" role="radiogroup" aria-label={label}>
+        {options.map((opt) => {
+          const active = opt.key === value;
+          return (
+            <button
+              key={opt.key}
+              type="button"
+              onClick={() => onChange(opt.key)}
+              role="radio"
+              aria-checked={active}
+              className={cn(
+                "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
+                active ? "border-brand-accent/40 bg-brand-accent-soft text-brand-accent" : "border-transparent bg-muted/40 text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function BusinessTemplatesSection() {
+  const { preferences, applyBusinessTemplate, resetBusinessTemplate } = useVisualPreferences();
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Plantillas por tipo de negocio</p>
+        <button
+          type="button"
+          onClick={resetBusinessTemplate}
+          className="inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors hover:bg-muted"
+        >
+          Restaurar estilo base
+        </button>
+      </div>
+      <p className="text-[11px] leading-snug text-muted-foreground">
+        Cambia de un golpe el estilo visual completo de tu nelzzon — fondo, tarjetas, módulos, iconos y dock.
+      </p>
+      <div className="grid grid-cols-2 gap-2">
+        {BUSINESS_TEMPLATE_KEYS.map((key) => {
+          const tpl = BUSINESS_VISUAL_TEMPLATES[key];
+          const bg = BACKGROUND_GALLERY.find((entry) => entry.id === tpl.backgroundPreset);
+          const active = preferences.businessTemplateId === key;
+          return (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={active}
+              onClick={() => applyBusinessTemplate(key as BusinessTemplateId)}
+              className={cn(
+                "group flex flex-col gap-1.5 rounded-xl border p-2 text-left transition-all",
+                active ? "border-brand-accent/50 ring-2 ring-brand-accent/30" : "border-transparent bg-background/60 hover:border-foreground/10"
+              )}
+            >
+              <span
+                aria-hidden
+                className="block h-10 w-full rounded-lg ring-1 ring-foreground/[0.06]"
+                style={{ backgroundImage: bg?.preview }}
+              />
+              <span className="min-w-0">
+                <span className="block truncate text-[11px] font-semibold">{tpl.label}</span>
+                <span className="block truncate text-[10px] leading-snug text-muted-foreground">{tpl.usage}</span>
+              </span>
+              {active && (
+                <span className="inline-flex items-center self-start rounded-full bg-brand-accent-soft px-1.5 py-px text-[9px] font-medium text-brand-accent">
+                  Activa
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function DockCustomizerSection() {
+  const {
+    preferences,
+    setDockStyle,
+    setDockSize,
+    setDockActiveStyle,
+    setDockLabelVisibility,
+    setDockShadow,
+    setDockRadius,
+  } = useVisualPreferences();
+
+  return (
+    <div className="space-y-3">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Dock inferior</p>
+      <p className="text-[11px] leading-snug text-muted-foreground">
+        Estilo del menú de accesos rápidos en la parte inferior de la pantalla.
+      </p>
+      <Segmented label="Estilo del dock" options={DOCK_STYLES} value={preferences.dockStyle} onChange={(dockStyle: DockStyle) => setDockStyle(dockStyle)} />
+      <Segmented label="Tamaño" options={DOCK_SIZES} value={preferences.dockSize} onChange={(dockSize: DockSize) => setDockSize(dockSize)} />
+      <Segmented label="Estilo activo" options={DOCK_ACTIVE_STYLES} value={preferences.dockActiveStyle} onChange={(dockActiveStyle: DockActiveStyle) => setDockActiveStyle(dockActiveStyle)} />
+      <Segmented label="Etiquetas" options={DOCK_LABEL_VISIBILITIES} value={preferences.dockLabelVisibility} onChange={(dockLabelVisibility: DockLabelVisibility) => setDockLabelVisibility(dockLabelVisibility)} />
+      <Segmented label="Sombra" options={DOCK_SHADOW_OPTIONS} value={preferences.dockShadow} onChange={(dockShadow: VisualShadow) => setDockShadow(dockShadow)} />
+      <Segmented label="Radio" options={DOCK_RADIUS_OPTIONS} value={preferences.dockRadius} onChange={(dockRadius: VisualRadius) => setDockRadius(dockRadius)} />
+    </div>
+  );
+}
 
 interface StudioSection {
   key: string;
@@ -140,6 +289,43 @@ const PERSONALIZATION_SEARCH_INDEX: PersonalizationSearchEntry[] = [
     title: "Resetear personalización",
     description: "Restablece iconos, identidades de módulos o toda la personalización.",
     terms: ["reset", "resetear", "restablecer"],
+  },
+  {
+    key: "inicio",
+    title: "Plantillas por tipo de negocio",
+    description: "Cambia el estilo completo de nelzzon según tu tipo de negocio.",
+    terms: [
+      "plantilla", "plantillas", "estilo", "estética", "taller", "médico", "dental", "clínico",
+      "legal", "ejecutivo", "educación", "creativo", "minimal", "wellness", "retail", "negocio",
+      "restaurar estilo base",
+    ],
+  },
+  {
+    key: "fondos",
+    title: "Galería de fondos",
+    description: "Más de 30 fondos listos: limpios, clínicos, ejecutivos, estéticos, degradados, glass y patrones.",
+    terms: ["galería", "fondos", "degradados", "pastel", "glass", "patrón", "patrones", "colores"],
+  },
+  {
+    key: "modulos",
+    title: "Estilo de módulos",
+    description: "Define la forma y textura de las tarjetas de módulo en toda la app.",
+    terms: ["módulos", "tarjeta", "card", "estilo de módulos", "glass", "ejecutivo", "clínico", "estética", "taller", "minimal"],
+  },
+  {
+    key: "modulos",
+    title: "Tarjeta avanzada del widget",
+    description: "Posición y tamaño de icono, alineación, apariencia, fondo, borde y sombra de cada KPI.",
+    terms: [
+      "tarjeta", "card", "widget", "kpi", "icono grande", "centro", "marca de agua", "sombra",
+      "borde", "apariencia", "fondo de tarjeta", "posición del icono", "tamaño del icono",
+    ],
+  },
+  {
+    key: "modulos",
+    title: "Dock inferior",
+    description: "Estilo, tamaño, etiquetas, sombra y radio del menú inferior de accesos rápidos.",
+    terms: ["dock", "menú inferior", "accesos rápidos", "etiquetas", "sombra", "radio", "app moderna", "glass"],
   },
 ];
 
@@ -267,6 +453,8 @@ function StudioHome({ onNavigate }: { onNavigate: (key: string) => void }) {
           })}
         </div>
       </div>
+
+      <BusinessTemplatesSection />
 
       <div>
         <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Cómo funciona</p>
@@ -518,6 +706,12 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
           {active.key === "modulos" && (
             <div className="mt-5 rounded-2xl border bg-muted/20 p-4">
               <ModuleIdentityCustomizer />
+            </div>
+          )}
+
+          {active.key === "modulos" && (
+            <div className="mt-3 rounded-2xl border bg-muted/20 p-4">
+              <DockCustomizerSection />
             </div>
           )}
             </>
