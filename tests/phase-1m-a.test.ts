@@ -20,7 +20,6 @@ const KPI_WIDGET_PATH = resolve("src/components/ui/kpi-widget.tsx");
 const CHART_PREVIEW_PATH = resolve("src/components/ui/chart-preview-card.tsx");
 const PRESET_SELECTOR_PATH = resolve("src/components/shell/VisualPresetSelector.tsx");
 const PERSONALIZATION_PANEL_PATH = resolve("src/components/shell/PersonalizationPanel.tsx");
-const PERSONALIZATION_DETAILS_PATH = resolve("src/components/shell/PersonalizationDetails.tsx");
 const APP_SHELL_PATH = resolve("src/components/shell/AppShell.tsx");
 const GLOBALS_CSS_PATH = resolve("src/app/globals.css");
 const DASHBOARD_KPI_GRID_PATH = resolve("src/components/dashboard/DashboardKpiGrid.tsx");
@@ -32,7 +31,6 @@ const kpiWidgetContent = readFileSync(KPI_WIDGET_PATH, "utf-8");
 const chartPreviewContent = readFileSync(CHART_PREVIEW_PATH, "utf-8");
 const presetSelectorContent = readFileSync(PRESET_SELECTOR_PATH, "utf-8");
 const panelContent = readFileSync(PERSONALIZATION_PANEL_PATH, "utf-8");
-const personalizationDetailsContent = readFileSync(PERSONALIZATION_DETAILS_PATH, "utf-8");
 const appShellContent = readFileSync(APP_SHELL_PATH, "utf-8");
 const globalsCssContent = readFileSync(GLOBALS_CSS_PATH, "utf-8");
 const dashboardKpiGridContent = readFileSync(DASHBOARD_KPI_GRID_PATH, "utf-8");
@@ -157,10 +155,10 @@ describe("1M-A — VisualPresetSelector", () => {
   });
 });
 
-describe("1M-A — Personalizar integra VisualPresetSelector (ajustes avanzados de apariencia)", () => {
+describe("1M-A — PersonalizationPanel integra VisualPresetSelector", () => {
   it("importa y renderiza VisualPresetSelector", () => {
-    expect(personalizationDetailsContent).toMatch(/from\s+"@\/components\/shell\/VisualPresetSelector"/);
-    expect(personalizationDetailsContent).toContain("<VisualPresetSelector");
+    expect(panelContent).toMatch(/from\s+"@\/components\/shell\/VisualPresetSelector"/);
+    expect(panelContent).toContain("<VisualPresetSelector");
   });
 });
 
