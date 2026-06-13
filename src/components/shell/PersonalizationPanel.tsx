@@ -69,6 +69,80 @@ const SECTIONS: StudioSection[] = [
   },
 ];
 
+// Índice de búsqueda del buscador de Personalizar — cada entrada apunta a
+// una sección real (key de SECTIONS) y describe un control concreto dentro
+// de ella, con términos coloquiales para que el buscador encuentre tanto
+// categorías como controles internos.
+interface PersonalizationSearchEntry {
+  key: string;
+  title: string;
+  description: string;
+  terms: string[];
+}
+
+const PERSONALIZATION_SEARCH_INDEX: PersonalizationSearchEntry[] = [
+  {
+    key: "inicio",
+    title: "Inicio",
+    description: "La portada de Personalizar — un vistazo a tu nelzzon.",
+    terms: ["inicio", "portada", "resumen", "empezar"],
+  },
+  {
+    key: "marca",
+    title: "Marca",
+    description: "Nombre visible, lema, tamaño de marca, estilo de texto y de símbolo.",
+    terms: ["logo", "marca", "nombre", "lema", "símbolo", "tamaño"],
+  },
+  {
+    key: "marca",
+    title: "Nombre visible y lema",
+    description: "Cambia cómo se llama tu nelzzon y qué lema corto muestra.",
+    terms: ["nombre", "lema", "marca", "logo", "texto"],
+  },
+  {
+    key: "marca",
+    title: "Tamaño y estilo de símbolo",
+    description: "Tamaño de marca y estilo del símbolo: normal, suave, intenso o monocromático.",
+    terms: ["tamaño", "símbolo", "estilo de texto", "monocromático", "marca"],
+  },
+  {
+    key: "apariencia",
+    title: "Apariencia",
+    description: "Tema, presets visuales, acento, densidad, sombra, radio y estilo de tarjeta.",
+    terms: ["apariencia", "preset", "acento", "densidad", "sombra", "radio", "tarjeta", "tema", "color"],
+  },
+  {
+    key: "apariencia",
+    title: "Vista previa en vivo",
+    description: "Mira los cambios reflejados al instante, antes de cerrarlos.",
+    terms: ["vista previa", "preview", "apariencia"],
+  },
+  {
+    key: "fondos",
+    title: "Fondos e imágenes",
+    description: "Estilo, intensidad y blur del fondo del Dashboard, más imagen propia.",
+    terms: ["fondo", "fondos", "imagen", "blur", "intensidad", "degradado", "glass", "clínico", "ejecutivo", "intenso"],
+  },
+  {
+    key: "fondos",
+    title: "Imagen propia",
+    description: "Sube tu propia imagen de fondo (PNG, JPEG o WEBP, hasta 700 KB).",
+    terms: ["imagen", "subir imagen", "fondo propio", "foto"],
+  },
+  {
+    key: "modulos",
+    title: "Módulos",
+    description: "Biblioteca de módulos, iconos, emojis, widgets y KPIs del Dashboard.",
+    terms: ["módulos", "iconos", "emojis", "widgets", "kpi", "color", "forma", "ocultar", "mostrar", "biblioteca"],
+  },
+  {
+    key: "modulos",
+    title: "Resetear personalización",
+    description: "Restablece iconos, identidades de módulos o toda la personalización.",
+    terms: ["reset", "resetear", "restablecer"],
+  },
+];
+
 function PersonalizationActions() {
   const { resetVisualPreferences, resetAllPersonalization } = useVisualPreferences();
 
@@ -240,10 +314,16 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
     };
   }, [onClose]);
 
-  const filteredSections = useMemo(() => {
+  const searchResults = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return SECTIONS;
-    return SECTIONS.filter((s) => s.label.toLowerCase().includes(q));
+    if (!q) return [];
+    return PERSONALIZATION_SEARCH_INDEX.filter((entry) => {
+      const section = SECTIONS.find((s) => s.key === entry.key);
+      const haystack = [section?.label, section?.tagline, entry.title, entry.description, ...entry.terms]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
   }, [query]);
 
   const active = SECTIONS.find((s) => s.key === activeKey) ?? SECTIONS[0];
@@ -291,43 +371,78 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Busca una categoría…"
+            placeholder="Busca una categoría o control…"
             className="w-full rounded-full border bg-muted/30 py-1.5 pl-9 pr-3.5 text-xs placeholder:text-muted-foreground/70 focus:bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
 
         {/* Categorías — fila horizontal de chips, compacta y siempre visible */}
-        {filteredSections.length === 0 ? (
-          <p className="mt-3 px-1 text-[11px] leading-snug text-muted-foreground">
-            No encontramos coincidencias — prueba con otra palabra.
-          </p>
-        ) : (
-          <nav
-            aria-label="Categorías de personalización"
-            className="-mx-1 mt-3 flex gap-1 overflow-x-auto px-1 pb-0.5 [scrollbar-width:thin]"
-          >
-            {filteredSections.map((section) => {
-              const Icon = section.icon;
-              const isActive = section.key === activeKey;
-              return (
-                <button
-                  key={section.key}
-                  type="button"
-                  onClick={() => setActiveKey(section.key)}
-                  aria-current={isActive}
-                  className={cn(
-                    "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
-                    isActive
-                      ? "bg-primary/10 text-primary"
-                      : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  <Icon className="h-3 w-3 shrink-0" />
-                  {section.label}
-                </button>
-              );
-            })}
-          </nav>
+        <nav
+          aria-label="Categorías de personalización"
+          className="-mx-1 mt-3 flex gap-1 overflow-x-auto px-1 pb-0.5 [scrollbar-width:thin]"
+        >
+          {SECTIONS.map((section) => {
+            const Icon = section.icon;
+            const isActive = section.key === activeKey;
+            return (
+              <button
+                key={section.key}
+                type="button"
+                onClick={() => setActiveKey(section.key)}
+                aria-current={isActive}
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <Icon className="h-3 w-3 shrink-0" />
+                {section.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Resultados de búsqueda — solo aparecen mientras hay texto en el buscador */}
+        {query.trim() && (
+          <div className="mt-2" role="region" aria-label="Resultados de búsqueda">
+            {searchResults.length === 0 ? (
+              <p className="px-1 py-2 text-[11px] leading-snug text-muted-foreground">
+                No encontré esa opción en Personalizar.
+              </p>
+            ) : (
+              <ul className="max-h-40 space-y-1 overflow-y-auto rounded-xl border bg-muted/20 p-1.5">
+                {searchResults.map((result, index) => {
+                  const section = SECTIONS.find((s) => s.key === result.key) ?? SECTIONS[0];
+                  const Icon = section.icon;
+                  return (
+                    <li key={`${result.key}-${index}`}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveKey(result.key);
+                          setQuery("");
+                        }}
+                        className="flex w-full items-start gap-2 rounded-lg px-2.5 py-1.5 text-left transition-colors hover:bg-background"
+                      >
+                        <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <Icon className="h-3 w-3" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-xs font-medium">{result.title}</span>
+                          <span className="block truncate text-[10px] leading-snug text-muted-foreground">{result.description}</span>
+                        </span>
+                        <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                          {section.label}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
         )}
       </div>
 

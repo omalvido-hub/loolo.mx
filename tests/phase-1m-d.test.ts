@@ -104,6 +104,49 @@ describe("1M-D — PersonalizationPanel: exactamente 5 secciones visibles", () =
       "Motor futuro",
       "Sin guardar todavía",
       "Solo admin",
+      "Guardar es parte del motor",
+    ]) {
+      expect(panelContent).not.toContain(phrase);
+    }
+  });
+});
+
+describe("1M-D.1 — buscador real de Personalizar", () => {
+  it("declara PERSONALIZATION_SEARCH_INDEX", () => {
+    expect(panelContent).toContain("PERSONALIZATION_SEARCH_INDEX");
+  });
+
+  it("incluye términos de marca, fondos, módulos y apariencia", () => {
+    for (const term of [
+      "logo", "marca", "nombre", "lema", "símbolo", "tamaño",
+      "apariencia", "preset", "acento", "densidad", "sombra", "radio", "tarjeta",
+      "fondo", "imagen", "blur", "intensidad", "degradado", "glass", "clínico",
+      "módulos", "iconos", "emojis", "widgets", "kpi", "color", "forma", "ocultar", "mostrar", "reset",
+    ]) {
+      expect(panelContent.toLowerCase()).toContain(term.toLowerCase());
+    }
+  });
+
+  it("el input de búsqueda existe con placeholder de búsqueda", () => {
+    expect(panelContent).toMatch(/placeholder="Busca una categoría/);
+  });
+
+  it("calcula resultados de búsqueda y los hace clickeables hacia setActiveKey", () => {
+    expect(panelContent).toContain("searchResults");
+    expect(panelContent).toMatch(/onClick=\{\(\)\s*=>\s*\{\s*setActiveKey\(result\.key\);/);
+  });
+
+  it('muestra "No encontré esa opción en Personalizar." cuando no hay resultados', () => {
+    expect(panelContent).toContain("No encontré esa opción en Personalizar.");
+  });
+
+  it("no reintroduce textos bloqueados en el buscador", () => {
+    for (const phrase of [
+      "Próximamente",
+      "Requiere motor",
+      "todavía no se guardan",
+      "todavía no existe",
+      "Guardar es parte del motor",
     ]) {
       expect(panelContent).not.toContain(phrase);
     }
