@@ -24,6 +24,12 @@ export interface KpiWidgetProps {
   /** Detalle adicional corto (p. ej. un link o variación), opcional. */
   trend?: React.ReactNode;
   className?: string;
+  /**
+   * Si es `false`, `icon` se renderiza tal cual, sin el contenedor con tono
+   * (size-8/rounded-lg/color). Úsalo cuando `icon` ya es autocontenido, p. ej.
+   * `ModuleIcon` (FASE 1M-C). Por defecto `true`.
+   */
+  iconWrapped?: boolean;
 }
 
 /**
@@ -32,7 +38,7 @@ export interface KpiWidgetProps {
  * `kpi-widget` y las reglas aditivas en globals.css. Solo representa datos
  * que recibe por props; no calcula ni inventa cifras.
  */
-export function KpiWidget({ label, value, description, icon, tone = "default", trend, className }: KpiWidgetProps) {
+export function KpiWidget({ label, value, description, icon, tone = "default", trend, className, iconWrapped = true }: KpiWidgetProps) {
   const t = TONE_CLASS[tone];
   return (
     <div className={cn("kpi-widget relative overflow-hidden rounded-xl border bg-surface-elevated shadow-soft ring-1 ring-foreground/5 p-3", className)}>
@@ -43,11 +49,12 @@ export function KpiWidget({ label, value, description, icon, tone = "default", t
           <p className="mt-1 text-2xl font-semibold tracking-tight truncate">{value}</p>
           {description && <p className="mt-0.5 text-xs text-muted-foreground truncate">{description}</p>}
         </div>
-        {icon && (
+        {icon && iconWrapped && (
           <span className={cn("flex shrink-0 items-center justify-center size-8 rounded-lg", t.icon)}>
             {icon}
           </span>
         )}
+        {icon && !iconWrapped && icon}
       </div>
       {trend && <div className="mt-2 text-xs">{trend}</div>}
     </div>

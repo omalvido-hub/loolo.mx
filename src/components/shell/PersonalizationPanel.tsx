@@ -38,6 +38,7 @@ import {
 } from "@/components/shell/PersonalizationPreviewToggle";
 import { VisualPresetSelector } from "@/components/shell/VisualPresetSelector";
 import { PersonalizationPreviewCanvas } from "@/components/shell/PersonalizationPreviewCanvas";
+import { ModuleIdentityCustomizer } from "@/components/shell/ModuleIdentityCustomizer";
 import { useVisualPreferences } from "@/lib/visual-preferences";
 
 type StudioOptionStatus = "preview" | "soon" | "engine" | "admin";
@@ -694,6 +695,12 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
               >
                 Abrir biblioteca
               </button>
+            </div>
+          )}
+
+          {active.key === "modulos" && (
+            <div className="mt-5 rounded-2xl border bg-muted/20 p-4">
+              <ModuleIdentityCustomizer />
             </div>
           )}
 

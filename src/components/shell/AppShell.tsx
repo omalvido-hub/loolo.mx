@@ -14,6 +14,7 @@ import { ModuleCatalog } from "@/components/shell/ModuleCatalog";
 import { PersonalizationPanel } from "@/components/shell/PersonalizationPanel";
 import { hasPermission } from "@/lib/permissions";
 import { VisualPreferencesProvider } from "@/lib/visual-preferences";
+import { ModuleIdentityProvider } from "@/lib/module-identity";
 import type { PersonalizationMode } from "@/components/shell/PersonalizationPreviewToggle";
 
 interface AppShellProps {
@@ -37,6 +38,7 @@ export function AppShell({ roleKey, orgName, userName, userEmail, roleName, chil
 
   return (
     <VisualPreferencesProvider>
+    <ModuleIdentityProvider>
       <div className="flex min-h-screen bg-background">
         <AppSidebar
           roleKey={roleKey}
@@ -83,6 +85,7 @@ export function AppShell({ roleKey, orgName, userName, userEmail, roleName, chil
 
         {catalogOpen && <ModuleCatalog onClose={() => setCatalogOpen(false)} />}
       </div>
+    </ModuleIdentityProvider>
     </VisualPreferencesProvider>
   );
 }

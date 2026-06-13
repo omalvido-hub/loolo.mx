@@ -1,3 +1,5 @@
+"use client";
+
 // KPI rail del dashboard — Dashboard Final v2 (8 tarjetas en 2 bloques).
 // Cada bloque combina 2 tarjetas verticales (portrait) + 2 horizontales
 // compactas. "Citas de hoy" usa datos reales de Agenda. El resto muestra
@@ -7,6 +9,10 @@
 // FASE 1M-A: las tarjetas se renderizan con KPIWidget (componente reutilizable
 // de la capa "Personalizar"), reaccionando a data-visual-* sin cambiar los
 // datos ni la fuente de cada KPI.
+//
+// FASE 1M-C: el icono de cada tarjeta viene de ModuleIcon (identidad visual
+// elegida en Personalizar > Módulos); si esa identidad marca el widget como
+// oculto, la tarjeta no se renderiza. Datos y lógica sin cambios.
 
 import Link from "next/link";
 import {
@@ -18,9 +24,12 @@ import {
   TrendingUp,
   Scale,
   Target,
+  type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { KpiWidget, type KpiWidgetTone } from "@/components/ui/kpi-widget";
+import { ModuleIcon } from "@/components/ui/module-icon";
+import { useModuleIdentities } from "@/lib/module-identity";
 import type { AppointmentListItem } from "@/server/domain/agenda/queries";
 
 const APPT_STATUS_ES: Record<string, string> = {
@@ -50,7 +59,7 @@ const STATUS_TONE: Record<KpiStatus, KpiWidgetTone> = {
 
 interface CardProps {
   cardId: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   label: string;
   value: string;
   status: KpiStatus;
@@ -73,11 +82,15 @@ function StatusTrend({ status, footer, href }: Pick<CardProps, "status" | "foote
 
 // Tarjeta vertical tipo portrait — para los 2 KPIs principales de cada bloque.
 export function VerticalKpiCard({ cardId, icon: Icon, label, value, status, footer, href }: CardProps) {
+  const { getIdentity } = useModuleIdentities();
+  if (getIdentity(cardId).hidden) return null;
+
   const widget = (
     <KpiWidget
       label={label}
       value={value}
-      icon={<Icon className="h-4 w-4" />}
+      icon={<ModuleIcon id={cardId} fallbackIcon={Icon} />}
+      iconWrapped={false}
       tone={STATUS_TONE[status]}
       trend={<StatusTrend status={status} footer={footer} href={href} />}
       className={cn("flex h-[220px] sm:h-[290px] flex-col justify-between", !href && "opacity-90")}
@@ -97,11 +110,15 @@ export function VerticalKpiCard({ cardId, icon: Icon, label, value, status, foot
 
 // Tarjeta horizontal compacta — para los 2 KPIs secundarios de cada bloque.
 export function HorizontalKpiCard({ cardId, icon: Icon, label, value, status, footer, href }: CardProps) {
+  const { getIdentity } = useModuleIdentities();
+  if (getIdentity(cardId).hidden) return null;
+
   const widget = (
     <KpiWidget
       label={label}
       value={value}
-      icon={<Icon className="h-4 w-4" />}
+      icon={<ModuleIcon id={cardId} fallbackIcon={Icon} />}
+      iconWrapped={false}
       tone={STATUS_TONE[status]}
       trend={<StatusTrend status={status} footer={footer} href={href} />}
       className={cn("flex h-[118px] sm:h-[132px] flex-col justify-between", !href && "opacity-90")}
