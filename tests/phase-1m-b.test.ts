@@ -129,8 +129,7 @@ describe("1M-B — PersonalizationPanel reorganizado: Estilo visual / Vista prev
     expect(panelContent).toContain("<PersonalizationPreviewCanvas");
   });
 
-  it("incluye un bloque de Dashboard (widgets) y un bloque de Acciones con reset", () => {
-    expect(panelContent).toContain("<DashboardWidgetsPreview");
+  it("incluye un bloque de Acciones con reset (los widgets del Dashboard se personalizan en Módulos, FASE 1M-C/D)", () => {
     expect(panelContent).toContain("<PersonalizationActions");
     expect(panelContent).toContain("resetVisualPreferences");
     expect(panelContent).toContain("Resetear diseño");
@@ -138,10 +137,6 @@ describe("1M-B — PersonalizationPanel reorganizado: Estilo visual / Vista prev
 
   it('comunica que el guardado es automático en este navegador', () => {
     expect(panelContent.toLowerCase()).toContain("guardado en este navegador");
-  });
-
-  it("la vista previa de widgets no promete backend (texto honesto)", () => {
-    expect(panelContent).toContain("motor de");
   });
 });
 

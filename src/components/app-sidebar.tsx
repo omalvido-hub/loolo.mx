@@ -18,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { hasPermission } from "@/lib/permissions";
+import { useVisualPreferences } from "@/lib/visual-preferences";
 
 interface NavItem {
   label: string;
@@ -57,6 +58,8 @@ interface AppSidebarProps {
 
 export function AppSidebar({ roleKey, orgName, collapsed, onToggleCollapse, onOpenPersonalization }: AppSidebarProps) {
   const pathname = usePathname();
+  const { preferences } = useVisualPreferences();
+  const { brandTagline, brandTextStyle } = preferences;
 
   const visibleItems = NAV_ITEMS.filter((item) => hasPermission(roleKey, item.permission));
   const showSettings = hasPermission(roleKey, SETTINGS_ITEM.permission);
@@ -74,9 +77,21 @@ export function AppSidebar({ roleKey, orgName, collapsed, onToggleCollapse, onOp
   return (
     <aside className="flex flex-col min-h-screen w-64 shrink-0 border-r bg-sidebar transition-[width] duration-200 ease-out">
       <div className="flex items-center justify-between gap-2 border-b px-4 py-5">
-        <div className="min-w-0">
-          <BrandLogo size="compact" className="text-sidebar-foreground" />
+        <div className="brand-block min-w-0">
+          <span className="brand-symbol inline-block">
+            <BrandLogo size="compact" className="text-sidebar-foreground" />
+          </span>
           <p className="text-xs text-muted-foreground mt-0.5 truncate">{orgName}</p>
+          {brandTextStyle !== "hide" && (
+            <p
+              className={cn(
+                "mt-0.5 truncate text-[10px] leading-snug text-muted-foreground/70",
+                brandTextStyle === "lowercase" ? "lowercase" : "capitalize"
+              )}
+            >
+              {brandTagline}
+            </p>
+          )}
         </div>
         <button
           type="button"

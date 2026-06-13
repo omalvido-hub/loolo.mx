@@ -1,14 +1,10 @@
 "use client";
 
-// Design Studio de nelzzon — vista previa del Centro de Control Visual descrito en
-// docs/NELZZON_PERSONALIZAR_MASTER.md y docs/NELZZON_PERSONALIZAR_WIREFRAME.md.
-// Se abre desde el botón "Personalizar" de la topbar o desde la entrada del
-// sidebar — ambos controlan el mismo estado en AppShell. Es enteramente local y
-// presentacional: navega categorías, declara con honestidad qué es vista previa
-// real (dentro de este panel), qué es próximamente, qué requiere el motor de
-// personalización futuro y qué será exclusivo de owner/admin. Nada se guarda ni
-// se aplica a la app real — eso es trabajo de las fases 0C en adelante descritas
-// en el documento maestro.
+// Personalizar nelzzon (FASE 1M-A a 1M-D) — panel 100% local, sin servidor.
+// Cada cambio se aplica de inmediato (vista previa + Dashboard real vía
+// data-visual-* en <html>) y se guarda en localStorage. Cinco categorías:
+// Inicio, Marca, Apariencia, Fondos e imágenes y Módulos — todas con
+// controles reales, ninguna "próximamente".
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -18,18 +14,8 @@ import {
   Award,
   Palette,
   Image as ImageIcon,
-  Type,
-  LayoutDashboard,
-  LayoutGrid,
-  Compass,
   Blocks,
-  Globe,
-  FileStack,
-  Accessibility,
-  Settings2,
   Sparkles,
-  Lock,
-  Wand2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -39,39 +25,15 @@ import {
 import { VisualPresetSelector } from "@/components/shell/VisualPresetSelector";
 import { PersonalizationPreviewCanvas } from "@/components/shell/PersonalizationPreviewCanvas";
 import { ModuleIdentityCustomizer } from "@/components/shell/ModuleIdentityCustomizer";
+import { BackgroundCustomizer } from "@/components/shell/BackgroundCustomizer";
+import { BrandCustomizer } from "@/components/shell/BrandCustomizer";
 import { useVisualPreferences } from "@/lib/visual-preferences";
-
-type StudioOptionStatus = "preview" | "soon" | "engine" | "admin";
-
-const STATUS_META: Record<StudioOptionStatus, { label: string; className: string }> = {
-  preview: { label: "Vista previa aquí", className: "bg-emerald-500/10 text-emerald-700" },
-  soon: { label: "Próximamente", className: "bg-muted text-muted-foreground" },
-  engine: { label: "Requiere motor", className: "bg-violet-500/10 text-violet-700" },
-  admin: { label: "Solo admin", className: "bg-amber-500/10 text-amber-700" },
-};
-
-function StatusBadge({ status }: { status: StudioOptionStatus }) {
-  const meta = STATUS_META[status];
-  return (
-    <span className={cn("inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium tracking-wide", meta.className)}>
-      {status === "admin" && <Lock className="h-2.5 w-2.5" />}
-      {meta.label}
-    </span>
-  );
-}
-
-interface StudioOption {
-  label: string;
-  hint: string;
-  status: StudioOptionStatus;
-}
 
 interface StudioSection {
   key: string;
   label: string;
   icon: React.ElementType;
   tagline: string;
-  options: StudioOption[];
 }
 
 const SECTIONS: StudioSection[] = [
@@ -79,325 +41,73 @@ const SECTIONS: StudioSection[] = [
     key: "inicio",
     label: "Inicio",
     icon: Home,
-    tagline: "La portada de tu Design Studio — un vistazo a cómo se ve y se siente tu nelzzon hoy.",
-    options: [
-      { label: "Resumen visual de tu espacio", hint: "Una tarjeta con el estilo y la marca activos.", status: "soon" },
-      { label: "Atajos a lo más usado", hint: "Salta directo a Apariencia, Marca o Dashboard.", status: "soon" },
-      { label: "Comparar antes / después", hint: "Revisa tu última sesión de cambios.", status: "engine" },
-    ],
+    tagline: "La portada de Personalizar — un vistazo a cómo se ve y se siente tu nelzzon hoy.",
   },
   {
     key: "marca",
     label: "Marca",
     icon: Award,
-    tagline: "Logo, nombre, colores y firma visual — el punto de entrada para que nelzzon hable como tu negocio.",
-    options: [
-      { label: "Logo e isotipo", hint: "Sube tu marca y velo aplicada en topbar y portal.", status: "soon" },
-      { label: "Nombre visible", hint: "Cómo te ven tu equipo y tus pacientes.", status: "admin" },
-      { label: "Paleta corporativa", hint: "Tus colores, aplicados en toda la experiencia.", status: "engine" },
-      { label: "Firma visual", hint: "Una frase corta que te representa.", status: "soon" },
-    ],
+    tagline: "Nombre visible, lema y estilo de tu marca dentro de nelzzon — local, en este navegador.",
   },
   {
     key: "apariencia",
     label: "Apariencia",
     icon: Palette,
     tagline: "Tema, estilos curados e intensidad visual — pruébalos aquí mismo, en vivo.",
-    options: [
-      { label: "Tema claro / oscuro / automático", hint: "Cómo se siente tu espacio según la hora del día.", status: "preview" },
-      { label: "Estilos curados", hint: "Minimal clínico, Premium cards, KPI dashboard, Glass soft, Ejecutivo, Visual intenso — con efecto real en el Dashboard.", status: "preview" },
-      { label: "Intensidad visual", hint: "De sobrio a expresivo, a tu medida.", status: "engine" },
-    ],
   },
   {
     key: "fondos",
     label: "Fondos e imágenes",
     icon: ImageIcon,
-    tagline: "Fondos, gradientes e imágenes propias — siempre cuidando que todo se siga leyendo bien.",
-    options: [
-      { label: "Galería de fondos y gradientes", hint: "Curados para mantener la legibilidad.", status: "soon" },
-      { label: "Imagen propia", hint: "Tu fondo, tu estilo — con validación automática de contraste.", status: "soon" },
-      { label: "Opacidad y blur", hint: "Ajusta la intensidad sin perder claridad.", status: "engine" },
-    ],
-  },
-  {
-    key: "tipografias",
-    label: "Tipografías",
-    icon: Type,
-    tagline: "La voz visual de tu nelzzon — familia, escala y personalidad tipográfica.",
-    options: [
-      { label: "Familia tipográfica", hint: "Un set curado, pensado para legibilidad clínica y financiera.", status: "soon" },
-      { label: "Tamaño y escala", hint: "Cómo respiran tus títulos, cifras y textos.", status: "engine" },
-      { label: "Personalidad", hint: "Corporativa, creativa o clínica.", status: "soon" },
-    ],
-  },
-  {
-    key: "dashboard",
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    tagline: "Tu panorama de cada día — qué ves primero y cómo se acomoda.",
-    options: [
-      { label: "Mostrar / ocultar widgets", hint: "Quédate solo con lo que usas.", status: "engine" },
-      { label: "Layouts predefinidos", hint: "1, 2 o 3 columnas — listo para tu forma de trabajar.", status: "soon" },
-      { label: "Vistas por rol", hint: "Una vista para recepción, otra para el doctor, otra para ti.", status: "admin" },
-    ],
-  },
-  {
-    key: "widgets",
-    label: "Widgets",
-    icon: LayoutGrid,
-    tagline: "Cada tarjeta de tu panorama, a tu manera — color, ícono, tamaño y orden.",
-    options: [
-      { label: "Reordenar y renombrar", hint: "Acomoda tus widgets como tú los piensas.", status: "soon" },
-      { label: "Color e ícono propio", hint: "Encuéntralos de un vistazo.", status: "engine" },
-      { label: "Widgets exclusivos de admin", hint: "Información sensible, solo para quien debe verla.", status: "admin" },
-    ],
-  },
-  {
-    key: "navegacion",
-    label: "Navegación",
-    icon: Compass,
-    tagline: "Sidebar, topbar y dock — cómo te mueves por tu nelzzon todos los días.",
-    options: [
-      { label: "Accesos del dock", hint: "Elige qué módulos viven en tu acceso rápido.", status: "preview" },
-      { label: "Orden de sidebar y topbar", hint: "Tu menú, en el orden que tiene sentido para ti.", status: "engine" },
-      { label: "Buscador y favoritos", hint: "Encuentra lo tuyo más rápido.", status: "soon" },
-    ],
+    tagline: "Estilo, intensidad, blur e imagen propia para el fondo de tu Dashboard.",
   },
   {
     key: "modulos",
     label: "Módulos",
     icon: Blocks,
-    tagline: "Tu biblioteca de módulos — actívalos, agrúpalos y dales tu propio estilo.",
-    options: [
-      { label: "Biblioteca de módulos", hint: "Explora, abre o pruébalos en tu dock.", status: "preview" },
-      { label: "Agrupar y renombrar", hint: "Organízalos como organizas tu clínica.", status: "soon" },
-      { label: "Recomendados por IA", hint: "Sugerencias según cómo trabajas.", status: "soon" },
-    ],
-  },
-  {
-    key: "portal",
-    label: "Portal del paciente",
-    icon: Globe,
-    tagline: "La cara de tu negocio ante quienes más importan: tus pacientes y clientes.",
-    options: [
-      { label: "Branding del portal", hint: "Tu logo, tus colores, tu tono — donde tus pacientes te ven.", status: "admin" },
-      { label: "Tono de voz", hint: "Formal, cercano, clínico o premium.", status: "soon" },
-      { label: "Visibilidad de información", hint: "Qué ven tus pacientes — citas, pagos, avances.", status: "engine" },
-    ],
-  },
-  {
-    key: "plantillas",
-    label: "Plantillas",
-    icon: FileStack,
-    tagline: "Empieza por algo que ya se ve increíble y hazlo tuyo — listas por profesión.",
-    options: [
-      { label: "Plantillas por profesión", hint: "Dental, estética, despacho legal, taller, y más.", status: "soon" },
-      { label: "Guardar y duplicar", hint: "Crea tus propias variantes.", status: "engine" },
-      { label: "Exportar / importar", hint: "Lleva tu estilo entre sucursales.", status: "admin" },
-    ],
-  },
-  {
-    key: "accesibilidad",
-    label: "Accesibilidad",
-    icon: Accessibility,
-    tagline: "Que tu nelzzon se sienta cómodo para todos, todos los días — pruébalo aquí mismo.",
-    options: [
-      { label: "Tamaño de letra", hint: "Cómodo para leer, también de cerca o de lejos.", status: "preview" },
-      { label: "Alto contraste", hint: "Más claridad cuando la luz no ayuda.", status: "preview" },
-      { label: "Reducir movimiento", hint: "Una experiencia más calmada, sin animaciones de más.", status: "preview" },
-    ],
-  },
-  {
-    key: "avanzado",
-    label: "Avanzado",
-    icon: Settings2,
-    tagline: "Reglas finas para organizaciones que quieren ir más profundo — pensado para owner y admin.",
-    options: [
-      { label: "Reglas por rol y sucursal", hint: "Quién ve qué, y dónde.", status: "admin" },
-      { label: "Historial de versiones", hint: "Vuelve atrás cuando lo necesites.", status: "engine" },
-      { label: "Exportar configuración", hint: "Tu estilo, respaldado y portable.", status: "engine" },
-    ],
-  },
-  {
-    key: "ia",
-    label: "IA de personalización",
-    icon: Wand2,
-    tagline: "Tu asistente de diseño — pídele que afine tu espacio y te sugiera mejoras.",
-    options: [
-      { label: "“Hazlo más premium”", hint: "Pide un ajuste y mira cómo se vería.", status: "soon" },
-      { label: "“Organiza mi dashboard”", hint: "Sugerencias según cómo trabajas tú.", status: "soon" },
-      { label: "“Recomiéndame widgets”", hint: "Lo que más te conviene, sin buscarlo.", status: "soon" },
-    ],
+    tagline: "Tu biblioteca de módulos — actívalos, dales tu propio estilo e identidad.",
   },
 ];
-
-type FontScale = "cómodo" | "grande" | "más grande";
-const FONT_SCALES: { key: FontScale; label: string; sizeClass: string }[] = [
-  { key: "cómodo", label: "Cómodo", sizeClass: "text-sm" },
-  { key: "grande", label: "Grande", sizeClass: "text-base" },
-  { key: "más grande", label: "Más grande", sizeClass: "text-lg" },
-];
-
-function AccessibilityPreview() {
-  const [scale, setScale] = useState<FontScale>("cómodo");
-  const [highContrast, setHighContrast] = useState(false);
-  const [reduceMotion, setReduceMotion] = useState(false);
-  const activeScale = FONT_SCALES.find((s) => s.key === scale) ?? FONT_SCALES[0];
-
-  return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[11px] font-medium text-muted-foreground">Tamaño de letra</span>
-        <div className="inline-flex items-center gap-1 rounded-full border bg-muted/40 p-1">
-          {FONT_SCALES.map((s) => (
-            <button
-              key={s.key}
-              type="button"
-              onClick={() => setScale(s.key)}
-              aria-pressed={scale === s.key}
-              className={cn(
-                "rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
-                scale === s.key ? "bg-background text-foreground shadow-sm ring-1 ring-foreground/10" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-4">
-        <label className="inline-flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
-          <input
-            type="checkbox"
-            checked={highContrast}
-            onChange={(e) => setHighContrast(e.target.checked)}
-            className="size-3.5 rounded border-foreground/20 accent-foreground"
-          />
-          Alto contraste
-        </label>
-        <label className="inline-flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
-          <input
-            type="checkbox"
-            checked={reduceMotion}
-            onChange={(e) => setReduceMotion(e.target.checked)}
-            className="size-3.5 rounded border-foreground/20 accent-foreground"
-          />
-          Reducir movimiento
-        </label>
-      </div>
-
-      <div
-        className={cn(
-          "rounded-xl border p-4 transition-colors",
-          highContrast ? "border-foreground bg-foreground text-background" : "bg-muted/30"
-        )}
-      >
-        <p className={cn("font-semibold tracking-tight transition-[font-size]", activeScale.sizeClass)}>
-          Así se vería un texto en tu nelzzon
-        </p>
-        <p className={cn("mt-1 leading-relaxed transition-[font-size]", activeScale.sizeClass === "text-lg" ? "text-base" : "text-xs", highContrast ? "text-background/80" : "text-muted-foreground")}>
-          Ajusta el tamaño y el contraste hasta que se sienta cómodo para ti — esta muestra
-          cambia en vivo, dentro de este panel.
-        </p>
-        <span
-          aria-hidden
-          className={cn(
-            "mt-3 inline-flex size-6 items-center justify-center rounded-full bg-primary/15 text-primary",
-            !reduceMotion && "animate-pulse"
-          )}
-        >
-          <Sparkles className="h-3 w-3" />
-        </span>
-        <span className="ml-2 align-middle text-[10px] text-muted-foreground">
-          {reduceMotion ? "Movimiento reducido" : "Movimiento normal"}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-const DASHBOARD_WIDGET_LABELS = [
-  "Citas de hoy",
-  "Cobrado este mes",
-  "Por cobrar",
-  "Presupuestos pendientes",
-  "Tratamientos activos",
-  "Ingresos del mes",
-  "Punto de equilibrio",
-  "Meta mensual",
-];
-
-function DashboardWidgetsPreview() {
-  const [visible, setVisible] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(DASHBOARD_WIDGET_LABELS.map((label) => [label, true]))
-  );
-
-  return (
-    <div className="space-y-2">
-      <p className="text-[11px] leading-snug text-muted-foreground">
-        Vista previa de los widgets de tu Dashboard. Mostrar/ocultar de verdad llega con el motor de
-        personalización — por ahora puedes explorar el control.
-      </p>
-      <ul className="space-y-1.5">
-        {DASHBOARD_WIDGET_LABELS.map((label) => (
-          <li key={label} className="flex items-center justify-between gap-3 rounded-xl border bg-background/60 px-3 py-2">
-            <span className="text-xs font-medium">{label}</span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={visible[label]}
-              onClick={() => setVisible((prev) => ({ ...prev, [label]: !prev[label] }))}
-              className={cn(
-                "relative h-5 w-9 shrink-0 rounded-full transition-colors",
-                visible[label] ? "bg-brand-accent" : "bg-muted"
-              )}
-            >
-              <span
-                className={cn(
-                  "absolute top-0.5 size-4 rounded-full bg-background shadow-sm transition-transform",
-                  visible[label] ? "translate-x-[1.125rem]" : "translate-x-0.5"
-                )}
-              />
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
 
 function PersonalizationActions() {
-  const { resetVisualPreferences } = useVisualPreferences();
+  const { resetVisualPreferences, resetAllPersonalization } = useVisualPreferences();
 
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl border bg-background/60 px-4 py-3">
       <p className="text-[11px] leading-snug text-muted-foreground">
         Guardado en este navegador — cada cambio se aplica y se guarda automáticamente.
       </p>
-      <button
-        type="button"
-        onClick={resetVisualPreferences}
-        className="inline-flex shrink-0 items-center rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors hover:bg-muted"
-      >
-        Resetear diseño
-      </button>
+      <div className="flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          onClick={resetVisualPreferences}
+          className="inline-flex items-center rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors hover:bg-muted"
+        >
+          Resetear diseño
+        </button>
+        <button
+          type="button"
+          onClick={resetAllPersonalization}
+          className="inline-flex items-center rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors hover:bg-muted"
+        >
+          Resetear todo
+        </button>
+      </div>
     </div>
   );
 }
 
 const HOME_QUICK_LINKS: { key: string; label: string; hint: string; icon: React.ElementType; accent: string }[] = [
-  { key: "apariencia", label: "Apariencia", hint: "Tema, estilos y modo de vista", icon: Palette, accent: "bg-violet-500/10 text-violet-600" },
-  { key: "fondos", label: "Fondos", hint: "Imágenes y gradientes propios", icon: ImageIcon, accent: "bg-sky-500/10 text-sky-600" },
-  { key: "dashboard", label: "Dashboard", hint: "Tu panorama, a tu manera", icon: LayoutDashboard, accent: "bg-emerald-500/10 text-emerald-600" },
-  { key: "portal", label: "Portal", hint: "La cara de tu negocio", icon: Globe, accent: "bg-amber-500/10 text-amber-600" },
+  { key: "marca", label: "Marca", hint: "Nombre, lema y estilo de tu marca", icon: Award, accent: "bg-violet-500/10 text-violet-600" },
+  { key: "apariencia", label: "Apariencia", hint: "Tema, estilos y modo de vista", icon: Palette, accent: "bg-sky-500/10 text-sky-600" },
+  { key: "fondos", label: "Fondos", hint: "Estilo, intensidad e imagen propia", icon: ImageIcon, accent: "bg-amber-500/10 text-amber-600" },
+  { key: "modulos", label: "Módulos", hint: "Tu biblioteca, a tu estilo", icon: Blocks, accent: "bg-emerald-500/10 text-emerald-600" },
 ];
 
-const HOME_STATUS_SUMMARY: { label: string; detail: string; status: StudioOptionStatus }[] = [
-  { label: "Vista previa local", detail: "Lo que pruebas aquí vive solo en este panel", status: "preview" },
-  { label: "Motor futuro", detail: "Guardar y aplicar de verdad llega después", status: "engine" },
-  { label: "Sin guardar todavía", detail: "Nada se escribe en tu organización", status: "soon" },
+const HOME_STATUS_SUMMARY: { label: string; detail: string }[] = [
+  { label: "Cambios en vivo", detail: "Lo que ajustas aquí se aplica de inmediato en tu Dashboard" },
+  { label: "Guardado local", detail: "Se guarda en este navegador, sin necesidad de servidor" },
+  { label: "Reversible", detail: "Cada sección tiene su botón de reset, y hay un reset general" },
 ];
 
 function StudioMiniPreview() {
@@ -449,11 +159,11 @@ function StudioHome({ onNavigate }: { onNavigate: (key: string) => void }) {
       <div>
         <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-medium tracking-wide text-primary">
           <Sparkles className="h-2.5 w-2.5" />
-          Tu Design Studio
+          Personalizar
         </span>
         <h3 className="mt-2 text-xl font-semibold tracking-tight">Tu nelzzon</h3>
         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-          Diseña cómo se ve, se siente y se organiza tu sistema.
+          Diseña cómo se ve y se siente tu sistema — todo se guarda en este navegador.
         </p>
       </div>
 
@@ -485,16 +195,13 @@ function StudioHome({ onNavigate }: { onNavigate: (key: string) => void }) {
       </div>
 
       <div>
-        <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Cómo va este adelanto</p>
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Cómo funciona</p>
         <div className="flex flex-wrap items-center gap-1.5">
           {HOME_STATUS_SUMMARY.map((item) => (
             <span
               key={item.label}
               title={item.detail}
-              className={cn(
-                "inline-flex cursor-default items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium tracking-wide",
-                STATUS_META[item.status].className
-              )}
+              className="inline-flex cursor-default items-center gap-1 rounded-full bg-muted text-muted-foreground px-2 py-0.5 text-[10px] font-medium tracking-wide"
             >
               {item.label}
             </span>
@@ -536,9 +243,7 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
   const filteredSections = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return SECTIONS;
-    return SECTIONS.filter(
-      (s) => s.label.toLowerCase().includes(q) || s.options.some((o) => o.label.toLowerCase().includes(q))
-    );
+    return SECTIONS.filter((s) => s.label.toLowerCase().includes(q));
   }, [query]);
 
   const active = SECTIONS.find((s) => s.key === activeKey) ?? SECTIONS[0];
@@ -565,10 +270,6 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-base font-semibold tracking-tight">Personalizar nelzzon</h2>
-              <span className="inline-flex items-center gap-1 rounded-full bg-muted/70 px-2 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground">
-                <Sparkles className="h-2.5 w-2.5" />
-                Vista previa
-              </span>
             </div>
             <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
               Haz que el sistema se sienta tuyo.
@@ -647,7 +348,12 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
             </div>
           </div>
 
-          {/* Sección con vista previa real embebida */}
+          {active.key === "marca" && (
+            <div className="mt-5 rounded-2xl border bg-muted/20 p-4">
+              <BrandCustomizer />
+            </div>
+          )}
+
           {active.key === "apariencia" && (
             <div className="mt-5 space-y-5 rounded-2xl border bg-muted/20 p-4">
               <div>
@@ -663,19 +369,15 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
                 <PersonalizationPreviewCanvas />
               </div>
               <div>
-                <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">3. Dashboard</p>
-                <DashboardWidgetsPreview />
-              </div>
-              <div>
-                <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">4. Acciones</p>
+                <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">3. Acciones</p>
                 <PersonalizationActions />
               </div>
             </div>
           )}
 
-          {active.key === "accesibilidad" && (
+          {active.key === "fondos" && (
             <div className="mt-5 rounded-2xl border bg-muted/20 p-4">
-              <AccessibilityPreview />
+              <BackgroundCustomizer />
             </div>
           )}
 
@@ -703,22 +405,6 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
               <ModuleIdentityCustomizer />
             </div>
           )}
-
-          {/* Opciones representativas de la categoría */}
-          <ul className="mt-5 space-y-2">
-            {active.options.map((option) => (
-              <li
-                key={option.label}
-                className="flex items-start justify-between gap-3 rounded-xl border bg-background/60 px-4 py-3"
-              >
-                <div className="min-w-0">
-                  <p className="text-xs font-medium">{option.label}</p>
-                  <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{option.hint}</p>
-                </div>
-                <StatusBadge status={option.status} />
-              </li>
-            ))}
-          </ul>
             </>
           )}
         </div>
@@ -726,12 +412,8 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
 
       {/* Footer — estado informativo, no es un botón */}
       <div className="shrink-0 border-t bg-muted/20 px-5 py-3">
-        <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] leading-snug text-muted-foreground">
-          <span className="font-medium text-foreground/80">Los cambios todavía no se guardan.</span>
-          <span className="inline-flex items-center gap-1 text-muted-foreground/70">
-            <Lock className="h-2.5 w-2.5" />
-            Guardar es parte del motor de personalización — todavía no existe.
-          </span>
+        <p className="text-[11px] leading-snug text-muted-foreground">
+          Los cambios se guardan localmente en este navegador.
         </p>
       </div>
     </div>

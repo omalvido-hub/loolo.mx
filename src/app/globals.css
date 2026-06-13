@@ -319,3 +319,114 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+
+/* ============================================================
+   Personalizar Studio (FASE 1M-D) — Fondos e imágenes
+   .dashboard-shell / .personalization-preview-shell son los únicos
+   contenedores donde se aplica el fondo personalizado — nunca <body>,
+   para no arriesgar la legibilidad del resto de la app.
+   ============================================================ */
+
+:root {
+  --bg-overlay-opacity: 0.35;
+  --bg-blur-px: 0px;
+}
+
+[data-visual-background-intensity="low"] { --bg-overlay-opacity: 0.18; }
+[data-visual-background-intensity="medium"] { --bg-overlay-opacity: 0.35; }
+[data-visual-background-intensity="high"] { --bg-overlay-opacity: 0.6; }
+
+[data-visual-background-blur="none"] { --bg-blur-px: 0px; }
+[data-visual-background-blur="soft"] { --bg-blur-px: 4px; }
+[data-visual-background-blur="medium"] { --bg-blur-px: 10px; }
+[data-visual-background-blur="high"] { --bg-blur-px: 20px; }
+
+.dashboard-shell,
+.personalization-preview-shell {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Limpio: sin overlay, solo la imagen propia (si hay) sobre el fondo base */
+[data-visual-background="clean"] .dashboard-shell,
+[data-visual-background="clean"] .personalization-preview-shell {
+  background-image: var(--visual-bg-image, none);
+}
+
+/* Degradado suave: tinte de acento descendente */
+[data-visual-background="gradient"] .dashboard-shell,
+[data-visual-background="gradient"] .personalization-preview-shell {
+  background-image:
+    linear-gradient(180deg,
+      color-mix(in oklch, var(--brand-accent-soft) calc(var(--bg-overlay-opacity) * 100%), transparent) 0%,
+      transparent 70%),
+    var(--visual-bg-image, none);
+}
+
+/* Glass: superficie translúcida + blur real sobre la imagen/fondo */
+[data-visual-background="glass"] .dashboard-shell,
+[data-visual-background="glass"] .personalization-preview-shell {
+  background-image:
+    linear-gradient(180deg,
+      color-mix(in oklch, var(--surface-elevated) calc(var(--bg-overlay-opacity) * 100%), transparent) 0%,
+      color-mix(in oklch, var(--surface-elevated) calc(var(--bg-overlay-opacity) * 60%), transparent) 100%),
+    var(--visual-bg-image, none);
+  backdrop-filter: blur(var(--bg-blur-px));
+}
+
+/* Ejecutivo: tinte slate sobrio */
+[data-visual-background="executive"] .dashboard-shell,
+[data-visual-background="executive"] .personalization-preview-shell {
+  background-image:
+    linear-gradient(180deg,
+      color-mix(in oklch, slategray calc(var(--bg-overlay-opacity) * 60%), transparent) 0%,
+      transparent 75%),
+    var(--visual-bg-image, none);
+}
+
+/* Intenso: acento vivo con más presencia */
+[data-visual-background="intense"] .dashboard-shell,
+[data-visual-background="intense"] .personalization-preview-shell {
+  background-image:
+    linear-gradient(160deg,
+      color-mix(in oklch, var(--brand-accent) calc(var(--bg-overlay-opacity) * 100%), transparent) 0%,
+      color-mix(in oklch, var(--brand-accent-soft) calc(var(--bg-overlay-opacity) * 70%), transparent) 50%,
+      transparent 100%),
+    var(--visual-bg-image, none);
+}
+
+/* Clínico: blanco/superficie muy limpio, casi clínico */
+[data-visual-background="clinical"] .dashboard-shell,
+[data-visual-background="clinical"] .personalization-preview-shell {
+  background-image:
+    linear-gradient(180deg,
+      color-mix(in oklch, var(--surface-elevated) calc(var(--bg-overlay-opacity) * 100%), transparent) 0%,
+      transparent 80%),
+    var(--visual-bg-image, none);
+}
+
+/* ============================================================
+   Personalizar Studio (FASE 1M-D) — Marca
+   .brand-block / .brand-symbol viven en AppSidebar y en
+   PersonalizationPreviewCanvas — efectos puramente visuales.
+   ============================================================ */
+
+[data-visual-brand-size="compact"] .brand-block {
+  transform: scale(0.85);
+  transform-origin: left center;
+}
+[data-visual-brand-size="large"] .brand-block {
+  transform: scale(1.15);
+  transform-origin: left center;
+}
+
+[data-visual-brand-symbol="soft"] .brand-symbol {
+  opacity: 0.7;
+}
+[data-visual-brand-symbol="intense"] .brand-symbol {
+  filter: saturate(1.4) brightness(1.05);
+}
+[data-visual-brand-symbol="monochrome"] .brand-symbol {
+  filter: grayscale(1);
+}
