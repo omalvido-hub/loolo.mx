@@ -45,6 +45,16 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
+
+    /* Fundación visual premium (1L-B): tokens aditivos — no reemplazan la
+       paleta acromática existente, solo agregan acento, superficie elevada y
+       sombras reutilizables para StatCard/SectionCard. */
+    --color-brand-accent: var(--brand-accent);
+    --color-brand-accent-soft: var(--brand-accent-soft);
+    --color-brand-accent-foreground: var(--brand-accent-foreground);
+    --color-surface-elevated: var(--surface-elevated);
+    --shadow-soft: var(--shadow-soft-value);
+    --shadow-elevated: var(--shadow-elevated-value);
 }
 
 :root {
@@ -80,6 +90,16 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
+
+    /* Acento de marca "clínico premium": azul-teal sutil, distinto de
+       verde/rojo/ámbar (éxito/error/advertencia) para no chocar con esos
+       significados semánticos. */
+    --brand-accent: oklch(0.58 0.10 232);
+    --brand-accent-soft: oklch(0.95 0.025 232);
+    --brand-accent-foreground: oklch(0.985 0 0);
+    --surface-elevated: oklch(1 0 0);
+    --shadow-soft-value: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 1px 0 rgb(0 0 0 / 0.03);
+    --shadow-elevated-value: 0 12px 28px -16px rgb(0 0 0 / 0.18), 0 2px 8px -2px rgb(0 0 0 / 0.06);
 }
 
 .dark {
@@ -114,6 +134,15 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
+
+    /* Acento de marca y superficie elevada (1L-B), variante oscura: mismo
+       matiz que :root, ajustado de luminosidad/contraste para fondo oscuro. */
+    --brand-accent: oklch(0.7 0.10 232);
+    --brand-accent-soft: oklch(0.32 0.035 232);
+    --brand-accent-foreground: oklch(0.145 0 0);
+    --surface-elevated: oklch(0.23 0 0);
+    --shadow-soft-value: 0 1px 2px 0 rgb(0 0 0 / 0.4), 0 1px 1px 0 rgb(0 0 0 / 0.3);
+    --shadow-elevated-value: 0 12px 28px -16px rgb(0 0 0 / 0.6), 0 2px 8px -2px rgb(0 0 0 / 0.4);
 }
 
 @layer base {

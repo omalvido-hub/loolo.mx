@@ -48,7 +48,7 @@ describe("1I-D-2 — Rediseño visual completo (prueba del niño)", () => {
     expect(viewContent).toContain('label="Saldo"');
     expect(viewContent).toContain('label="Hallazgos"');
     expect(viewContent).toContain("activeEncounter");
-    expect(viewContent).toContain("<MiniStat");
+    expect(viewContent).toContain("<StatCard");
 
     // El bloque de identidad y el de mini-métricas viven en la misma tarjeta superior.
     const cabeceraIdx = viewContent.indexOf("Bloque superior único");

@@ -22,6 +22,9 @@ const fvoContent = readFileSync(fvoPath, "utf-8");
 const odontogramPath = resolve("src/components/odontogram/OdontogramMasterSection.tsx");
 const odontogramContent = readFileSync(odontogramPath, "utf-8");
 
+const statCardPath = resolve("src/components/ui/stat-card.tsx");
+const statCardContent = readFileSync(statCardPath, "utf-8");
+
 describe("1I-D-2E — Densidad visual premium", () => {
   it("la cabecera reduce avatar, tipografía del nombre y padding general", () => {
     expect(viewContent).toContain("size-10");
@@ -31,10 +34,8 @@ describe("1I-D-2E — Densidad visual premium", () => {
     expect(viewContent).toContain('p-3 md:p-4');
   });
 
-  it("MiniStat usa padding compacto tipo chip", () => {
-    const idx = viewContent.indexOf("function MiniStat");
-    const block = viewContent.slice(idx, idx + 400);
-    expect(block).toContain("px-2.5 py-1.5");
+  it("StatCard (antes MiniStat) usa padding compacto tipo chip", () => {
+    expect(statCardContent).toContain("px-2.5 py-1.5");
   });
 
   it('"Atención de hoy" reduce el aire vertical respecto a 1I-D-2C/2D', () => {

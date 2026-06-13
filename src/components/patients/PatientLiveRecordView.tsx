@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { PatientLiveRecord } from "@/server/domain/patient-record/schemas";
+import { StatCard } from "@/components/ui/stat-card";
 import { EncounterList } from "@/components/clinical/EncounterList";
 import { PatientFVOSectionsClient, PatientClinicalProfileSection } from "@/components/patients/PatientFVOSectionsClient";
 import { PatientDisclosureSection } from "@/components/patients/PatientDisclosureSection";
@@ -139,25 +140,6 @@ function Row({ label, value }: RowProps) {
   );
 }
 
-/** Mini-métrica del bloque superior: etiqueta corta + valor + acción opcional. */
-interface MiniStatProps {
-  label: string;
-  value: React.ReactNode;
-  valueClassName?: string;
-  action?: React.ReactNode;
-  /** Si el valor ocupa varias líneas (p. ej. fecha + hora), no se trunca a una sola línea. */
-  multiline?: boolean;
-}
-function MiniStat({ label, value, valueClassName, action, multiline }: MiniStatProps) {
-  return (
-    <div className="rounded-lg bg-muted/40 px-2.5 py-1.5 min-w-0">
-      <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-      <div className={`text-sm font-semibold leading-tight ${multiline ? "" : "truncate"} ${valueClassName ?? ""}`}>{value}</div>
-      {action && <div className="mt-0.5">{action}</div>}
-    </div>
-  );
-}
-
 const PATIENT_STATUS_LABELS: Record<string, string> = {
   NEW: "Nuevo",
   ACTIVE: "Activo",
@@ -283,7 +265,7 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
 
             {/* Resumen operativo: mini-métricas en retícula, no una línea que se rompe */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 min-w-0">
-              <MiniStat
+              <StatCard
                 label="Próxima cita"
                 value={
                   nextAppt ? (
@@ -316,7 +298,7 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
                   </div>
                 }
               />
-              <MiniStat
+              <StatCard
                 label="Consulta activa"
                 value={activeEncounter ? (activeEncounter.status === "IN_PROGRESS" ? "En consulta" : "Borrador") : "Ninguna"}
                 action={
@@ -330,8 +312,8 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
                   )
                 }
               />
-              <MiniStat label="Plan" value={hasPlan ? "Sí" : "No"} />
-              <MiniStat
+              <StatCard label="Plan" value={hasPlan ? "Sí" : "No"} />
+              <StatCard
                 label="Saldo"
                 value={balance === null ? "—" : fCents(balance)}
                 valueClassName={
@@ -342,7 +324,7 @@ export function PatientLiveRecordView({ record, encounters, patientId, fvoPermis
                     : "text-green-700 dark:text-green-400"
                 }
               />
-              <MiniStat label="Hallazgos" value={odontogramSummary?.totalFindings ?? 0} />
+              <StatCard label="Hallazgos" value={odontogramSummary?.totalFindings ?? 0} />
             </div>
           </div>
 
