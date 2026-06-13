@@ -40,9 +40,9 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4 px-6 py-6 pb-12 sm:px-8">
+    <div className="dashboard-shell mx-auto max-w-6xl space-y-4 px-6 py-6 pb-12 sm:px-8">
       {/* Fila superior: 4 KPIs verticales */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="dashboard-grid grid grid-cols-2 gap-4 sm:grid-cols-4">
         <CitasHoyKpi appointmentsToday={appointmentsToday} />
         <CobradoMesKpi />
         <TratamientosActivosKpi />
@@ -50,7 +50,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Fila inferior: 2 columnas de horizontales apiladas */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="dashboard-grid grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-4">
           <PorCobrarKpi />
           <PresupuestosPendientesKpi />

@@ -9,7 +9,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-export type VisualPreset = "minimal-clinico" | "premium-cards" | "kpi-dashboard" | "glass-soft" | "ejecutivo";
+export type VisualPreset = "minimal-clinico" | "premium-cards" | "kpi-dashboard" | "glass-soft" | "ejecutivo" | "showcase";
 export type VisualAccent = "teal" | "violet" | "emerald" | "amber" | "rose" | "slate";
 export type VisualDensity = "compact" | "comfortable" | "spacious";
 export type VisualShadow = "soft" | "elevated" | "glass";
@@ -53,6 +53,11 @@ export const VISUAL_PRESETS: Record<VisualPreset, { label: string; description: 
     description: "Sobrio, esquinas cuadradas y espacioso — perfil administrativo.",
     prefs: { accent: "slate", density: "spacious", shadow: "soft", radius: "square", cardStyle: "bordered" },
   },
+  showcase: {
+    label: "Visual intenso / Showcase",
+    description: "Tarjetas flotantes, acento vivo y máxima profundidad — la versión más expresiva.",
+    prefs: { accent: "rose", density: "comfortable", shadow: "elevated", radius: "rounded", cardStyle: "floating" },
+  },
 };
 
 export const VISUAL_PRESET_KEYS = Object.keys(VISUAL_PRESETS) as VisualPreset[];
@@ -81,6 +86,10 @@ interface VisualPreferencesContextValue {
   setShadow: (shadow: VisualShadow) => void;
   setRadius: (radius: VisualRadius) => void;
   setCardStyle: (cardStyle: VisualCardStyle) => void;
+  /** Aplica un preset completo (acento, densidad, sombra, radio, estilo de tarjeta). */
+  applyPreset: (preset: VisualPreset) => void;
+  /** Vuelve a los valores por defecto (minimal-clinico) y los persiste. */
+  resetVisualPreferences: () => void;
 }
 
 const VisualPreferencesContext = createContext<VisualPreferencesContextValue | null>(null);
@@ -134,14 +143,20 @@ export function VisualPreferencesProvider({ children }: { children: ReactNode })
     setPreferences((prev) => ({ ...prev, ...partial }));
   }
 
+  function applyPreset(preset: VisualPreset) {
+    update({ preset, ...VISUAL_PRESETS[preset].prefs });
+  }
+
   const value: VisualPreferencesContextValue = {
     preferences,
-    setPreset: (preset) => update({ preset, ...VISUAL_PRESETS[preset].prefs }),
+    setPreset: applyPreset,
     setAccent: (accent) => update({ accent }),
     setDensity: (density) => update({ density }),
     setShadow: (shadow) => update({ shadow }),
     setRadius: (radius) => update({ radius }),
     setCardStyle: (cardStyle) => update({ cardStyle }),
+    applyPreset,
+    resetVisualPreferences: () => setPreferences(DEFAULT_VISUAL_PREFERENCES),
   };
 
   return <VisualPreferencesContext.Provider value={value}>{children}</VisualPreferencesContext.Provider>;

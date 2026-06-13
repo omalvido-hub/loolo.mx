@@ -37,6 +37,8 @@ import {
   type PersonalizationMode,
 } from "@/components/shell/PersonalizationPreviewToggle";
 import { VisualPresetSelector } from "@/components/shell/VisualPresetSelector";
+import { PersonalizationPreviewCanvas } from "@/components/shell/PersonalizationPreviewCanvas";
+import { useVisualPreferences } from "@/lib/visual-preferences";
 
 type StudioOptionStatus = "preview" | "soon" | "engine" | "admin";
 
@@ -102,7 +104,7 @@ const SECTIONS: StudioSection[] = [
     tagline: "Tema, estilos curados e intensidad visual — pruébalos aquí mismo, en vivo.",
     options: [
       { label: "Tema claro / oscuro / automático", hint: "Cómo se siente tu espacio según la hora del día.", status: "preview" },
-      { label: "Estilos curados", hint: "Minimal clínico, Premium cards, KPI dashboard, Glass soft, Ejecutivo — con efecto real en el Dashboard.", status: "preview" },
+      { label: "Estilos curados", hint: "Minimal clínico, Premium cards, KPI dashboard, Glass soft, Ejecutivo, Visual intenso — con efecto real en el Dashboard.", status: "preview" },
       { label: "Intensidad visual", hint: "De sobrio a expresivo, a tu medida.", status: "engine" },
     ],
   },
@@ -311,6 +313,75 @@ function AccessibilityPreview() {
           {reduceMotion ? "Movimiento reducido" : "Movimiento normal"}
         </span>
       </div>
+    </div>
+  );
+}
+
+const DASHBOARD_WIDGET_LABELS = [
+  "Citas de hoy",
+  "Cobrado este mes",
+  "Por cobrar",
+  "Presupuestos pendientes",
+  "Tratamientos activos",
+  "Ingresos del mes",
+  "Punto de equilibrio",
+  "Meta mensual",
+];
+
+function DashboardWidgetsPreview() {
+  const [visible, setVisible] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(DASHBOARD_WIDGET_LABELS.map((label) => [label, true]))
+  );
+
+  return (
+    <div className="space-y-2">
+      <p className="text-[11px] leading-snug text-muted-foreground">
+        Vista previa de los widgets de tu Dashboard. Mostrar/ocultar de verdad llega con el motor de
+        personalización — por ahora puedes explorar el control.
+      </p>
+      <ul className="space-y-1.5">
+        {DASHBOARD_WIDGET_LABELS.map((label) => (
+          <li key={label} className="flex items-center justify-between gap-3 rounded-xl border bg-background/60 px-3 py-2">
+            <span className="text-xs font-medium">{label}</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={visible[label]}
+              onClick={() => setVisible((prev) => ({ ...prev, [label]: !prev[label] }))}
+              className={cn(
+                "relative h-5 w-9 shrink-0 rounded-full transition-colors",
+                visible[label] ? "bg-brand-accent" : "bg-muted"
+              )}
+            >
+              <span
+                className={cn(
+                  "absolute top-0.5 size-4 rounded-full bg-background shadow-sm transition-transform",
+                  visible[label] ? "translate-x-[1.125rem]" : "translate-x-0.5"
+                )}
+              />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function PersonalizationActions() {
+  const { resetVisualPreferences } = useVisualPreferences();
+
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl border bg-background/60 px-4 py-3">
+      <p className="text-[11px] leading-snug text-muted-foreground">
+        Guardado en este navegador — cada cambio se aplica y se guarda automáticamente.
+      </p>
+      <button
+        type="button"
+        onClick={resetVisualPreferences}
+        className="inline-flex shrink-0 items-center rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors hover:bg-muted"
+      >
+        Resetear diseño
+      </button>
     </div>
   );
 }
@@ -583,8 +654,20 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
                 <PersonalizationPreviewToggle mode={mode} onChange={onChange} />
               </div>
               <div>
-                <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Personalizar Dashboard</p>
+                <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">1. Estilo visual</p>
                 <VisualPresetSelector />
+              </div>
+              <div>
+                <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">2. Vista previa</p>
+                <PersonalizationPreviewCanvas />
+              </div>
+              <div>
+                <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">3. Dashboard</p>
+                <DashboardWidgetsPreview />
+              </div>
+              <div>
+                <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">4. Acciones</p>
+                <PersonalizationActions />
               </div>
             </div>
           )}

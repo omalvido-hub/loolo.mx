@@ -114,12 +114,22 @@ export function VisualPresetSelector({ className }: VisualPresetSelectorProps) {
                 onClick={() => setPreset(key)}
                 aria-pressed={active}
                 className={cn(
-                  "rounded-xl border p-2.5 text-left transition-all",
+                  "rounded-xl border p-3 text-left transition-all",
                   active ? "border-brand-accent/40 bg-brand-accent-soft/40 shadow-sm" : "border-transparent hover:bg-muted/50"
                 )}
               >
-                <span className="block text-xs font-medium tracking-tight">{preset.label}</span>
-                <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">{preset.description}</span>
+                <span className="flex items-center gap-2">
+                  <span className={cn("size-3 shrink-0 rounded-full", ACCENT_SWATCH_CLASS[preset.prefs.accent])} />
+                  <span className="text-xs font-semibold tracking-tight">{preset.label}</span>
+                </span>
+                <span className="mt-1 block text-[11px] leading-snug text-muted-foreground">{preset.description}</span>
+                <span className="mt-2 flex flex-wrap gap-1">
+                  {[preset.prefs.density, preset.prefs.shadow, preset.prefs.radius, preset.prefs.cardStyle].map((tag) => (
+                    <span key={tag} className="rounded-full bg-foreground/5 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                      {tag}
+                    </span>
+                  ))}
+                </span>
               </button>
             );
           })}
