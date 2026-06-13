@@ -6,7 +6,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserCircle, CalendarDays, Stethoscope, FileText, CreditCard, Plus, ChevronDown, ChevronUp } from "lucide-react";
+import { UserCircle, CalendarDays, Stethoscope, FileText, CreditCard, FolderOpen, BarChart3, Globe, Plus, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { hasPermission } from "@/lib/permissions";
 
@@ -27,6 +27,9 @@ const DOCK_ITEMS: DockItem[] = [
   { label: "Consultas",   href: "/consultas",    icon: Stethoscope, permission: "clinical.view",    available: false },
   { label: "Presupuestos",href: "/presupuestos", icon: FileText,    permission: "quote.view",       available: true },
   { label: "Cobros",      href: "/cobros",       icon: CreditCard,  permission: "payment.view",     available: true },
+  { label: "Documentos",  href: "/documentos",   icon: FolderOpen,  permission: "patients.view",    available: false },
+  { label: "Reportes",    href: "/reportes",     icon: BarChart3,   permission: "patients.view",    available: false },
+  { label: "Portal",      href: "/portal",       icon: Globe,       permission: "patients.view",    available: false },
 ];
 
 // Hrefs con página real en el dock por defecto — el catálogo de módulos los usa

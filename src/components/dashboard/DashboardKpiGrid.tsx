@@ -1,6 +1,6 @@
 "use client";
 
-// KPI rail del dashboard — Dashboard Final v2 (8 tarjetas en 2 bloques).
+// KPI rail del dashboard — Dashboard Final v3 (pase visual DS-PHASE-A).
 // Cada bloque combina 2 tarjetas verticales (portrait) + 2 horizontales
 // compactas. "Citas de hoy" usa datos reales de Agenda. El resto muestra
 // estado honesto (chip "Pendiente"/"Configurable") hasta tener agregaciones
@@ -13,6 +13,10 @@
 // FASE 1M-C: el icono de cada tarjeta viene de ModuleIcon (identidad visual
 // elegida en Personalizar > Módulos); si esa identidad marca el widget como
 // oculto, la tarjeta no se renderiza. Datos y lógica sin cambios.
+//
+// DS-PHASE-A: tarjetas más compactas, sin "Ver…"/flechas/divisores internos,
+// con un badge de icono tipo "clay" (degradado pastel + sombra suave) por
+// encima del ModuleIcon — solo estilo, sin tocar datos ni personalización.
 
 import Link from "next/link";
 import {
@@ -57,6 +61,35 @@ const STATUS_TONE: Record<KpiStatus, KpiWidgetTone> = {
   Configurable: "muted",
 };
 
+// Degradados pastel tipo "clay" para el badge de icono de cada tarjeta —
+// puramente decorativos, uno por cardId. El ModuleIcon real (con su propio
+// estilo de personalización) vive dentro del badge.
+const ICON_BADGE_GRADIENT: Record<string, string> = {
+  "kpi-citas": "from-sky-200 to-sky-400 dark:from-sky-500/30 dark:to-sky-800/40",
+  "kpi-cobrado": "from-emerald-200 to-emerald-400 dark:from-emerald-500/30 dark:to-emerald-800/40",
+  "kpi-porcobrar": "from-amber-200 to-amber-400 dark:from-amber-500/30 dark:to-amber-800/40",
+  "kpi-presupuestos": "from-violet-200 to-violet-400 dark:from-violet-500/30 dark:to-violet-800/40",
+  "kpi-tratamientos": "from-cyan-200 to-cyan-400 dark:from-cyan-500/30 dark:to-cyan-800/40",
+  "kpi-ingresos": "from-teal-200 to-teal-400 dark:from-teal-500/30 dark:to-teal-800/40",
+  "kpi-punto-equilibrio": "from-slate-200 to-slate-400 dark:from-slate-500/30 dark:to-slate-800/40",
+  "kpi-meta-mensual": "from-rose-200 to-rose-400 dark:from-rose-500/30 dark:to-rose-800/40",
+};
+
+function IconBadge({ cardId, size, children }: { cardId: string; size: "lg" | "md"; children: React.ReactNode }) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "flex shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br shadow-sm ring-1 ring-white/60 dark:ring-white/10",
+        size === "lg" ? "size-11" : "size-9",
+        ICON_BADGE_GRADIENT[cardId] ?? "from-foreground/5 to-foreground/15"
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
 interface CardProps {
   cardId: string;
   icon: LucideIcon;
@@ -67,15 +100,14 @@ interface CardProps {
   href?: string;
 }
 
-function StatusTrend({ status, footer, href }: Pick<CardProps, "status" | "footer" | "href">) {
+// Línea de estado al pie de la tarjeta — sin divisor, sin "Ver…" ni flecha.
+function StatusTrend({ status, footer }: Pick<CardProps, "status" | "footer">) {
   return (
-    <div className="flex items-center justify-between gap-2 pt-2 border-t border-foreground/5">
+    <div className="flex items-center justify-between gap-2">
       <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium tracking-wide", STATUS_CHIP_CLASS[status])}>
         {status}
       </span>
-      <span className={cn("truncate text-[11px] font-medium", href ? "text-brand-accent" : "text-muted-foreground")}>
-        {href ? `${footer} →` : footer}
-      </span>
+      <span className="truncate text-[11px] font-medium text-muted-foreground">{footer}</span>
     </div>
   );
 }
@@ -90,11 +122,15 @@ export function VerticalKpiCard({ cardId, icon: Icon, label, value, status, foot
     <KpiWidget
       label={label}
       value={value}
-      icon={<ModuleIcon id={cardId} fallbackIcon={Icon} />}
+      icon={
+        <IconBadge cardId={cardId} size="lg">
+          <ModuleIcon id={cardId} fallbackIcon={Icon} />
+        </IconBadge>
+      }
       iconWrapped={false}
       tone={STATUS_TONE[status]}
-      trend={<StatusTrend status={status} footer={footer} href={href} />}
-      className={cn("flex h-[220px] sm:h-[290px] flex-col justify-between", !href && "opacity-90")}
+      trend={<StatusTrend status={status} footer={footer} />}
+      className={cn("flex h-[148px] sm:h-[164px] flex-col justify-between", !href && "opacity-90")}
       iconPosition={identity.iconPosition}
       iconSize={identity.iconSize}
       contentAlign={identity.contentAlign}
@@ -126,11 +162,15 @@ export function HorizontalKpiCard({ cardId, icon: Icon, label, value, status, fo
     <KpiWidget
       label={label}
       value={value}
-      icon={<ModuleIcon id={cardId} fallbackIcon={Icon} />}
+      icon={
+        <IconBadge cardId={cardId} size="md">
+          <ModuleIcon id={cardId} fallbackIcon={Icon} />
+        </IconBadge>
+      }
       iconWrapped={false}
       tone={STATUS_TONE[status]}
-      trend={<StatusTrend status={status} footer={footer} href={href} />}
-      className={cn("flex h-[118px] sm:h-[132px] flex-col justify-between", !href && "opacity-90")}
+      trend={<StatusTrend status={status} footer={footer} />}
+      className={cn("flex h-[84px] sm:h-[92px] flex-col justify-between", !href && "opacity-90")}
       iconPosition={identity.iconPosition}
       iconSize={identity.iconSize}
       contentAlign={identity.contentAlign}
@@ -159,7 +199,7 @@ interface Props {
 // Bloque 1 — vertical 1: Citas de hoy (REAL vía agenda/queries.ts).
 export function CitasHoyKpi({ appointmentsToday }: Props) {
   let citasValue = "—";
-  let citasFooter = "Ver agenda";
+  let citasFooter = "Agenda de hoy";
 
   if (appointmentsToday !== null) {
     const n = appointmentsToday.length;
@@ -212,7 +252,7 @@ export function PorCobrarKpi() {
       label="Por cobrar"
       value="—"
       status="Pendiente"
-      footer="Ver cobros"
+      footer="Pendiente de cobro"
       href="/cobros"
     />
   );
@@ -227,7 +267,7 @@ export function PresupuestosPendientesKpi() {
       label="Presupuestos pendientes"
       value="—"
       status="Pendiente"
-      footer="Ver presupuestos"
+      footer="En revisión"
       href="/presupuestos"
     />
   );
