@@ -932,3 +932,110 @@
 [data-visual-business-template] .personalization-preview-shell {
   transition: background-image 0.2s ease;
 }
+
+/* ============================================================
+   FASE DS-1 — Fundación de tokens globales de diseño
+   Capa puramente declarativa: define el vocabulario --ds-* que las
+   fases futuras de Personalizar (DS-2+) podrán sobrescribir para
+   aplicar estilos a "Solo Dashboard" o "Todo el sistema"
+   (docs/nelzzon-design-system-v1.md).
+   Todos los valores son ALIAS de los tokens ya existentes (:root/.dark
+   de 1L-B y los data-visual-* de 1M-A..E) — ningún componente los
+   consume todavía, por lo que esta capa no cambia nada visualmente.
+   ============================================================ */
+
+:root {
+  /* ---- Colores ---- */
+  --ds-color-bg: var(--background);
+  --ds-color-fg: var(--foreground);
+  --ds-color-surface: var(--card);
+  --ds-color-surface-fg: var(--card-foreground);
+  --ds-color-surface-elevated: var(--surface-elevated);
+  --ds-color-primary: var(--primary);
+  --ds-color-primary-fg: var(--primary-foreground);
+  --ds-color-secondary: var(--secondary);
+  --ds-color-secondary-fg: var(--secondary-foreground);
+  --ds-color-muted: var(--muted);
+  --ds-color-muted-fg: var(--muted-foreground);
+  --ds-color-accent: var(--brand-accent);
+  --ds-color-accent-soft: var(--brand-accent-soft);
+  --ds-color-accent-fg: var(--brand-accent-foreground);
+  --ds-color-destructive: var(--destructive);
+  --ds-color-border: var(--border);
+  --ds-color-ring: var(--ring);
+
+  /* ---- Fondos ---- */
+  --ds-bg-page: var(--background);
+  --ds-bg-surface: var(--surface-elevated);
+  --ds-bg-overlay-opacity: var(--bg-overlay-opacity);
+  --ds-bg-blur: var(--bg-blur-px);
+
+  /* ---- Radios ---- */
+  --ds-radius-sm: var(--radius-sm);
+  --ds-radius-md: var(--radius-md);
+  --ds-radius-lg: var(--radius-lg);
+  --ds-radius-xl: var(--radius-xl);
+  --ds-radius-2xl: var(--radius-2xl);
+  --ds-radius-3xl: var(--radius-3xl);
+  --ds-radius-4xl: var(--radius-4xl);
+
+  /* ---- Sombras ---- */
+  --ds-shadow-none: none;
+  --ds-shadow-soft: var(--shadow-soft-value);
+  --ds-shadow-elevated: var(--shadow-elevated-value);
+
+  /* ---- Bordes ---- */
+  --ds-border-width: 1px;
+  --ds-border-color: var(--border);
+
+  /* ---- Tipografía ---- */
+  --ds-font-family: var(--font-sans);
+  --ds-font-size-base: 1rem;
+  --ds-font-weight-normal: 400;
+  --ds-font-weight-medium: 500;
+  --ds-font-weight-semibold: 600;
+  --ds-line-height-base: 1.5;
+  --ds-letter-spacing-heading: -0.025em;
+
+  /* ---- Densidad / espaciado ---- */
+  --ds-space-compact: 0.625rem;
+  --ds-space-cozy: 1rem;
+  --ds-space-spacious: 1.25rem;
+  --ds-space-default: var(--ds-space-cozy);
+  --ds-gap-default: 1rem;
+
+  /* ---- Tarjetas ---- */
+  --ds-card-bg: var(--card);
+  --ds-card-fg: var(--card-foreground);
+  --ds-card-radius: var(--ds-radius-xl);
+  --ds-card-border-width: var(--ds-border-width);
+  --ds-card-border-color: var(--border);
+  --ds-card-shadow: var(--shadow-soft);
+  --ds-card-padding: var(--ds-space-default);
+
+  /* ---- Botones ---- */
+  --ds-button-radius: var(--ds-radius-md);
+  --ds-button-padding-x: 1rem;
+  --ds-button-padding-y: 0.5rem;
+  --ds-button-font-weight: var(--ds-font-weight-medium);
+
+  /* ---- Inputs ---- */
+  --ds-input-radius: var(--ds-radius-md);
+  --ds-input-border-color: var(--input);
+  --ds-input-bg: var(--background);
+  --ds-input-height: 2.25rem;
+
+  /* ---- Menús ---- */
+  --ds-menu-bg: var(--sidebar);
+  --ds-menu-fg: var(--sidebar-foreground);
+  --ds-menu-radius: var(--ds-radius-lg);
+  --ds-menu-item-radius: var(--ds-radius-md);
+  --ds-menu-active-bg: var(--sidebar-accent);
+  --ds-menu-active-fg: var(--sidebar-accent-foreground);
+
+  /* ---- Iconos ---- */
+  --ds-icon-size-sm: 1rem;
+  --ds-icon-size-md: 1.25rem;
+  --ds-icon-size-lg: 1.5rem;
+  --ds-icon-stroke-width: 1.5;
+}
