@@ -161,3 +161,116 @@
     @apply tracking-tight;
     }
 }
+
+/* ============================================================
+   Personalizar visual — Dashboard (FASE 1M-A)
+   Bloques ADITIVOS controlados por data-visual-* en <html>, aplicados por
+   VisualPreferencesProvider (src/lib/visual-preferences.tsx). No reemplazan
+   los tokens base de 1L-B (:root/.dark) ni rompen el modo oscuro: solo los
+   sobrescriben cuando el usuario elige un valor distinto al default
+   (minimal-clinico / teal / cómodo / suave / suave / plano).
+   Componentes que reaccionan: .module-card, .module-card-body, .kpi-widget,
+   .chart-preview-card (ModuleCard / KPIWidget / ChartPreviewCard).
+   ============================================================ */
+
+/* ---- Acentos curados (no color picker libre) ---- */
+[data-visual-accent="violet"] {
+  --brand-accent: oklch(0.58 0.13 296);
+  --brand-accent-soft: oklch(0.95 0.03 296);
+}
+.dark[data-visual-accent="violet"] {
+  --brand-accent: oklch(0.72 0.13 296);
+  --brand-accent-soft: oklch(0.32 0.05 296);
+}
+
+[data-visual-accent="emerald"] {
+  --brand-accent: oklch(0.6 0.13 162);
+  --brand-accent-soft: oklch(0.95 0.03 162);
+}
+.dark[data-visual-accent="emerald"] {
+  --brand-accent: oklch(0.72 0.13 162);
+  --brand-accent-soft: oklch(0.32 0.05 162);
+}
+
+[data-visual-accent="amber"] {
+  --brand-accent: oklch(0.72 0.14 70);
+  --brand-accent-soft: oklch(0.95 0.04 70);
+}
+.dark[data-visual-accent="amber"] {
+  --brand-accent: oklch(0.78 0.14 70);
+  --brand-accent-soft: oklch(0.32 0.05 70);
+}
+
+[data-visual-accent="rose"] {
+  --brand-accent: oklch(0.62 0.16 16);
+  --brand-accent-soft: oklch(0.95 0.03 16);
+}
+.dark[data-visual-accent="rose"] {
+  --brand-accent: oklch(0.72 0.14 16);
+  --brand-accent-soft: oklch(0.32 0.05 16);
+}
+
+[data-visual-accent="slate"] {
+  --brand-accent: oklch(0.5 0.02 250);
+  --brand-accent-soft: oklch(0.94 0.01 250);
+}
+.dark[data-visual-accent="slate"] {
+  --brand-accent: oklch(0.75 0.02 250);
+  --brand-accent-soft: oklch(0.32 0.01 250);
+}
+
+/* ---- Sombra: "elevated" y "glass" reutilizan --shadow-soft-value, que
+   alimenta la utilidad shadow-soft ya usada por ModuleCard/KPIWidget. ---- */
+[data-visual-shadow="elevated"] {
+  --shadow-soft-value: var(--shadow-elevated-value);
+}
+[data-visual-shadow="glass"] {
+  --shadow-soft-value: 0 8px 32px -12px rgb(0 0 0 / 0.16), 0 2px 8px -2px rgb(0 0 0 / 0.06);
+}
+.dark[data-visual-shadow="glass"] {
+  --shadow-soft-value: 0 8px 32px -12px rgb(0 0 0 / 0.55), 0 2px 8px -2px rgb(0 0 0 / 0.35);
+}
+
+/* ---- Radio: "rounded" y "square" ajustan --radius (alimenta radius-*). ---- */
+[data-visual-radius="rounded"] {
+  --radius: 0.875rem;
+}
+[data-visual-radius="square"] {
+  --radius: 0.375rem;
+}
+
+/* ---- Densidad: afecta el padding interno de módulos/KPIs. ---- */
+[data-visual-density="compact"] .module-card-body,
+[data-visual-density="compact"] .kpi-widget,
+[data-visual-density="compact"] .chart-preview-card {
+  padding: 0.625rem;
+}
+[data-visual-density="spacious"] .module-card-body,
+[data-visual-density="spacious"] .kpi-widget,
+[data-visual-density="spacious"] .chart-preview-card {
+  padding: 1.25rem;
+}
+
+/* ---- Estilo de tarjeta ---- */
+[data-visual-card-style="bordered"] .module-card,
+[data-visual-card-style="bordered"] .kpi-widget,
+[data-visual-card-style="bordered"] .chart-preview-card {
+  box-shadow: none;
+}
+
+[data-visual-card-style="floating"] .module-card,
+[data-visual-card-style="floating"] .kpi-widget {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+[data-visual-card-style="floating"] .module-card:hover,
+[data-visual-card-style="floating"] .kpi-widget:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-elevated-value);
+}
+
+[data-visual-card-style="glass"] .module-card,
+[data-visual-card-style="glass"] .kpi-widget,
+[data-visual-card-style="glass"] .chart-preview-card {
+  background-color: color-mix(in oklch, var(--surface-elevated) 72%, transparent);
+  backdrop-filter: blur(12px);
+}

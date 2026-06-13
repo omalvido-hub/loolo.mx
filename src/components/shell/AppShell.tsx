@@ -13,6 +13,7 @@ import { AppDock } from "@/components/shell/AppDock";
 import { ModuleCatalog } from "@/components/shell/ModuleCatalog";
 import { PersonalizationPanel } from "@/components/shell/PersonalizationPanel";
 import { hasPermission } from "@/lib/permissions";
+import { VisualPreferencesProvider } from "@/lib/visual-preferences";
 import type { PersonalizationMode } from "@/components/shell/PersonalizationPreviewToggle";
 
 interface AppShellProps {
@@ -35,51 +36,53 @@ export function AppShell({ roleKey, orgName, userName, userEmail, roleName, chil
   const toggleSidebarCollapse = () => setSidebarCollapsed((v) => !v);
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <AppSidebar
-        roleKey={roleKey}
-        orgName={orgName}
-        collapsed={sidebarCollapsed}
-        onToggleCollapse={toggleSidebarCollapse}
-        onOpenPersonalization={() => setPersonalizationOpen(true)}
-      />
-
-      <div className="flex flex-1 min-w-0 flex-col">
-        <AppTopbar
-          showSearch={showSearch}
+    <VisualPreferencesProvider>
+      <div className="flex min-h-screen bg-background">
+        <AppSidebar
+          roleKey={roleKey}
           orgName={orgName}
-          userName={userName}
-          userEmail={userEmail}
-          roleName={roleName}
-          personalizationOpen={personalizationOpen}
-          onTogglePersonalization={() => setPersonalizationOpen((v) => !v)}
-          menuTrigger={sidebarCollapsed ? <SidebarMenuTrigger onClick={toggleSidebarCollapse} /> : null}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={toggleSidebarCollapse}
+          onOpenPersonalization={() => setPersonalizationOpen(true)}
         />
-        <main className="flex-1 overflow-auto bg-background pb-20">{children}</main>
-      </div>
 
-      <AppDock
-        roleKey={roleKey}
-        open={dockOpen}
-        onToggleOpen={() => setDockOpen((v) => !v)}
-        onOpenCatalog={() => setCatalogOpen(true)}
-      />
-
-      {personalizationOpen && (
-        <div className="fixed inset-x-3 top-16 z-50 flex justify-center sm:inset-x-auto sm:right-6 sm:justify-end">
-          <PersonalizationPanel
-            mode={mode}
-            onChange={setMode}
-            onClose={() => setPersonalizationOpen(false)}
-            onOpenModuleLibrary={() => {
-              setPersonalizationOpen(false);
-              setCatalogOpen(true);
-            }}
+        <div className="flex flex-1 min-w-0 flex-col">
+          <AppTopbar
+            showSearch={showSearch}
+            orgName={orgName}
+            userName={userName}
+            userEmail={userEmail}
+            roleName={roleName}
+            personalizationOpen={personalizationOpen}
+            onTogglePersonalization={() => setPersonalizationOpen((v) => !v)}
+            menuTrigger={sidebarCollapsed ? <SidebarMenuTrigger onClick={toggleSidebarCollapse} /> : null}
           />
+          <main className="flex-1 overflow-auto bg-background pb-20">{children}</main>
         </div>
-      )}
 
-      {catalogOpen && <ModuleCatalog onClose={() => setCatalogOpen(false)} />}
-    </div>
+        <AppDock
+          roleKey={roleKey}
+          open={dockOpen}
+          onToggleOpen={() => setDockOpen((v) => !v)}
+          onOpenCatalog={() => setCatalogOpen(true)}
+        />
+
+        {personalizationOpen && (
+          <div className="fixed inset-x-3 top-16 z-50 flex justify-center sm:inset-x-auto sm:right-6 sm:justify-end">
+            <PersonalizationPanel
+              mode={mode}
+              onChange={setMode}
+              onClose={() => setPersonalizationOpen(false)}
+              onOpenModuleLibrary={() => {
+                setPersonalizationOpen(false);
+                setCatalogOpen(true);
+              }}
+            />
+          </div>
+        )}
+
+        {catalogOpen && <ModuleCatalog onClose={() => setCatalogOpen(false)} />}
+      </div>
+    </VisualPreferencesProvider>
   );
 }

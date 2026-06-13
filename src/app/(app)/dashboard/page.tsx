@@ -15,6 +15,8 @@ import {
   PuntoEquilibrioKpi,
   MetaMensualKpi,
 } from "@/components/dashboard/DashboardKpiGrid";
+import { ModuleCard } from "@/components/ui/module-card";
+import { ChartPreviewCard } from "@/components/ui/chart-preview-card";
 
 export default async function DashboardPage() {
   let organizationId: string;
@@ -58,6 +60,15 @@ export default async function DashboardPage() {
           <MetaMensualKpi />
         </div>
       </div>
+
+      {/* Vista previa visual — decorativa, sin datos operativos reales */}
+      <ModuleCard title="Panorama" subtitle="Una vista previa de cómo se vería tu actividad" badge="Vista previa">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <ChartPreviewCard title="Actividad de la semana" kind="bars" />
+          <ChartPreviewCard title="Distribución" kind="donut" />
+          <ChartPreviewCard title="Tendencia" kind="sparkline" />
+        </div>
+      </ModuleCard>
     </div>
   );
 }

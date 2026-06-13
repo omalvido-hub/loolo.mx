@@ -36,7 +36,7 @@ import {
   PersonalizationPreviewToggle,
   type PersonalizationMode,
 } from "@/components/shell/PersonalizationPreviewToggle";
-import { VisualStylePreview } from "@/components/shell/VisualStylePreview";
+import { VisualPresetSelector } from "@/components/shell/VisualPresetSelector";
 
 type StudioOptionStatus = "preview" | "soon" | "engine" | "admin";
 
@@ -102,7 +102,7 @@ const SECTIONS: StudioSection[] = [
     tagline: "Tema, estilos curados e intensidad visual — pruébalos aquí mismo, en vivo.",
     options: [
       { label: "Tema claro / oscuro / automático", hint: "Cómo se siente tu espacio según la hora del día.", status: "preview" },
-      { label: "Estilos curados", hint: "Profesional, clínico, creativo, glass…", status: "preview" },
+      { label: "Estilos curados", hint: "Minimal clínico, Premium cards, KPI dashboard, Glass soft, Ejecutivo — con efecto real en el Dashboard.", status: "preview" },
       { label: "Intensidad visual", hint: "De sobrio a expresivo, a tu medida.", status: "engine" },
     ],
   },
@@ -583,8 +583,8 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
                 <PersonalizationPreviewToggle mode={mode} onChange={onChange} />
               </div>
               <div>
-                <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Estilos curados</p>
-                <VisualStylePreview />
+                <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Personalizar Dashboard</p>
+                <VisualPresetSelector />
               </div>
             </div>
           )}
