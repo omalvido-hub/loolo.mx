@@ -14,15 +14,19 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { CalendarPlus, CircleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SectionCard } from "@/components/ui/section-card";
 import { createAppointmentAction } from "@/server/actions/agenda";
 import type { ResourceListResult } from "@/server/domain/agenda/queries";
 import type { AgendaPatientContext } from "@/server/domain/agenda/patient-context";
 
 const SELECT_CLASS =
   "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30";
+
+const FIELD_GROUP_LABEL_CLASS = "text-xs font-semibold uppercase tracking-wide text-muted-foreground/80";
 
 const DURATIONS = [30, 45, 60] as const;
 
@@ -38,14 +42,7 @@ function todayMx(): string {
 }
 
 function FormShell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border overflow-hidden mb-6">
-      <div className="px-4 py-3 bg-muted/50 border-b">
-        <h2 className="font-medium text-sm">Agendar cita</h2>
-      </div>
-      {children}
-    </div>
-  );
+  return <SectionCard title="Agendar cita">{children}</SectionCard>;
 }
 
 export function AppointmentForm({ resources, patientId, patient, defaultDate }: AppointmentFormProps) {
@@ -68,8 +65,9 @@ export function AppointmentForm({ resources, patientId, patient, defaultDate }: 
   if (!patientId) {
     return (
       <FormShell>
-        <div className="px-4 py-4 text-sm text-muted-foreground">
-          Para agendar una cita, primero abre la ficha de un paciente y usa &quot;Agendar&quot;.
+        <div className="flex items-start gap-2.5 text-sm text-muted-foreground">
+          <CalendarPlus className="size-4 mt-0.5 shrink-0 text-muted-foreground/70" />
+          <p>Para agendar una cita, primero abre la ficha de un paciente y usa &quot;Agendar&quot;.</p>
         </div>
       </FormShell>
     );
@@ -80,8 +78,9 @@ export function AppointmentForm({ resources, patientId, patient, defaultDate }: 
   if (!patient) {
     return (
       <FormShell>
-        <div className="px-4 py-4 text-sm text-destructive">
-          Paciente no encontrado o sin acceso.
+        <div className="flex items-start gap-2.5 text-sm text-destructive">
+          <CircleAlert className="size-4 mt-0.5 shrink-0" />
+          <p>Paciente no encontrado o sin acceso.</p>
         </div>
       </FormShell>
     );
@@ -130,101 +129,110 @@ export function AppointmentForm({ resources, patientId, patient, defaultDate }: 
 
   return (
     <FormShell>
-      <div className="px-4 pt-3">
-        <p className="text-xs text-muted-foreground">
-          Paciente{" "}
-          <span className="font-medium text-foreground">
-            {patient.fullName ?? "Sin nombre"}
-          </span>
-        </p>
+      <div className="rounded-lg bg-brand-accent-soft/40 px-3 py-2 text-xs text-muted-foreground">
+        Paciente{" "}
+        <span className="font-medium text-foreground">
+          {patient.fullName ?? "Sin nombre"}
+        </span>
       </div>
-      <form onSubmit={handleSubmit} className="px-4 py-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="space-y-1">
-          <Label htmlFor="appt-date">Fecha</Label>
-          <Input
-            id="appt-date"
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-          />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="appt-time">Hora</Label>
-          <Input
-            id="appt-time"
-            type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            required
-          />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="appt-duration">Duración</Label>
-          <select
-            id="appt-duration"
-            className={SELECT_CLASS}
-            value={duration}
-            onChange={(e) => setDuration(Number(e.target.value))}
-          >
-            {DURATIONS.map((d) => (
-              <option key={d} value={d}>{d} min</option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-1 col-span-2 sm:col-span-1">
-          <Label htmlFor="appt-reason">Motivo</Label>
-          <Input
-            id="appt-reason"
-            type="text"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder="Ej. Revisión"
-            maxLength={500}
-          />
-        </div>
-
-        {professionals.length > 0 && (
-          <div className="space-y-1 col-span-2 sm:col-span-2">
-            <Label htmlFor="appt-professional">Profesional</Label>
-            <select
-              id="appt-professional"
-              className={SELECT_CLASS}
-              value={professionalResourceId}
-              onChange={(e) => setProfessionalResourceId(e.target.value)}
-            >
-              <option value="">Sin asignar</option>
-              {professionals.map((r) => (
-                <option key={r.id} value={r.id}>{r.name}</option>
-              ))}
-            </select>
+      <form onSubmit={handleSubmit} className="space-y-4 pt-1">
+        <div className="space-y-2">
+          <p className={FIELD_GROUP_LABEL_CLASS}>Cuándo</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="appt-date">Fecha</Label>
+              <Input
+                id="appt-date"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="appt-time">Hora</Label>
+              <Input
+                id="appt-time"
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="appt-duration">Duración</Label>
+              <select
+                id="appt-duration"
+                className={SELECT_CLASS}
+                value={duration}
+                onChange={(e) => setDuration(Number(e.target.value))}
+              >
+                {DURATIONS.map((d) => (
+                  <option key={d} value={d}>{d} min</option>
+                ))}
+              </select>
+            </div>
           </div>
-        )}
+        </div>
 
-        {chairs.length > 0 && (
-          <div className="space-y-1 col-span-2 sm:col-span-2">
-            <Label htmlFor="appt-chair">Sillón</Label>
-            <select
-              id="appt-chair"
-              className={SELECT_CLASS}
-              value={chairResourceId}
-              onChange={(e) => setChairResourceId(e.target.value)}
-            >
-              <option value="">Sin asignar</option>
-              {chairs.map((r) => (
-                <option key={r.id} value={r.id}>{r.name}</option>
-              ))}
-            </select>
+        <div className="space-y-2">
+          <p className={FIELD_GROUP_LABEL_CLASS}>Detalles</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="space-y-1 col-span-2 sm:col-span-1">
+              <Label htmlFor="appt-reason">Motivo</Label>
+              <Input
+                id="appt-reason"
+                type="text"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Ej. Revisión"
+                maxLength={500}
+              />
+            </div>
+
+            {professionals.length > 0 && (
+              <div className="space-y-1 col-span-2 sm:col-span-2">
+                <Label htmlFor="appt-professional">Profesional</Label>
+                <select
+                  id="appt-professional"
+                  className={SELECT_CLASS}
+                  value={professionalResourceId}
+                  onChange={(e) => setProfessionalResourceId(e.target.value)}
+                >
+                  <option value="">Sin asignar</option>
+                  {professionals.map((r) => (
+                    <option key={r.id} value={r.id}>{r.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {chairs.length > 0 && (
+              <div className="space-y-1 col-span-2 sm:col-span-2">
+                <Label htmlFor="appt-chair">Sillón</Label>
+                <select
+                  id="appt-chair"
+                  className={SELECT_CLASS}
+                  value={chairResourceId}
+                  onChange={(e) => setChairResourceId(e.target.value)}
+                >
+                  <option value="">Sin asignar</option>
+                  {chairs.map((r) => (
+                    <option key={r.id} value={r.id}>{r.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
-        <div className="col-span-2 sm:col-span-4 flex flex-wrap items-center gap-3 pt-1">
-          <Button type="submit" disabled={isPending}>
+        <div className="flex flex-wrap items-center gap-3 pt-2 border-t">
+          <Button type="submit" disabled={isPending} className="mt-3">
             {isPending ? "Guardando…" : "Guardar cita"}
           </Button>
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && <p className="text-sm text-destructive mt-3">{error}</p>}
           {success && (
-            <span className="flex flex-wrap items-center gap-3">
+            <span className="flex flex-wrap items-center gap-3 mt-3">
               <p className="text-sm text-green-600 dark:text-green-500">Cita agendada correctamente.</p>
               <Link
                 href={`/pacientes/${patient.patientId}`}
