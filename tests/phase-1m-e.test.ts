@@ -21,6 +21,8 @@ const MODULE_IDENTITY_PATH = resolve("src/lib/module-identity.tsx");
 const BACKGROUND_CUSTOMIZER_PATH = resolve("src/components/shell/BackgroundCustomizer.tsx");
 const MODULE_IDENTITY_CUSTOMIZER_PATH = resolve("src/components/shell/ModuleIdentityCustomizer.tsx");
 const PANEL_PATH = resolve("src/components/shell/PersonalizationPanel.tsx");
+const STYLE_WIZARD_PATH = resolve("src/components/shell/StyleWizard.tsx");
+const DETAILS_PATH = resolve("src/components/shell/PersonalizationDetails.tsx");
 const KPI_WIDGET_PATH = resolve("src/components/ui/kpi-widget.tsx");
 const DASHBOARD_KPI_GRID_PATH = resolve("src/components/dashboard/DashboardKpiGrid.tsx");
 const APP_DOCK_PATH = resolve("src/components/shell/AppDock.tsx");
@@ -31,6 +33,8 @@ const moduleIdentityContent = readFileSync(MODULE_IDENTITY_PATH, "utf-8");
 const backgroundCustomizerContent = readFileSync(BACKGROUND_CUSTOMIZER_PATH, "utf-8");
 const moduleIdentityCustomizerContent = readFileSync(MODULE_IDENTITY_CUSTOMIZER_PATH, "utf-8");
 const panelContent = readFileSync(PANEL_PATH, "utf-8");
+const styleWizardContent = readFileSync(STYLE_WIZARD_PATH, "utf-8");
+const detailsContent = readFileSync(DETAILS_PATH, "utf-8");
 const kpiWidgetContent = readFileSync(KPI_WIDGET_PATH, "utf-8");
 const dashboardKpiGridContent = readFileSync(DASHBOARD_KPI_GRID_PATH, "utf-8");
 const appDockContent = readFileSync(APP_DOCK_PATH, "utf-8");
@@ -212,11 +216,11 @@ describe("1M-E — 11. dock inferior: estilo, tamaño, activo, etiquetas", () =>
     expect(globalsCssContent).toContain("data-visual-dock-radius=");
   });
 
-  it("PersonalizationPanel incluye controles de dock", () => {
-    expect(panelContent).toContain("setDockStyle");
-    expect(panelContent).toContain("setDockSize");
-    expect(panelContent).toContain("setDockActiveStyle");
-    expect(panelContent).toContain("setDockLabelVisibility");
+  it("Personalizar incluye controles de dock (ajustes avanzados del menú)", () => {
+    expect(detailsContent).toContain("setDockStyle");
+    expect(detailsContent).toContain("setDockSize");
+    expect(detailsContent).toContain("setDockActiveStyle");
+    expect(detailsContent).toContain("setDockLabelVisibility");
   });
 });
 
@@ -238,10 +242,10 @@ describe("1M-E — 13. aplicar plantilla y resetear", () => {
     expect(visualPrefsContent).toContain("resetBusinessTemplate");
   });
 
-  it("PersonalizationPanel usa applyBusinessTemplate y resetBusinessTemplate, con 'Restaurar estilo base'", () => {
-    expect(panelContent).toContain("applyBusinessTemplate");
-    expect(panelContent).toContain("resetBusinessTemplate");
-    expect(panelContent).toContain("Restaurar estilo base");
+  it("Cambiar estilo completo usa applyBusinessTemplate y resetBusinessTemplate, con 'Restaurar estilo base'", () => {
+    expect(styleWizardContent).toContain("applyBusinessTemplate");
+    expect(styleWizardContent).toContain("resetBusinessTemplate");
+    expect(styleWizardContent).toContain("Restaurar estilo base");
   });
 });
 
@@ -253,6 +257,8 @@ describe("1M-E — 14. sin textos bloqueados", () => {
       backgroundCustomizerContent,
       moduleIdentityCustomizerContent,
       panelContent,
+      styleWizardContent,
+      detailsContent,
       kpiWidgetContent,
       dashboardKpiGridContent,
     ];
@@ -280,6 +286,8 @@ describe("1M-E — 15. alcance: sin servidor, sin migraciones nuevas", () => {
       backgroundCustomizerContent,
       moduleIdentityCustomizerContent,
       panelContent,
+      styleWizardContent,
+      detailsContent,
       kpiWidgetContent,
       appDockContent,
     ]) {

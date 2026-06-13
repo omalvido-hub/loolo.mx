@@ -30,7 +30,17 @@ import { cn } from "@/lib/utils";
 import { KpiWidget, type KpiWidgetTone } from "@/components/ui/kpi-widget";
 import { ModuleIcon } from "@/components/ui/module-icon";
 import { useModuleIdentities } from "@/lib/module-identity";
+import { useDashboardLayout, type DashboardCardSize } from "@/lib/dashboard-layout";
 import type { AppointmentListItem } from "@/server/domain/agenda/queries";
+
+// FASE 1M-F — tamaño de tarjeta elegido en "Acomoda tu dashboard" → ancho en
+// la grilla grid-cols-2 sm:grid-cols-4 de la página del Dashboard.
+const CARD_SIZE_COL_SPAN: Record<DashboardCardSize, string> = {
+  chico: "col-span-1",
+  mediano: "col-span-2",
+  grande: "col-span-2 sm:col-span-3",
+  ancho: "col-span-2 sm:col-span-4",
+};
 
 const APPT_STATUS_ES: Record<string, string> = {
   SCHEDULED: "programadas",
@@ -85,6 +95,8 @@ export function VerticalKpiCard({ cardId, icon: Icon, label, value, status, foot
   const { getIdentity } = useModuleIdentities();
   if (getIdentity(cardId).hidden) return null;
   const identity = getIdentity(cardId);
+  const { getCardSize } = useDashboardLayout();
+  const colSpan = CARD_SIZE_COL_SPAN[getCardSize(cardId)];
 
   const widget = (
     <KpiWidget
@@ -106,11 +118,11 @@ export function VerticalKpiCard({ cardId, icon: Icon, label, value, status, foot
   );
 
   if (!href) {
-    return <div data-dashboard-card={cardId}>{widget}</div>;
+    return <div className={colSpan} data-dashboard-card={cardId}>{widget}</div>;
   }
 
   return (
-    <Link data-dashboard-card={cardId} href={href} className="block cursor-pointer">
+    <Link data-dashboard-card={cardId} href={href} className={cn(colSpan, "block cursor-pointer")}>
       {widget}
     </Link>
   );
@@ -121,6 +133,8 @@ export function HorizontalKpiCard({ cardId, icon: Icon, label, value, status, fo
   const { getIdentity } = useModuleIdentities();
   if (getIdentity(cardId).hidden) return null;
   const identity = getIdentity(cardId);
+  const { getCardSize } = useDashboardLayout();
+  const colSpan = CARD_SIZE_COL_SPAN[getCardSize(cardId)];
 
   const widget = (
     <KpiWidget
@@ -142,11 +156,11 @@ export function HorizontalKpiCard({ cardId, icon: Icon, label, value, status, fo
   );
 
   if (!href) {
-    return <div data-dashboard-card={cardId}>{widget}</div>;
+    return <div className={colSpan} data-dashboard-card={cardId}>{widget}</div>;
   }
 
   return (
-    <Link data-dashboard-card={cardId} href={href} className="block cursor-pointer">
+    <Link data-dashboard-card={cardId} href={href} className={cn(colSpan, "block cursor-pointer")}>
       {widget}
     </Link>
   );

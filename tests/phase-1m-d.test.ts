@@ -23,6 +23,8 @@ const PREVIEW_CANVAS_PATH = resolve("src/components/shell/PersonalizationPreview
 const APP_SIDEBAR_PATH = resolve("src/components/app-sidebar.tsx");
 const GLOBALS_CSS_PATH = resolve("src/app/globals.css");
 const PANEL_PATH = resolve("src/components/shell/PersonalizationPanel.tsx");
+const STYLE_WIZARD_PATH = resolve("src/components/shell/StyleWizard.tsx");
+const PERSONALIZATION_DETAILS_PATH = resolve("src/components/shell/PersonalizationDetails.tsx");
 
 const visualPrefsContent = readFileSync(VISUAL_PREFS_PATH, "utf-8");
 const backgroundCustomizerContent = readFileSync(BACKGROUND_CUSTOMIZER_PATH, "utf-8");
@@ -31,6 +33,8 @@ const previewCanvasContent = readFileSync(PREVIEW_CANVAS_PATH, "utf-8");
 const appSidebarContent = readFileSync(APP_SIDEBAR_PATH, "utf-8");
 const globalsCssContent = readFileSync(GLOBALS_CSS_PATH, "utf-8");
 const panelContent = readFileSync(PANEL_PATH, "utf-8");
+const styleWizardContent = readFileSync(STYLE_WIZARD_PATH, "utf-8");
+const personalizationDetailsContent = readFileSync(PERSONALIZATION_DETAILS_PATH, "utf-8");
 
 describe("1M-D — integridad de archivos", () => {
   it("no existe migración 0021 ni superior (sin migraciones nuevas en esta fase)", () => {
@@ -44,12 +48,12 @@ describe("1M-D — integridad de archivos", () => {
   });
 });
 
-describe("1M-D — PersonalizationPanel: exactamente 5 secciones visibles", () => {
-  it("declara SECTIONS con inicio, marca, apariencia, fondos y modulos (en ese orden)", () => {
-    const order = ["inicio", "marca", "apariencia", "fondos", "modulos"];
+describe("1M-D — Personalizar (FASE 1M-F): inicio con 3 acciones simples", () => {
+  it("declara las 3 acciones del inicio: Cambiar estilo completo, Acomodar dashboard, Personalizar detalles", () => {
+    const order = ["Cambiar estilo completo", "Acomodar dashboard", "Personalizar detalles"];
     let lastIndex = -1;
-    for (const key of order) {
-      const idx = panelContent.indexOf(`key: "${key}"`);
+    for (const title of order) {
+      const idx = panelContent.indexOf(title);
       expect(idx).toBeGreaterThan(lastIndex);
       lastIndex = idx;
     }
@@ -71,21 +75,22 @@ describe("1M-D — PersonalizationPanel: exactamente 5 secciones visibles", () =
     expect(panelContent).not.toContain("DASHBOARD_WIDGET_LABELS");
   });
 
-  it("importa y renderiza BackgroundCustomizer en 'fondos' y BrandCustomizer en 'marca'", () => {
-    expect(panelContent).toMatch(/from\s+"@\/components\/shell\/BackgroundCustomizer"/);
-    expect(panelContent).toMatch(/from\s+"@\/components\/shell\/BrandCustomizer"/);
-    expect(panelContent).toContain("<BackgroundCustomizer />");
-    expect(panelContent).toContain("<BrandCustomizer />");
+  it("importa y renderiza BackgroundCustomizer y BrandCustomizer en Personalizar detalles", () => {
+    expect(personalizationDetailsContent).toMatch(/from\s+"@\/components\/shell\/BackgroundCustomizer"/);
+    expect(personalizationDetailsContent).toMatch(/from\s+"@\/components\/shell\/BrandCustomizer"/);
+    expect(personalizationDetailsContent).toContain("<BackgroundCustomizer />");
+    expect(personalizationDetailsContent).toContain("<BrandCustomizer />");
   });
 
-  it("conserva ModuleIdentityCustomizer en 'modulos'", () => {
-    expect(panelContent).toContain("<ModuleIdentityCustomizer />");
+  it("conserva ModuleIdentityCustomizer en Iconos (edición uno por uno)", () => {
+    expect(personalizationDetailsContent).toContain("<ModuleIdentityCustomizer />");
   });
 
-  it("conserva PersonalizationPreviewToggle, VisualPresetSelector y PersonalizationPreviewCanvas en 'apariencia'", () => {
+  it("conserva PersonalizationPreviewToggle, VisualPresetSelector y PersonalizationPreviewCanvas", () => {
     expect(panelContent).toContain("<PersonalizationPreviewToggle");
-    expect(panelContent).toContain("<VisualPresetSelector />");
-    expect(panelContent).toContain("<PersonalizationPreviewCanvas />");
+    expect(personalizationDetailsContent).toContain("<VisualPresetSelector />");
+    expect(styleWizardContent).toContain("<PersonalizationPreviewCanvas />");
+    expect(personalizationDetailsContent).toContain("<PersonalizationPreviewCanvas />");
   });
 
   it("el footer dice que los cambios se guardan localmente, sin lenguaje de bloqueo", () => {
@@ -131,9 +136,9 @@ describe("1M-D.1 — buscador real de Personalizar", () => {
     expect(panelContent).toMatch(/placeholder="Busca una categoría/);
   });
 
-  it("calcula resultados de búsqueda y los hace clickeables hacia setActiveKey", () => {
+  it("calcula resultados de búsqueda y los hace clickeables hacia una pantalla real", () => {
     expect(panelContent).toContain("searchResults");
-    expect(panelContent).toMatch(/onClick=\{\(\)\s*=>\s*\{\s*setActiveKey\(result\.key\);/);
+    expect(panelContent).toMatch(/onClick=\{\(\)\s*=>\s*goTo\(result\)\}/);
   });
 
   it('muestra "No encontré esa opción en Personalizar." cuando no hay resultados', () => {

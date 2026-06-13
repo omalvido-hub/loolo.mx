@@ -394,6 +394,48 @@ export const MODULE_IDENTITY_REGISTRY: ModuleIdentityDefinition[] = [
   { id: "module-configuracion", label: "Configuración", section: "module", defaultIdentity: identity({ iconKey: "Settings", color: "neutral", emoji: "⚙️", initials: "CF" }) },
 ];
 
+// ============================================================
+// FASE 1M-F — Paquetes de iconos completos (sencillo: "aplicar
+// paquete" en vez de editar uno por uno). Cada paquete cambia tipo,
+// estilo, posición, tamaño y color de los 8 widgets del Dashboard.
+// ============================================================
+
+export type ModuleIconPackageId =
+  | "clinico"
+  | "dental"
+  | "belleza"
+  | "taller"
+  | "legal"
+  | "educacion"
+  | "comercio"
+  | "wellness"
+  | "creativo"
+  | "minimal";
+
+export interface ModuleIconPackage {
+  key: ModuleIconPackageId;
+  label: string;
+  description: string;
+  type: ModuleIdentityType;
+  style: ModuleIconStyle;
+  iconPosition: ModuleIconPosition;
+  iconSize: ModuleIconSize;
+  color: ModuleAccentColor;
+}
+
+export const MODULE_ICON_PACKAGES: ModuleIconPackage[] = [
+  { key: "clinico", label: "Clínico", description: "Iconos lineales, claros y profesionales.", type: "icon", style: "outline", iconPosition: "top-right", iconSize: "normal", color: "teal" },
+  { key: "dental", label: "Dental", description: "Emojis cuidados, look dental cercano.", type: "emoji", style: "emoji", iconPosition: "top-right", iconSize: "normal", color: "teal" },
+  { key: "belleza", label: "Belleza", description: "Vidrio suave, icono grande al centro.", type: "icon", style: "glass", iconPosition: "center-large", iconSize: "large", color: "rose" },
+  { key: "taller", label: "Taller", description: "Iconos sólidos tipo insignia.", type: "icon", style: "badge", iconPosition: "top-left", iconSize: "large", color: "amber" },
+  { key: "legal", label: "Legal", description: "Sobrio, pequeño y ejecutivo.", type: "icon", style: "executive", iconPosition: "top-right", iconSize: "small", color: "slate" },
+  { key: "educacion", label: "Educación", description: "Iconos grandes y amables.", type: "icon", style: "solid-soft", iconPosition: "center-large", iconSize: "hero", color: "violet" },
+  { key: "comercio", label: "Comercio", description: "Iconos tipo insignia, listos para catálogo.", type: "icon", style: "badge", iconPosition: "top-right", iconSize: "normal", color: "amber" },
+  { key: "wellness", label: "Wellness", description: "Suaves y frescos, icono protagonista.", type: "icon", style: "solid-soft", iconPosition: "center-large", iconSize: "large", color: "emerald" },
+  { key: "creativo", label: "Creativo", description: "Duotono expresivo y grande.", type: "icon", style: "duotone", iconPosition: "center-large", iconSize: "hero", color: "rose" },
+  { key: "minimal", label: "Minimal", description: "Pequeño, sobrio, casi invisible.", type: "icon", style: "minimal", iconPosition: "top-right", iconSize: "small", color: "slate" },
+];
+
 export const MODULE_IDENTITY_STORAGE_KEY = "nelzzon.moduleIdentity.v1";
 
 type ModuleIdentityOverrides = Record<string, Partial<ModuleIdentity>>;
@@ -407,6 +449,8 @@ interface ModuleIdentityContextValue {
   resetAllIcons: () => void;
   /** Reinicia por completo la identidad de todos los módulos, incluida la visibilidad. */
   resetAllIdentities: () => void;
+  /** Aplica un paquete completo de iconos a los 8 widgets del Dashboard. */
+  applyIconPackage: (key: ModuleIconPackageId) => void;
 }
 
 const ModuleIdentityContext = createContext<ModuleIdentityContextValue | null>(null);
@@ -485,6 +529,26 @@ export function ModuleIdentityProvider({ children }: { children: ReactNode }) {
     setOverrides({});
   }
 
+  function applyIconPackage(key: ModuleIconPackageId) {
+    const pkg = MODULE_ICON_PACKAGES.find((p) => p.key === key);
+    if (!pkg) return;
+    setOverrides((prev) => {
+      const next = { ...prev };
+      for (const def of MODULE_IDENTITY_REGISTRY) {
+        if (def.section !== "dashboard-widget") continue;
+        next[def.id] = {
+          ...next[def.id],
+          type: pkg.type,
+          style: pkg.style,
+          iconPosition: pkg.iconPosition,
+          iconSize: pkg.iconSize,
+          color: pkg.color,
+        };
+      }
+      return next;
+    });
+  }
+
   const value: ModuleIdentityContextValue = {
     registry: MODULE_IDENTITY_REGISTRY,
     getIdentity,
@@ -492,6 +556,7 @@ export function ModuleIdentityProvider({ children }: { children: ReactNode }) {
     resetIdentity,
     resetAllIcons,
     resetAllIdentities,
+    applyIconPackage,
   };
 
   return <ModuleIdentityContext.Provider value={value}>{children}</ModuleIdentityContext.Provider>;

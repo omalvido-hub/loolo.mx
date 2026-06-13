@@ -23,6 +23,7 @@ const DASHBOARD_KPI_GRID_PATH = resolve("src/components/dashboard/DashboardKpiGr
 const APP_SHELL_PATH = resolve("src/components/shell/AppShell.tsx");
 const CUSTOMIZER_PATH = resolve("src/components/shell/ModuleIdentityCustomizer.tsx");
 const PERSONALIZATION_PANEL_PATH = resolve("src/components/shell/PersonalizationPanel.tsx");
+const PERSONALIZATION_DETAILS_PATH = resolve("src/components/shell/PersonalizationDetails.tsx");
 
 const moduleIdentityContent = readFileSync(MODULE_IDENTITY_PATH, "utf-8");
 const moduleIconContent = readFileSync(MODULE_ICON_PATH, "utf-8");
@@ -31,6 +32,7 @@ const dashboardKpiGridContent = readFileSync(DASHBOARD_KPI_GRID_PATH, "utf-8");
 const appShellContent = readFileSync(APP_SHELL_PATH, "utf-8");
 const customizerContent = readFileSync(CUSTOMIZER_PATH, "utf-8");
 const panelContent = readFileSync(PERSONALIZATION_PANEL_PATH, "utf-8");
+const personalizationDetailsContent = readFileSync(PERSONALIZATION_DETAILS_PATH, "utf-8");
 
 describe("1M-C — integridad de archivos", () => {
   it("no existe migración 0021 ni superior (sin migraciones nuevas en esta fase)", () => {
@@ -242,10 +244,10 @@ describe("1M-C — ModuleIdentityCustomizer: UI de Personalizar > Módulos", () 
   });
 });
 
-describe("1M-C — PersonalizationPanel: integra el customizer en Módulos", () => {
-  it("importa y usa ModuleIdentityCustomizer en la sección 'modulos'", () => {
-    expect(panelContent).toMatch(/from\s+"@\/components\/shell\/ModuleIdentityCustomizer"/);
-    expect(panelContent).toContain("<ModuleIdentityCustomizer />");
+describe("1M-C — Personalizar: integra el customizer en Iconos (edición uno por uno)", () => {
+  it("importa y usa ModuleIdentityCustomizer", () => {
+    expect(personalizationDetailsContent).toMatch(/from\s+"@\/components\/shell\/ModuleIdentityCustomizer"/);
+    expect(personalizationDetailsContent).toContain("<ModuleIdentityCustomizer />");
   });
 });
 

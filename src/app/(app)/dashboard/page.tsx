@@ -5,16 +5,7 @@ import { makeTenantRunner } from "@/server/db/tenant";
 import { can } from "@/server/domain/identity/permissions";
 import { listAppointmentsByRange } from "@/server/domain/agenda/queries";
 import type { AppointmentListItem } from "@/server/domain/agenda/queries";
-import {
-  CitasHoyKpi,
-  CobradoMesKpi,
-  PorCobrarKpi,
-  PresupuestosPendientesKpi,
-  TratamientosActivosKpi,
-  IngresosMesKpi,
-  PuntoEquilibrioKpi,
-  MetaMensualKpi,
-} from "@/components/dashboard/DashboardKpiGrid";
+import { DashboardKpiOrderedGrid } from "@/components/dashboard/DashboardKpiOrderedGrid";
 import { ModuleCard } from "@/components/ui/module-card";
 import { ChartPreviewCard } from "@/components/ui/chart-preview-card";
 
@@ -41,25 +32,8 @@ export default async function DashboardPage() {
 
   return (
     <div className="dashboard-shell mx-auto max-w-6xl space-y-4 px-6 py-6 pb-12 sm:px-8">
-      {/* Fila superior: 4 KPIs verticales */}
-      <div className="dashboard-grid grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <CitasHoyKpi appointmentsToday={appointmentsToday} />
-        <CobradoMesKpi />
-        <TratamientosActivosKpi />
-        <IngresosMesKpi />
-      </div>
-
-      {/* Fila inferior: 2 columnas de horizontales apiladas */}
-      <div className="dashboard-grid grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="flex flex-col gap-4">
-          <PorCobrarKpi />
-          <PresupuestosPendientesKpi />
-        </div>
-        <div className="flex flex-col gap-4">
-          <PuntoEquilibrioKpi />
-          <MetaMensualKpi />
-        </div>
-      </div>
+      {/* KPIs — orden y tamaño según "Acomoda tu dashboard" */}
+      <DashboardKpiOrderedGrid className="dashboard-grid" appointmentsToday={appointmentsToday} />
 
       {/* Vista previa visual — decorativa, sin datos operativos reales */}
       <ModuleCard title="Panorama" subtitle="Una vista previa de cómo se vería tu actividad" badge="Vista previa">

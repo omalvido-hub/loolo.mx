@@ -22,6 +22,8 @@ const CHART_PREVIEW_PATH = resolve("src/components/ui/chart-preview-card.tsx");
 const PRESET_SELECTOR_PATH = resolve("src/components/shell/VisualPresetSelector.tsx");
 const PREVIEW_CANVAS_PATH = resolve("src/components/shell/PersonalizationPreviewCanvas.tsx");
 const PERSONALIZATION_PANEL_PATH = resolve("src/components/shell/PersonalizationPanel.tsx");
+const STYLE_WIZARD_PATH = resolve("src/components/shell/StyleWizard.tsx");
+const PERSONALIZATION_DETAILS_PATH = resolve("src/components/shell/PersonalizationDetails.tsx");
 const GLOBALS_CSS_PATH = resolve("src/app/globals.css");
 const DASHBOARD_KPI_GRID_PATH = resolve("src/components/dashboard/DashboardKpiGrid.tsx");
 const DASHBOARD_PAGE_PATH = resolve("src/app/(app)/dashboard/page.tsx");
@@ -33,6 +35,8 @@ const chartPreviewContent = readFileSync(CHART_PREVIEW_PATH, "utf-8");
 const presetSelectorContent = readFileSync(PRESET_SELECTOR_PATH, "utf-8");
 const previewCanvasContent = readFileSync(PREVIEW_CANVAS_PATH, "utf-8");
 const panelContent = readFileSync(PERSONALIZATION_PANEL_PATH, "utf-8");
+const styleWizardContent = readFileSync(STYLE_WIZARD_PATH, "utf-8");
+const personalizationDetailsContent = readFileSync(PERSONALIZATION_DETAILS_PATH, "utf-8");
 const globalsCssContent = readFileSync(GLOBALS_CSS_PATH, "utf-8");
 const dashboardKpiGridContent = readFileSync(DASHBOARD_KPI_GRID_PATH, "utf-8");
 const dashboardPageContent = readFileSync(DASHBOARD_PAGE_PATH, "utf-8");
@@ -118,25 +122,24 @@ describe("1M-B — VisualPresetSelector con 6 presets", () => {
   });
 });
 
-describe("1M-B — PersonalizationPanel reorganizado: Estilo visual / Vista previa / Dashboard / Acciones", () => {
+describe("1M-B — Personalizar: estilo visual / vista previa / dashboard / acciones", () => {
   it("importa PersonalizationPreviewCanvas y useVisualPreferences", () => {
-    expect(panelContent).toMatch(/from\s+"@\/components\/shell\/PersonalizationPreviewCanvas"/);
-    expect(panelContent).toMatch(/from\s+"@\/lib\/visual-preferences"/);
+    expect(styleWizardContent).toMatch(/from\s+"@\/components\/shell\/PersonalizationPreviewCanvas"/);
+    expect(styleWizardContent).toMatch(/from\s+"@\/lib\/visual-preferences"/);
   });
 
-  it("renderiza VisualPresetSelector y PersonalizationPreviewCanvas dentro de Apariencia", () => {
-    expect(panelContent).toContain("<VisualPresetSelector");
-    expect(panelContent).toContain("<PersonalizationPreviewCanvas");
+  it("renderiza VisualPresetSelector y PersonalizationPreviewCanvas", () => {
+    expect(personalizationDetailsContent).toContain("<VisualPresetSelector");
+    expect(styleWizardContent).toContain("<PersonalizationPreviewCanvas");
   });
 
-  it("incluye un bloque de Acciones con reset (los widgets del Dashboard se personalizan en Módulos, FASE 1M-C/D)", () => {
-    expect(panelContent).toContain("<PersonalizationActions");
-    expect(panelContent).toContain("resetVisualPreferences");
-    expect(panelContent).toContain("Resetear diseño");
+  it("incluye un bloque de Acciones con reset (los widgets del Dashboard se personalizan en Acomodar, FASE 1M-F)", () => {
+    expect(personalizationDetailsContent).toContain("resetVisualPreferences");
+    expect(personalizationDetailsContent).toContain("Resetear diseño");
   });
 
-  it('comunica que el guardado es automático en este navegador', () => {
-    expect(panelContent.toLowerCase()).toContain("guardado en este navegador");
+  it('comunica que el guardado es local en este navegador', () => {
+    expect(panelContent.toLowerCase()).toContain("en este navegador");
   });
 });
 
