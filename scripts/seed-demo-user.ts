@@ -105,8 +105,8 @@ async function main() {
   );
   const memberId: string = memberRows[0].id;
 
-  // ── Rol fino LOOLO ────────────────────────────────────────────────────
-  console.log("5. Rol LOOLO owner...");
+  // ── Rol fino Nelzzon ────────────────────────────────────────────────────
+  console.log("5. Rol Nelzzon owner...");
   // DELETE + INSERT garantiza idempotencia aunque los roleId cambien por reseed de tests
   // (phase2a hace DELETE FROM "roles" CASCADE que borra membership_roles;
   //  al re-insertar roles los UUIDs son distintos — ON CONFLICT DO NOTHING

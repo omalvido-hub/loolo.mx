@@ -1,8 +1,8 @@
-// LOOLO — Esquema Fase 1 (columna vertebral)
+// Nelzzon — Esquema Fase 1 (columna vertebral)
 // Convención:
 //   - Tablas de Better Auth: globales, SIN RLS de tenant (las gestiona la capa de auth).
 //   - Catálogos RBAC (Role, Permission): globales del sistema, SIN RLS de tenant.
-//   - Tablas de dominio LOOLO: org-scoped, CON RLS + FORCE (ver scripts/apply-rls.ts).
+//   - Tablas de dominio Nelzzon: org-scoped, CON RLS + FORCE (ver scripts/apply-rls.ts).
 //   - events != audit_logs. audit_logs es append-only (grants en apply-rls).
 
 generator client {
@@ -102,7 +102,7 @@ model Member {
 
   organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  membershipRoles MembershipRole[] // ← capa fina de LOOLO
+  membershipRoles MembershipRole[] // ← capa fina de Nelzzon
 
   @@unique([organizationId, userId])
   @@map("organization_memberships")
@@ -124,7 +124,7 @@ model Invitation {
 }
 
 // ───────────────────────────────────────────────────────────────────
-// RBAC LOOLO — catálogos GLOBALES del sistema (sin RLS de tenant).
+// RBAC Nelzzon — catálogos GLOBALES del sistema (sin RLS de tenant).
 // El vínculo por organización ocurre en MembershipRole (cuelga de Member).
 // ───────────────────────────────────────────────────────────────────
 
@@ -224,7 +224,7 @@ enum SupportGrantStatus {
 }
 
 // ───────────────────────────────────────────────────────────────────
-// DOMINIO LOOLO — org-scoped. CON RLS + FORCE.
+// DOMINIO Nelzzon — org-scoped. CON RLS + FORCE.
 // Reglas 6 y 7: contact/prospect/patient/opportunity son entidades SEPARADAS.
 // Soft delete en datos sensibles (archivedAt / deletedAt).
 // ───────────────────────────────────────────────────────────────────

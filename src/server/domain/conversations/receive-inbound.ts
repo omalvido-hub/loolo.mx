@@ -25,7 +25,7 @@ export interface InboundPlan {
   createContact: boolean;
   contactState: RecordState;
   conversationState: RecordState;
-  // Lo que LOOLO explícitamente NO hace de forma automática:
+  // Lo que Nelzzon explícitamente NO hace de forma automática:
   createsPatient: false; // regla 7
   createsOpportunity: false; // regla 9
   emitEvents: ("conversation.received" | "contact.created")[];

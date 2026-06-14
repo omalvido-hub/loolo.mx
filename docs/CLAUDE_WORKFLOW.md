@@ -1,4 +1,4 @@
-# Reglas de trabajo con Claude Code en LOOLO/nelzzon
+# Reglas de trabajo con Claude Code en Nelzzon
 
 > Objetivo de este documento: avanzar más rápido sin perder control. Define
 > en qué modo opera Claude Code según el tipo de tarea, y las reglas

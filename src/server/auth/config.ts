@@ -1,7 +1,7 @@
 // NELZZON — Configuración de Better Auth.
 // Better Auth es dueño de la lógica de autenticación, sesiones, organizaciones y membresías.
 // Usa las tablas ya definidas en Prisma (users, sessions, accounts, organizations,
-// organization_memberships, invitations). La capa de permisos finos de LOOLO
+// organization_memberships, invitations). La capa de permisos finos de Nelzzon
 // (roles/permissions/membership_roles) se valida aparte, en src/server/domain.
 
 import { betterAuth } from "better-auth";

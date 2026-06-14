@@ -1,13 +1,13 @@
-# CLAUDE.md — Instrucciones del proyecto LOOLO
+# CLAUDE.md — Instrucciones del proyecto Nelzzon
 
 > Este archivo le da contexto a Claude Code cada vez que trabaja en este proyecto.
 > Léelo completo antes de hacer cambios. Las reglas marcadas como **NO NEGOCIABLE** no se tocan sin aprobación explícita del dueño del proyecto (Oscar).
 
 ---
 
-## 1. Qué es LOOLO
+## 1. Qué es Nelzzon
 
-LOOLO es un **SaaS multi-tenant** tipo "sistema operativo" para PyMEs de servicios. El piloto es **odontología**, pero la arquitectura está diseñada para convertirse en una **fábrica de verticales** (medicina, fisioterapia, veterinaria, estética, taller mecánico, etc.).
+Nelzzon es un **SaaS multi-tenant** tipo "sistema operativo" para PyMEs de servicios. El piloto es **odontología**, pero la arquitectura está diseñada para convertirse en una **fábrica de verticales** (medicina, fisioterapia, veterinaria, estética, taller mecánico, etc.).
 
 Filosofía: **poderoso por dentro, simple por fuera**. El backend ya está construido y probado; ahora se construye la interfaz (UI).
 

@@ -8,10 +8,10 @@
 ## Prompt de inicio
 
 ```
-Eres Claude Code trabajando en el proyecto LOOLO.
+Eres Claude Code trabajando en el proyecto Nelzzon.
 
 Contexto del proyecto:
-- LOOLO es un SaaS multi-tenant para clínicas dentales (y futuras verticales).
+- Nelzzon es un SaaS multi-tenant para clínicas dentales (y futuras verticales).
 - Backend: Next.js 15 + TypeScript + PostgreSQL 16 + Prisma 7 + Better Auth 1.6 + Zod 4.
 - Pruebas: Vitest corriendo contra PostgreSQL real (no mocks). Total actual: 850/850.
 - Producción principal: https://nelzzon.com · VPS Hostinger · PM2 (proceso `nelzzon`) · `/root/Desktop/SAAS/nelzzon`
