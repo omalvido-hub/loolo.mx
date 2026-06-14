@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nelzzon — Tablero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/tabler-icons.min.css" rel="stylesheet">
+<style>
+  :root{
+    --accent:#4f46e5; --accent-2:#6366f1; --accent-soft:#eef2ff;
+    --bg:#f5f6f8; --surface:#ffffff; --card-bg:#ffffff;
+    --ink:#161a23; --muted:#6b7280; --faint:#9aa1ad;
+    --line:#ecedf1; --line-2:#e3e5ea;
+    --green:#059669; --green-soft:#ecfdf5;
+    --amber:#d97706; --amber-soft:#fff7ed;
+    --rose:#e11d48; --rose-soft:#fff1f3;
+    --violet:#7c3aed; --violet-soft:#f5f3ff;
+    --sky:#0284c7; --sky-soft:#eff8ff;
+    --shadow:0 1px 2px rgba(16,24,40,.04), 0 4px 16px rgba(16,24,40,.05);
+    --radius:16px;
+    --pad-card:20px;
+    --side-w:248px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;transition:background .2s}
+  .shell{display:flex;height:100vh;overflow:hidden}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{width:248px;flex:none;background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:18px 14px;transition:margin-left .28s cubic-bezier(.4,0,.2,1)}
+  .sidebar.gone{margin-left:-249px}
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 18px}
+  .brand .logo{width:34px;height:34px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px}
+  .brand b{font-size:18px;font-weight:700;letter-spacing:-.02em}
+  .nav{display:flex;flex-direction:column;gap:2px;margin-top:4px}
+  .nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:11px;color:var(--muted);text-decoration:none;font-size:14.5px;font-weight:500;transition:.15s}
+  .nav a i{font-size:20px}
+  .nav a:hover{background:var(--bg);color:var(--ink)}
+  .nav a.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+  .nav .sep{height:1px;background:var(--line);margin:10px 8px}
+  .side-foot{margin-top:auto;padding:10px 12px;border-radius:12px;background:var(--bg);font-size:12.5px;color:var(--muted);line-height:1.5}
+
+  /* ---------- Content ---------- */
+  .content{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
+  .topbar{display:flex;align-items:center;gap:14px;padding:14px 26px;background:var(--surface);border-bottom:1px solid var(--line);flex:none;z-index:5}
+  .icon-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:19px;transition:.15s}
+  .icon-btn:hover{background:var(--bg);color:var(--ink)}
+  .greet{display:flex;align-items:center;gap:9px}
+  .greet i{font-size:21px;color:var(--amber)}
+  .greet b{font-size:16px;font-weight:600}
+  .search{flex:1;max-width:560px;position:relative}
+  .search i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--faint);font-size:18px}
+  .search input{width:100%;height:42px;border:1px solid var(--line-2);background:var(--bg);border-radius:12px;padding:0 16px 0 42px;font:inherit;font-size:14.5px;color:var(--ink);outline:none;transition:.15s}
+  .search input::placeholder{color:var(--faint)}
+  .search input:focus{background:var(--surface);border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+  .top-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+  .btn-accent{display:flex;align-items:center;gap:8px;height:40px;padding:0 16px;border-radius:11px;border:none;background:var(--accent);color:#fff;font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:.15s;box-shadow:0 1px 2px rgba(79,70,229,.25)}
+  .btn-accent:hover{filter:brightness(1.06)}
+  .btn-accent i{font-size:18px}
+  .user{display:flex;align-items:center;gap:10px;padding-left:6px}
+  .user .av{width:40px;height:40px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+  .user .nm{line-height:1.15}
+  .user .nm b{font-size:14px;font-weight:600;display:block}
+  .user .nm span{font-size:12.5px;color:var(--accent)}
+
+  .main{flex:1;min-height:0;padding:26px 26px 110px;overflow:auto;background:transparent}
+  .grid{display:grid;gap:18px}
+  .kpis{grid-template-columns:repeat(4,1fr);margin-bottom:18px}
+  .row2{grid-template-columns:1.7fr 1fr;margin-bottom:18px}
+  @media(max-width:1180px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:780px){.kpis,.row2{grid-template-columns:1fr}.sidebar{position:absolute;z-index:20;height:100%}}
+
+  .card{background:var(--card-bg);border:1px solid var(--line);border-radius:var(--radius);padding:var(--pad-card);box-shadow:var(--shadow);transition:padding .2s, box-shadow .2s, transform .15s}
+  .card:hover{transform:translateY(-2px)}
+  body.flat .card{box-shadow:none}
+  .card-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+  .tile{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:23px}
+  body.compact .tile{width:40px;height:40px;font-size:20px}
+  .t-sky{background:var(--sky-soft);color:var(--sky)} .t-green{background:var(--green-soft);color:var(--green)}
+  .t-violet{background:var(--violet-soft);color:var(--violet)} .t-amber{background:var(--amber-soft);color:var(--amber)}
+  .t-rose{background:var(--rose-soft);color:var(--rose)} .t-accent{background:var(--accent-soft);color:var(--accent)}
+  .info{color:var(--faint);font-size:17px;cursor:pointer}
+  .klabel{font-size:12.5px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--faint);margin-bottom:7px}
+  .kval{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.05}
+  body.compact .kval{font-size:26px}
+  .kval small{font-size:14px;font-weight:600;color:var(--muted);margin-left:3px}
+  .ksub{font-size:13px;color:var(--muted);margin-top:8px}
+  .delta{color:var(--green);font-weight:600}
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:4px 11px;border-radius:8px;margin-top:14px}
+  .b-green{background:var(--green-soft);color:var(--green)} .b-amber{background:var(--amber-soft);color:var(--amber)}
+  .b-sky{background:var(--sky-soft);color:var(--sky)} .b-gray{background:var(--bg);color:var(--muted)}
+  .progress{height:9px;border-radius:6px;background:var(--bg);overflow:hidden;margin:14px 0 8px}
+  .progress i{display:block;height:100%;background:var(--accent);border-radius:6px;transition:width .4s}
+
+  /* ---------- Accesos directos (floating pill) ---------- */
+  .fab-wrap{position:fixed;bottom:20px;left:calc(50% + var(--side-w)/2);transform:translateX(-50%);z-index:40;display:flex;flex-direction:column;align-items:center;gap:12px;transition:left .28s}
+  .fab-pill{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:11px 20px;cursor:pointer;font:inherit;font-size:12.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);box-shadow:0 6px 22px rgba(16,24,40,.14);transition:.15s}
+  .fab-pill:hover{background:var(--bg)}
+  .fab-pill .ti-bolt{color:var(--accent);font-size:17px}
+  .fab-pill #dockChev{font-size:17px;transition:.2s}
+  .fab-wrap.open #dockChev{transform:rotate(180deg)}
+  .fab-panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 44px rgba(16,24,40,.18);padding:14px;opacity:0;transform:translateY(14px) scale(.96);transform-origin:bottom center;pointer-events:none;transition:.2s}
+  .fab-wrap.open .fab-panel{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+  .fab-grid{display:grid;grid-template-columns:repeat(5,74px);gap:8px}
+  .shortcut{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 8px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;transition:.15s;text-decoration:none}
+  .shortcut:hover{border-color:var(--accent);background:var(--accent-soft)}
+  .shortcut i{font-size:23px}
+  .shortcut span{font-size:12px;font-weight:500;color:var(--ink)}
+  @media(max-width:780px){.fab-grid{grid-template-columns:repeat(3,74px)}}
+
+  /* ---------- Personalizar drawer ---------- */
+  .drawer{width:0;flex:none;background:var(--surface);border-left:1px solid var(--line);overflow:hidden;transition:width .28s cubic-bezier(.4,0,.2,1)}
+  .drawer.open{width:336px}
+  .drawer-inner{width:336px;height:100%;display:flex;flex-direction:column}
+  .drawer-top{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line)}
+  .drawer-top b{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .drawer-top b i{color:var(--accent);font-size:19px}
+  .drawer-body{padding:18px 20px;overflow:auto;flex:1}
+  .live-tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--green);background:var(--green-soft);padding:4px 10px;border-radius:8px;margin-bottom:16px}
+  .live-tag .dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .sect{border:1px solid var(--line);border-radius:13px;margin-bottom:12px;overflow:hidden}
+  .sect-h{display:flex;align-items:center;gap:11px;padding:13px 14px;cursor:pointer}
+  .sect-h .si{width:32px;height:32px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:17px}
+  .sect-h .st{flex:1}
+  .sect-h .st b{font-size:13.5px;font-weight:600;display:block}
+  .sect-h .st span{font-size:12px;color:var(--muted)}
+  .sect-h .chev{color:var(--faint);font-size:18px;transition:.2s}
+  .sect.open .chev{transform:rotate(180deg)}
+  .sect-c{padding:0 14px;max-height:0;overflow:hidden;transition:max-height .25s,padding .25s}
+  .sect.open .sect-c{max-height:600px;padding:0 14px 16px}
+  .bgsw{width:30px;height:30px;border-radius:9px;cursor:pointer;border:1px solid var(--line-2);transition:.15s}
+  .bgsw:hover{transform:scale(1.06)}
+  .wallpapers{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .wp{width:62px;height:40px;border-radius:9px;cursor:pointer;border:1px solid var(--line-2);transition:.15s}
+  .wp:hover{transform:scale(1.05)}
+  .upload{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:42px;margin-top:12px;border:1.5px dashed var(--line-2);border-radius:11px;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);transition:.15s}
+  .upload:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+  .upload i{font-size:18px}
+  .ctl-label{font-size:12.5px;font-weight:600;color:var(--muted);margin:6px 0 9px}
+  .swatches{display:flex;gap:11px;margin-bottom:6px}
+  .sw{width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:.15s}
+  .sw:hover{transform:scale(1.08)}
+  .sw.on{border-color:var(--ink)}
+  .seg{display:flex;gap:4px;background:var(--bg);border-radius:11px;padding:4px}
+  .seg button{flex:1;border:none;background:transparent;font:inherit;font-size:13px;font-weight:500;color:var(--muted);padding:8px 0;border-radius:8px;cursor:pointer}
+  .seg button.on{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(16,24,40,.08)}
+  .drawer-foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:10px}
+  .drawer-foot button{flex:1;height:42px;border-radius:11px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+  .ghost{border:1px solid var(--line-2);background:var(--surface);color:var(--muted)}
+  .solid{border:none;background:var(--accent);color:#fff}
+
+  /* ---------- Drag & drop ---------- */
+  [data-drag]{cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none}
+  [data-drag].dragging{opacity:.5;cursor:grabbing;box-shadow:0 14px 32px rgba(16,24,40,.2)}
+  #dragInfo{position:fixed;left:16px;bottom:16px;z-index:60;background:#111827;color:#fff;font-size:12px;font-weight:600;padding:7px 13px;border-radius:999px;box-shadow:var(--shadow);opacity:.92}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><div class="logo">N</div><b>nelzzon</b></div>
+    <nav class="nav">
+      <a href="#" class="active"><i class="ti ti-layout-dashboard"></i>Inicio</a>
+      <a href="#"><i class="ti ti-users"></i>Pacientes</a>
+      <a href="#"><i class="ti ti-calendar"></i>Agenda</a>
+      <a href="#"><i class="ti ti-stethoscope"></i>Consultas</a>
+      <a href="#"><i class="ti ti-clipboard-list"></i>Tratamientos</a>
+      <a href="#"><i class="ti ti-cash"></i>Cobros</a>
+      <div class="sep"></div>
+      <a href="#"><i class="ti ti-file-text"></i>Documentos</a>
+      <a href="#"><i class="ti ti-chart-bar"></i>Reportes</a>
+      <a href="#"><i class="ti ti-settings"></i>Configuración</a>
+    </nav>
+    <div class="side-foot">Clínica Norte · Plan Pro<br>3 sillones activos</div>
+  </aside>
+
+  <!-- Content -->
+  <div class="content">
+    <header class="topbar">
+      <button class="icon-btn" onclick="toggleSidebar()" aria-label="Menú"><i class="ti ti-menu-2"></i></button>
+      <div class="greet"><i class="ti ti-sun"></i><b>Buenos días, Oscar</b></div>
+      <div class="search"><i class="ti ti-search"></i><input placeholder="Buscar pacientes, citas, tratamientos…"></div>
+      <div class="top-right">
+        <button class="btn-accent" onclick="toggleDrawer()"><i class="ti ti-adjustments"></i>Personalizar</button>
+        <div class="user"><div class="av">OM</div><div class="nm"><b>Oscar Malvido</b><span>Propietario</span></div></div>
+      </div>
+    </header>
+
+    <div class="main">
+      <!-- KPIs -->
+      <div class="grid kpis">
+        <div class="card">
+          <div class="card-head"><div class="tile t-sky"><i class="ti ti-calendar-event"></i></div><i class="ti ti-info-circle info"></i></div>
+          <div class="klabel">Citas de hoy</div>
+          <div class="kval">8</div>
+          <div class="ksub">4 confirmadas · 2 por confirmar</div>
+          <span class="badge b-green"><i class="ti ti-circle-check" style="font-size:14px"></i>Activo</span>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="tile t-green"><i class="ti ti-cash"></i></div><i class="ti ti-info-circle info"></i></div>
+          <div class="klabel">Cobrado este mes</div>
+          <div class="kval">$86,450<small>MXN</small></div>
+          <div class="ksub"><span class="delta">+18%</span> vs. mes anterior</div>
+          <span class="badge b-gray">Objetivo $120,000</span>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="tile t-violet"><i class="ti ti-dental"></i></div><i class="ti ti-info-circle info"></i></div>
+          <div class="klabel">Tratamientos activos</div>
+          <div class="kval">23</div>
+          <div class="ksub">12 en curso · 11 por iniciar</div>
+          <span class="badge b-sky">En progreso</span>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="tile t-accent"><i class="ti ti-trending-up"></i></div><i class="ti ti-info-circle info"></i></div>
+          <div class="klabel">Ingresos del mes</div>
+          <div class="kval">$112,300<small>MXN</small></div>
+          <div class="ksub"><span class="delta">+22%</span> vs. mes anterior</div>
+          <span class="badge b-gray">Objetivo $150,000</span>
+        </div>
+      </div>
+
+      <!-- Secondary row 1 -->
+      <div class="grid row2">
+        <div class="card">
+          <div class="card-head"><div class="tile t-amber"><i class="ti ti-file-invoice"></i></div><i class="ti ti-info-circle info"></i></div>
+          <div class="klabel">Por cobrar</div>
+          <div class="kval">$34,800<small>MXN</small></div>
+          <div class="ksub">7 pacientes · 12 documentos pendientes de pago</div>
+          <span class="badge b-amber"><i class="ti ti-clock" style="font-size:14px"></i>Pendiente</span>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="tile t-sky"><i class="ti ti-target-arrow"></i></div><i class="ti ti-info-circle info"></i></div>
+          <div class="klabel">Meta mensual</div>
+          <div class="kval">75%</div>
+          <div class="progress"><i style="width:75%"></i></div>
+          <div class="ksub">$112,300 / $150,000</div>
+        </div>
+      </div>
+
+      <!-- Secondary row 2 -->
+      <div class="grid row2">
+        <div class="card">
+          <div class="card-head"><div class="tile t-green"><i class="ti ti-scale"></i></div><i class="ti ti-info-circle info"></i></div>
+          <div class="klabel">Punto de equilibrio</div>
+          <div class="kval">$94,500<small>MXN</small></div>
+          <div class="ksub">78% alcanzado · cubres tus costos fijos del mes</div>
+          <span class="badge b-green"><i class="ti ti-heart" style="font-size:14px"></i>Saludable</span>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="tile t-violet"><i class="ti ti-clipboard-list"></i></div><i class="ti ti-info-circle info"></i></div>
+          <div class="klabel">Presupuestos pendientes</div>
+          <div class="kval">15</div>
+          <div class="ksub">$56,200 MXN en total</div>
+          <span class="badge b-amber"><i class="ti ti-clock" style="font-size:14px"></i>Pendiente</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Personalizar drawer -->
+  <aside class="drawer" id="drawer">
+    <div class="drawer-inner">
+      <div class="drawer-top">
+        <b><i class="ti ti-sparkles"></i>Personalizar tu sistema</b>
+        <button class="icon-btn" style="width:34px;height:34px;font-size:17px" onclick="toggleDrawer()" aria-label="Cerrar"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="drawer-body">
+        <span class="live-tag"><span class="dot"></span>En vivo · el tablero sigue visible</span>
+
+        <div class="sect open">
+          <div class="sect-h" onclick="toggleSect(this)"><div class="si"><i class="ti ti-palette"></i></div><div class="st"><b>Colores y fondos</b><span>Acento, fondo e imágenes</span></div><i class="ti ti-chevron-down chev"></i></div>
+          <div class="sect-c">
+            <div class="ctl-label">Color de acento</div>
+            <div class="swatches">
+              <span class="sw on" style="background:#4f46e5" onclick="setAccent('#4f46e5','#eef2ff',this)"></span>
+              <span class="sw" style="background:#0284c7" onclick="setAccent('#0284c7','#eff8ff',this)"></span>
+              <span class="sw" style="background:#059669" onclick="setAccent('#059669','#ecfdf5',this)"></span>
+              <span class="sw" style="background:#7c3aed" onclick="setAccent('#7c3aed','#f5f3ff',this)"></span>
+              <span class="sw" style="background:#d97706" onclick="setAccent('#d97706','#fff7ed',this)"></span>
+              <span class="sw" style="background:#e11d48" onclick="setAccent('#e11d48','#fff1f3',this)"></span>
+            </div>
+            <div class="ctl-label" style="margin-top:16px">Color de fondo</div>
+            <div class="swatches">
+              <span class="bgsw" style="background:#f5f6f8" onclick="setBg('#f5f6f8')"></span>
+              <span class="bgsw" style="background:#ffffff" onclick="setBg('#ffffff')"></span>
+              <span class="bgsw" style="background:#eef2f7" onclick="setBg('#eef2f7')"></span>
+              <span class="bgsw" style="background:#f6f3ee" onclick="setBg('#f6f3ee')"></span>
+              <span class="bgsw" style="background:#1f2430" onclick="setBg('#1f2430')"></span>
+            </div>
+            <div class="ctl-label" style="margin-top:16px">Fondos de imagen</div>
+            <div class="wallpapers">
+              <span class="wp" style="background:linear-gradient(135deg,#c7d2fe,#818cf8)" onclick="setWall('indigo')"></span>
+              <span class="wp" style="background:linear-gradient(135deg,#a7f3d0,#34d399)" onclick="setWall('mint')"></span>
+              <span class="wp" style="background:linear-gradient(135deg,#fed7aa,#fb923c)" onclick="setWall('peach')"></span>
+              <span class="wp" style="background:linear-gradient(135deg,#bae6fd,#38bdf8)" onclick="setWall('sky')"></span>
+              <span class="wp" style="background:linear-gradient(135deg,#334155,#0f172a)" onclick="setWall('night')"></span>
+            </div>
+            <label class="upload"><input type="file" accept="image/*" hidden onchange="uploadBg(event)"><i class="ti ti-photo-up"></i>Subir tu imagen</label>
+          </div>
+        </div>
+
+        <div class="sect open">
+          <div class="sect-h" onclick="toggleSect(this)"><div class="si"><i class="ti ti-layout-grid"></i></div><div class="st"><b>Tarjetas y widgets</b><span>Fondo, densidad y estilo</span></div><i class="ti ti-chevron-down chev"></i></div>
+          <div class="sect-c">
+            <div class="ctl-label">Fondo de las tarjetas</div>
+            <div class="swatches" style="margin-bottom:16px">
+              <span class="bgsw" style="background:#ffffff" onclick="setCardBg('#ffffff')"></span>
+              <span class="bgsw" style="background:#fafafa" onclick="setCardBg('#fafafa')"></span>
+              <span class="bgsw" style="background:#f4f7ff" onclick="setCardBg('#f4f7ff')"></span>
+              <span class="bgsw" style="background:#f3f9f5" onclick="setCardBg('#f3f9f5')"></span>
+              <span class="bgsw" style="background:#1f2430" onclick="setCardBg('#1f2430')"></span>
+            </div>
+            <div class="ctl-label">Densidad</div>
+            <div class="seg" style="margin-bottom:14px">
+              <button class="on" onclick="setDensity('comodo',this)">Cómodo</button>
+              <button onclick="setDensity('compact',this)">Compacto</button>
+            </div>
+            <div class="ctl-label">Estilo</div>
+            <div class="seg">
+              <button class="on" onclick="setElev('elev',this)">Elevadas</button>
+              <button onclick="setElev('flat',this)">Planas</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sect">
+          <div class="sect-h" onclick="toggleSect(this)"><div class="si"><i class="ti ti-brush"></i></div><div class="st"><b>Estilo general</b><span>Tema, bordes y ambiente</span></div><i class="ti ti-chevron-down chev"></i></div>
+          <div class="sect-c"><div class="ctl-label" style="padding-top:10px">Próximamente en esta sección.</div></div>
+        </div>
+        <div class="sect">
+          <div class="sect-h" onclick="toggleSect(this)"><div class="si"><i class="ti ti-icons"></i></div><div class="st"><b>Iconos</b><span>Estilo, tamaño y forma</span></div><i class="ti ti-chevron-down chev"></i></div>
+          <div class="sect-c"><div class="ctl-label" style="padding-top:10px">Próximamente en esta sección.</div></div>
+        </div>
+        <div class="sect">
+          <div class="sect-h" onclick="toggleSect(this)"><div class="si"><i class="ti ti-menu-2"></i></div><div class="st"><b>Accesos y menú</b><span>Módulos rápidos y barras</span></div><i class="ti ti-chevron-down chev"></i></div>
+          <div class="sect-c"><div class="ctl-label" style="padding-top:10px">Próximamente en esta sección.</div></div>
+        </div>
+        <div class="sect">
+          <div class="sect-h" onclick="toggleSect(this)"><div class="si"><i class="ti ti-typography"></i></div><div class="st"><b>Tipografía</b><span>Fuente, tamaño y legibilidad</span></div><i class="ti ti-chevron-down chev"></i></div>
+          <div class="sect-c"><div class="ctl-label" style="padding-top:10px">Próximamente en esta sección.</div></div>
+        </div>
+      </div>
+      <div class="drawer-foot">
+        <button class="ghost" onclick="resetAll()"><i class="ti ti-rotate" style="vertical-align:-2px"></i> Restablecer</button>
+        <button class="solid">Aplicar cambios</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Accesos directos: fixed center pill + pop-up -->
+  <div class="fab-wrap" id="fab">
+    <div class="fab-panel">
+      <div class="fab-grid">
+        <a class="shortcut"><i class="ti ti-users" style="color:var(--sky)"></i><span>Pacientes</span></a>
+        <a class="shortcut"><i class="ti ti-calendar" style="color:var(--violet)"></i><span>Agenda</span></a>
+        <a class="shortcut"><i class="ti ti-stethoscope" style="color:var(--green)"></i><span>Consultas</span></a>
+        <a class="shortcut"><i class="ti ti-file-text" style="color:var(--amber)"></i><span>Presupuestos</span></a>
+        <a class="shortcut"><i class="ti ti-cash" style="color:var(--green)"></i><span>Cobros</span></a>
+        <a class="shortcut"><i class="ti ti-folder" style="color:var(--rose)"></i><span>Documentos</span></a>
+        <a class="shortcut"><i class="ti ti-chart-bar" style="color:var(--sky)"></i><span>Reportes</span></a>
+        <a class="shortcut"><i class="ti ti-world" style="color:var(--violet)"></i><span>Portal</span></a>
+        <a class="shortcut"><i class="ti ti-plus" style="color:var(--faint)"></i><span>Agregar</span></a>
+      </div>
+    </div>
+    <button class="fab-pill" onclick="toggleDock()"><i class="ti ti-bolt"></i><span>Accesos directos</span><i class="ti ti-chevron-up" id="dockChev"></i></button>
+  </div>
+
+</div>
+
+<div id="dragInfo">cargando…</div>
+
+<script>
+  function toggleSidebar(){
+    const sb=document.getElementById('sidebar');
+    sb.classList.toggle('gone');
+    document.documentElement.style.setProperty('--side-w', sb.classList.contains('gone')?'0px':'248px');
+  }
+  function toggleDock(){document.getElementById('fab').classList.toggle('open');}
+  function toggleDrawer(){document.getElementById('drawer').classList.toggle('open');}
+  function toggleSect(h){h.parentElement.classList.toggle('open');}
+
+  function setAccent(c,soft,el){
+    document.documentElement.style.setProperty('--accent',c);
+    document.documentElement.style.setProperty('--accent-soft',soft);
+    document.querySelectorAll('.swatches .sw').forEach(s=>s.classList.remove('on'));
+    el.classList.add('on');
+  }
+  function setBg(val){ document.body.style.background = val; }
+  function setCardBg(c){ document.documentElement.style.setProperty('--card-bg',c); }
+
+  const WALLS = {
+    indigo:"<svg xmlns='http://www.w3.org/2000/svg' width='1400' height='1000'><rect width='100%' height='100%' fill='#eef2ff'/><circle cx='180' cy='160' r='320' fill='#c7d2fe'/><circle cx='1200' cy='240' r='260' fill='#a5b4fc' opacity='.7'/><circle cx='1000' cy='900' r='380' fill='#818cf8' opacity='.45'/></svg>",
+    mint:"<svg xmlns='http://www.w3.org/2000/svg' width='1400' height='1000'><rect width='100%' height='100%' fill='#ecfdf5'/><circle cx='240' cy='800' r='340' fill='#a7f3d0'/><circle cx='1180' cy='180' r='300' fill='#6ee7b7' opacity='.7'/><circle cx='900' cy='620' r='260' fill='#34d399' opacity='.4'/></svg>",
+    peach:"<svg xmlns='http://www.w3.org/2000/svg' width='1400' height='1000'><rect width='100%' height='100%' fill='#fff7ed'/><circle cx='200' cy='200' r='320' fill='#fed7aa'/><circle cx='1150' cy='760' r='320' fill='#fdba74' opacity='.7'/><circle cx='1000' cy='160' r='220' fill='#fb923c' opacity='.4'/></svg>",
+    sky:"<svg xmlns='http://www.w3.org/2000/svg' width='1400' height='1000'><rect width='100%' height='100%' fill='#eff8ff'/><circle cx='260' cy='220' r='340' fill='#bae6fd'/><circle cx='1180' cy='780' r='320' fill='#7dd3fc' opacity='.7'/><circle cx='820' cy='480' r='240' fill='#38bdf8' opacity='.35'/></svg>",
+    night:"<svg xmlns='http://www.w3.org/2000/svg' width='1400' height='1000'><rect width='100%' height='100%' fill='#0f172a'/><circle cx='220' cy='200' r='360' fill='#1e293b'/><circle cx='1200' cy='820' r='340' fill='#334155' opacity='.8'/><circle cx='1000' cy='260' r='220' fill='#475569' opacity='.5'/></svg>"
+  };
+  function setWall(key){
+    document.body.style.background = "url(\"data:image/svg+xml,"+encodeURIComponent(WALLS[key])+"\") center/cover no-repeat fixed";
+  }
+  function uploadBg(e){
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=ev=>{ document.body.style.background="url("+ev.target.result+") center/cover no-repeat fixed"; };
+    r.readAsDataURL(f);
+  }
+  function setDensity(m,el){ document.body.classList.toggle('compact',m==='compact'); seg(el); }
+  function setElev(m,el){ document.body.classList.toggle('flat',m==='flat'); seg(el); }
+  function seg(el){[...el.parentElement.children].forEach(b=>b.classList.remove('on'));el.classList.add('on');}
+
+  function resetAll(){
+    setAccent('#4f46e5','#eef2ff',document.querySelector('.swatches .sw'));
+    document.body.style.background='';
+    document.documentElement.style.setProperty('--card-bg','#ffffff');
+    document.body.classList.remove('compact','flat');
+    document.querySelectorAll('.seg').forEach(s=>{[...s.children].forEach((b,i)=>b.classList.toggle('on',i===0));});
+  }
+
+  /* ---------- Drag to reorder (pointer based) ---------- */
+  let dragItem=null, dragCont=null, sx=0, sy=0, dragActive=false;
+  function makeSortable(container, sel){
+    if(!container) return 0;
+    let n=0;
+    [...container.children].forEach(c=>{ if(!sel || c.matches(sel)){ c.setAttribute('data-drag',''); c.setAttribute('draggable','false'); n++; } });
+    container.addEventListener('pointerdown', e=>{
+      if(e.button && e.button!==0) return;
+      const item=e.target.closest('[data-drag]');
+      if(!item || item.parentElement!==container) return;
+      dragItem=item; dragCont=container; sx=e.clientX; sy=e.clientY; dragActive=false;
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp, {once:true});
+    });
+    return n;
+  }
+  function onMove(e){
+    if(!dragItem) return;
+    if(!dragActive){
+      if(Math.hypot(e.clientX-sx, e.clientY-sy) < 5) return;
+      dragActive=true; dragItem.classList.add('dragging');
+    }
+    e.preventDefault();
+    const after=getAfter(dragCont, e.clientX, e.clientY);
+    if(after==null) dragCont.appendChild(dragItem);
+    else if(after!==dragItem) dragCont.insertBefore(dragItem, after);
+  }
+  function onUp(){
+    window.removeEventListener('pointermove', onMove);
+    if(dragItem) dragItem.classList.remove('dragging');
+    dragItem=null; dragCont=null; dragActive=false;
+  }
+  function getAfter(container, x, y){
+    const els=[...container.children].filter(c=>c!==dragItem && c.hasAttribute('data-drag'));
+    let best={dist:-Infinity, el:null};
+    els.forEach(el=>{
+      const b=el.getBoundingClientRect();
+      const offset=(y-(b.top+b.height/2))*1e5 + (x-(b.left+b.width/2));
+      if(offset<0 && offset>best.dist) best={dist:offset, el};
+    });
+    return best.el;
+  }
+
+  let total=0;
+  total+=makeSortable(document.querySelector('.kpis'));
+  document.querySelectorAll('.row2').forEach(r=>total+=makeSortable(r));
+  total+=makeSortable(document.querySelector('.nav'), 'a');
+  total+=makeSortable(document.querySelector('.fab-grid'));
+  total+=makeSortable(document.querySelector('.drawer-body'), '.sect');
+  const info=document.getElementById('dragInfo');
+  if(info) info.textContent='✋ arrastre v6 · '+total+' elementos arrastrables';
+</script>
+</body>
+</html>
