@@ -1,10 +1,11 @@
 "use client";
 
-// KPI rail del dashboard — Dashboard Final v3 (pase visual DS-PHASE-A).
-// Cada bloque combina 2 tarjetas verticales (portrait) + 2 horizontales
-// compactas. "Citas de hoy" usa datos reales de Agenda. El resto muestra
-// estado honesto (chip "Pendiente"/"Configurable") hasta tener agregaciones
-// seguras (Cobros, Tratamientos, Presupuestos, metas). Nunca se inventan montos.
+// KPI rail del dashboard — 8 tarjetas compactas (4 arriba + 2x2 abajo),
+// estilo plano aprobado: icono pequeño junto a la etiqueta, icono de info en
+// la esquina, valor grande, chip de estado al pie. "Citas de hoy" usa datos
+// reales de Agenda. El resto muestra estado honesto (chip "Pendiente"/
+// "Configurable") hasta tener agregaciones seguras (Cobros, Tratamientos,
+// Presupuestos, metas). Nunca se inventan montos.
 //
 // FASE 1M-A: las tarjetas se renderizan con KPIWidget (componente reutilizable
 // de la capa "Personalizar"), reaccionando a data-visual-* sin cambiar los
@@ -13,10 +14,6 @@
 // FASE 1M-C: el icono de cada tarjeta viene de ModuleIcon (identidad visual
 // elegida en Personalizar > Módulos); si esa identidad marca el widget como
 // oculto, la tarjeta no se renderiza. Datos y lógica sin cambios.
-//
-// DS-PHASE-A: tarjetas más compactas, sin "Ver…"/flechas/divisores internos,
-// con un badge de icono tipo "clay" (degradado pastel + sombra suave) por
-// encima del ModuleIcon — solo estilo, sin tocar datos ni personalización.
 
 import Link from "next/link";
 import {
@@ -28,6 +25,7 @@ import {
   TrendingUp,
   Scale,
   Target,
+  Info,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -61,35 +59,6 @@ const STATUS_TONE: Record<KpiStatus, KpiWidgetTone> = {
   Configurable: "muted",
 };
 
-// Degradados pastel tipo "clay" para el badge de icono de cada tarjeta —
-// puramente decorativos, uno por cardId. El ModuleIcon real (con su propio
-// estilo de personalización) vive dentro del badge.
-const ICON_BADGE_GRADIENT: Record<string, string> = {
-  "kpi-citas": "from-sky-200 to-sky-400 dark:from-sky-500/30 dark:to-sky-800/40",
-  "kpi-cobrado": "from-emerald-200 to-emerald-400 dark:from-emerald-500/30 dark:to-emerald-800/40",
-  "kpi-porcobrar": "from-amber-200 to-amber-400 dark:from-amber-500/30 dark:to-amber-800/40",
-  "kpi-presupuestos": "from-violet-200 to-violet-400 dark:from-violet-500/30 dark:to-violet-800/40",
-  "kpi-tratamientos": "from-cyan-200 to-cyan-400 dark:from-cyan-500/30 dark:to-cyan-800/40",
-  "kpi-ingresos": "from-teal-200 to-teal-400 dark:from-teal-500/30 dark:to-teal-800/40",
-  "kpi-punto-equilibrio": "from-slate-200 to-slate-400 dark:from-slate-500/30 dark:to-slate-800/40",
-  "kpi-meta-mensual": "from-rose-200 to-rose-400 dark:from-rose-500/30 dark:to-rose-800/40",
-};
-
-function IconBadge({ cardId, size, children }: { cardId: string; size: "lg" | "md"; children: React.ReactNode }) {
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        "flex shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br shadow-sm ring-1 ring-white/60 dark:ring-white/10",
-        size === "lg" ? "size-11" : "size-9",
-        ICON_BADGE_GRADIENT[cardId] ?? "from-foreground/5 to-foreground/15"
-      )}
-    >
-      {children}
-    </span>
-  );
-}
-
 interface CardProps {
   cardId: string;
   icon: LucideIcon;
@@ -112,48 +81,37 @@ function StatusTrend({ status, footer }: Pick<CardProps, "status" | "footer">) {
   );
 }
 
-// Tarjeta vertical tipo portrait — para los 2 KPIs principales de cada bloque.
-export function VerticalKpiCard({ cardId, icon: Icon, label, value, status, footer, href }: CardProps) {
-  const { getIdentity } = useModuleIdentities();
-  if (getIdentity(cardId).hidden) return null;
-  const identity = getIdentity(cardId);
+// Color del badge circular de icono, por tarjeta — coincide con la
+// referencia aprobada (un color pastel distinto por KPI).
+const ICON_BADGE_CLASS: Record<string, string> = {
+  "kpi-citas": "bg-sky-100 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400",
+  "kpi-cobrado": "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
+  "kpi-tratamientos": "bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400",
+  "kpi-ingresos": "bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400",
+  "kpi-porcobrar": "bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400",
+  "kpi-punto-equilibrio": "bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400",
+  "kpi-presupuestos": "bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400",
+  "kpi-meta-mensual": "bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400",
+};
 
-  const widget = (
-    <KpiWidget
-      label={label}
-      value={value}
-      icon={
-        <IconBadge cardId={cardId} size="lg">
-          <ModuleIcon id={cardId} fallbackIcon={Icon} />
-        </IconBadge>
-      }
-      iconWrapped={false}
-      tone={STATUS_TONE[status]}
-      trend={<StatusTrend status={status} footer={footer} />}
-      className={cn("flex h-[148px] sm:h-[164px] flex-col justify-between", !href && "opacity-90")}
-      iconPosition={identity.iconPosition}
-      iconSize={identity.iconSize}
-      contentAlign={identity.contentAlign}
-      cardAppearance={identity.cardAppearance}
-      cardBackground={identity.cardBackground}
-      cardBorder={identity.cardBorder}
-      cardShadow={identity.cardShadow}
-    />
-  );
-
-  if (!href) {
-    return <div data-dashboard-card={cardId}>{widget}</div>;
-  }
-
+function IconBadge({ cardId, children }: { cardId: string; children: React.ReactNode }) {
   return (
-    <Link data-dashboard-card={cardId} href={href} className="block cursor-pointer">
-      {widget}
-    </Link>
+    <span
+      aria-hidden
+      className={cn(
+        "flex shrink-0 items-center justify-center rounded-full size-6",
+        ICON_BADGE_CLASS[cardId] ?? "bg-foreground/5 text-foreground"
+      )}
+    >
+      {children}
+    </span>
   );
 }
 
-// Tarjeta horizontal compacta — para los 2 KPIs secundarios de cada bloque.
-export function HorizontalKpiCard({ cardId, icon: Icon, label, value, status, footer, href }: CardProps) {
+// Tarjeta compacta — estilo plano aprobado: icono pequeño junto a la
+// etiqueta, icono de info en la esquina, valor grande y chip de estado al pie.
+// Las 8 tarjetas del Dashboard usan esta misma forma (4 arriba + 2x2 abajo).
+export function KpiCard({ cardId, icon: Icon, label, value, status, footer, href }: CardProps) {
   const { getIdentity } = useModuleIdentities();
   if (getIdentity(cardId).hidden) return null;
   const identity = getIdentity(cardId);
@@ -163,14 +121,15 @@ export function HorizontalKpiCard({ cardId, icon: Icon, label, value, status, fo
       label={label}
       value={value}
       icon={
-        <IconBadge cardId={cardId} size="md">
-          <ModuleIcon id={cardId} fallbackIcon={Icon} />
+        <IconBadge cardId={cardId}>
+          <ModuleIcon id={cardId} fallbackIcon={Icon} className="size-3.5" />
         </IconBadge>
       }
       iconWrapped={false}
       tone={STATUS_TONE[status]}
       trend={<StatusTrend status={status} footer={footer} />}
-      className={cn("flex h-[84px] sm:h-[92px] flex-col justify-between", !href && "opacity-90")}
+      cornerAccessory={<Info className="size-3.5" />}
+      className={cn("flex h-[96px] sm:h-[104px] flex-col justify-between", !href && "opacity-90")}
       iconPosition={identity.iconPosition}
       iconSize={identity.iconSize}
       contentAlign={identity.contentAlign}
@@ -216,7 +175,7 @@ export function CitasHoyKpi({ appointmentsToday }: Props) {
   }
 
   return (
-    <VerticalKpiCard
+    <KpiCard
       cardId="kpi-citas"
       icon={CalendarCheck}
       label="Citas de hoy"
@@ -231,7 +190,7 @@ export function CitasHoyKpi({ appointmentsToday }: Props) {
 // Bloque 1 — vertical 2: Cobrado este mes.
 export function CobradoMesKpi() {
   return (
-    <VerticalKpiCard
+    <KpiCard
       cardId="kpi-cobrado"
       icon={Wallet}
       label="Cobrado este mes"
@@ -246,7 +205,7 @@ export function CobradoMesKpi() {
 // Bloque 1 — horizontal 1: Por cobrar.
 export function PorCobrarKpi() {
   return (
-    <HorizontalKpiCard
+    <KpiCard
       cardId="kpi-porcobrar"
       icon={CircleDollarSign}
       label="Por cobrar"
@@ -261,7 +220,7 @@ export function PorCobrarKpi() {
 // Bloque 1 — horizontal 2: Presupuestos pendientes.
 export function PresupuestosPendientesKpi() {
   return (
-    <HorizontalKpiCard
+    <KpiCard
       cardId="kpi-presupuestos"
       icon={FileText}
       label="Presupuestos pendientes"
@@ -276,7 +235,7 @@ export function PresupuestosPendientesKpi() {
 // Bloque 2 — vertical 1: Tratamientos activos.
 export function TratamientosActivosKpi() {
   return (
-    <VerticalKpiCard
+    <KpiCard
       cardId="kpi-tratamientos"
       icon={ClipboardList}
       label="Tratamientos activos"
@@ -290,7 +249,7 @@ export function TratamientosActivosKpi() {
 // Bloque 2 — vertical 2: Ingresos del mes.
 export function IngresosMesKpi() {
   return (
-    <VerticalKpiCard
+    <KpiCard
       cardId="kpi-ingresos"
       icon={TrendingUp}
       label="Ingresos del mes"
@@ -304,7 +263,7 @@ export function IngresosMesKpi() {
 // Bloque 2 — horizontal 1: Punto de equilibrio.
 export function PuntoEquilibrioKpi() {
   return (
-    <HorizontalKpiCard
+    <KpiCard
       cardId="kpi-punto-equilibrio"
       icon={Scale}
       label="Punto de equilibrio"
@@ -318,7 +277,7 @@ export function PuntoEquilibrioKpi() {
 // Bloque 2 — horizontal 2: Meta mensual.
 export function MetaMensualKpi() {
   return (
-    <HorizontalKpiCard
+    <KpiCard
       cardId="kpi-meta-mensual"
       icon={Target}
       label="Meta mensual"

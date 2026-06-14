@@ -70,7 +70,7 @@ export function AppShell({ roleKey, orgName, userName, userEmail, roleName, chil
         />
 
         {personalizationOpen && (
-          <div className="fixed inset-x-3 top-16 z-50 flex justify-center sm:inset-x-auto sm:right-6 sm:justify-end">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4 backdrop-blur-sm">
             <PersonalizationPanel
               mode={mode}
               onChange={setMode}

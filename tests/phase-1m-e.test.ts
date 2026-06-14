@@ -86,10 +86,10 @@ describe("1M-E — 4. BackgroundCustomizer: galería con 30 o más presets", () 
 });
 
 describe("1M-E — 5. ModuleIdentityCustomizer: estilo de módulos y tarjetas KPI", () => {
-  it("incluye sección de estilo de módulos con MODULE_TILE_STYLES", () => {
-    expect(moduleIdentityCustomizerContent).toContain("MODULE_TILE_STYLES");
-    expect(moduleIdentityCustomizerContent).toContain("setModuleTileStyle");
-    expect(moduleIdentityCustomizerContent).toContain("Estilo de módulos");
+  it("incluye sección de estilo de módulos con MODULE_TILE_STYLES en PersonalizationPanel", () => {
+    expect(panelContent).toContain("MODULE_TILE_STYLES");
+    expect(panelContent).toContain("setModuleTileStyle");
+    expect(panelContent).toContain("Estilo de módulos");
   });
 
   it("incluye controles avanzados de tarjeta por widget", () => {

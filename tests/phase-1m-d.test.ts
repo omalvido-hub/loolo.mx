@@ -44,16 +44,16 @@ describe("1M-D — integridad de archivos", () => {
   });
 });
 
-describe("1M-D — PersonalizationPanel: exactamente 5 secciones visibles", () => {
-  it("declara SECTIONS con inicio, marca, apariencia, fondos y modulos (en ese orden)", () => {
-    const order = ["inicio", "marca", "apariencia", "fondos", "modulos"];
+describe("1M-D — PersonalizationPanel: exactamente 6 bloques visibles", () => {
+  it("declara BLOCKS con estilo-general, colores-fondos, tarjetas-widgets, iconos, accesos-menu y tipografia (en ese orden)", () => {
+    const order = ["estilo-general", "colores-fondos", "tarjetas-widgets", "iconos", "accesos-menu", "tipografia"];
     let lastIndex = -1;
     for (const key of order) {
       const idx = panelContent.indexOf(`key: "${key}"`);
       expect(idx).toBeGreaterThan(lastIndex);
       lastIndex = idx;
     }
-    for (const key of ["tipografias", "dashboard", "widgets", "navegacion", "portal", "plantillas", "accesibilidad", "avanzado", "ia"]) {
+    for (const key of ["inicio", "marca", "apariencia", "fondos", "modulos", "dashboard", "navegacion", "portal", "accesibilidad", "avanzado", "ia"]) {
       expect(panelContent).not.toContain(`key: "${key}"`);
     }
   });
@@ -128,7 +128,7 @@ describe("1M-D.1 — buscador real de Personalizar", () => {
   });
 
   it("el input de búsqueda existe con placeholder de búsqueda", () => {
-    expect(panelContent).toMatch(/placeholder="Busca una categoría/);
+    expect(panelContent).toMatch(/placeholder="Busca una opción/);
   });
 
   it("calcula resultados de búsqueda y los hace clickeables hacia setActiveKey", () => {

@@ -40,13 +40,30 @@ export async function requireAuth(): Promise<SessionContext> {
   return ctx;
 }
 
-/** Exige que haya una organización activa seleccionada. */
+/**
+ * Exige que haya una organización activa seleccionada.
+ *
+ * Si la sesión es nueva (sin `activeOrganizationId`) y el usuario pertenece a
+ * exactamente una organización, se auto-selecciona aquí mismo. El layout de
+ * `(app)` también intenta este auto-select, pero su renderizado corre en
+ * paralelo con el de la página: si la página lee la sesión antes de que el
+ * layout termine de persistirla, vería `activeOrganizationId` nulo. Resolverlo
+ * aquí evita esa carrera sin depender del orden de renderizado.
+ */
 export async function requireOrganization(): Promise<{ user: CurrentUser; organizationId: string }> {
   const ctx = await requireAuth();
-  if (!ctx.activeOrganizationId) {
-    throw new NoOrganizationError("No hay organización activa seleccionada.");
+  if (ctx.activeOrganizationId) {
+    return { user: ctx.user, organizationId: ctx.activeOrganizationId };
   }
-  return { user: ctx.user, organizationId: ctx.activeOrganizationId };
+
+  const { resolveDefaultOrganization, selectOrganization } = await import("./organization.js");
+  const decision = await resolveDefaultOrganization(ctx.user.id);
+  if (decision.kind === "auto") {
+    await selectOrganization(ctx.user.id, decision.organizationId);
+    return { user: ctx.user, organizationId: decision.organizationId };
+  }
+
+  throw new NoOrganizationError("No hay organización activa seleccionada.");
 }
 
 export async function getCurrentOrganization(): Promise<string | null> {

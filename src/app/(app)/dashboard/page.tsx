@@ -38,20 +38,20 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="dashboard-shell mx-auto max-w-6xl space-y-4 px-6 py-6 pb-12 sm:px-8">
-      {/* Fila superior: 4 KPIs verticales */}
-      <div className="dashboard-grid grid grid-cols-2 gap-4 sm:grid-cols-4">
+    <div className="dashboard-shell mx-auto max-w-6xl space-y-3 px-6 py-6 pb-12 sm:px-8">
+      {/* Fila superior: 4 tarjetas compactas */}
+      <div className="dashboard-grid grid grid-cols-2 gap-3 sm:grid-cols-4">
         <CitasHoyKpi appointmentsToday={appointmentsToday} />
         <CobradoMesKpi />
         <TratamientosActivosKpi />
         <IngresosMesKpi />
       </div>
 
-      {/* Tarjetas secundarias: 2 columnas x 2 filas, horizontales y finas */}
+      {/* Tarjetas secundarias: 2 columnas x 2 filas */}
       <div className="dashboard-grid grid grid-cols-1 gap-3 sm:grid-cols-2">
         <PorCobrarKpi />
-        <PresupuestosPendientesKpi />
         <PuntoEquilibrioKpi />
+        <PresupuestosPendientesKpi />
         <MetaMensualKpi />
       </div>
     </div>

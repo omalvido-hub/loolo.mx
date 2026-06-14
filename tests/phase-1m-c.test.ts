@@ -166,7 +166,7 @@ describe("1M-C — DashboardKpiGrid: identidad aplicada y ocultamiento", () => {
   });
 
   it("usa ModuleIcon con iconWrapped={false} para las tarjetas", () => {
-    expect(dashboardKpiGridContent).toContain("<ModuleIcon id={cardId} fallbackIcon={Icon} />");
+    expect(dashboardKpiGridContent).toContain("<ModuleIcon id={cardId} fallbackIcon={Icon} className=\"size-3.5\" />");
     expect(dashboardKpiGridContent).toContain("iconWrapped={false}");
   });
 

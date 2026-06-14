@@ -205,10 +205,9 @@ describe("1M-A — Dashboard usa ModuleCard/KPIWidget sin tocar la fuente de dat
     expect(dashboardKpiGridContent).toContain("export function CitasHoyKpi");
   });
 
-  it("dashboard page.tsx usa ModuleCard y/o ChartPreviewCard", () => {
-    const usesModuleCard = dashboardPageContent.includes("<ModuleCard");
-    const usesChartPreview = dashboardPageContent.includes("<ChartPreviewCard");
-    expect(usesModuleCard || usesChartPreview).toBe(true);
+  it("dashboard page.tsx usa tarjetas KPI respaldadas por KPIWidget", () => {
+    expect(dashboardPageContent).toMatch(/from\s+"@\/components\/dashboard\/DashboardKpiGrid"/);
+    expect(dashboardKpiGridContent).toContain("<KpiWidget");
   });
 
   it("dashboard page.tsx conserva la llamada real a listAppointmentsByRange", () => {

@@ -32,6 +32,8 @@ export interface KpiWidgetProps {
   tone?: KpiWidgetTone;
   /** Detalle adicional corto (p. ej. un link o variación), opcional. */
   trend?: React.ReactNode;
+  /** Elemento decorativo pequeño en la esquina superior derecha (p. ej. icono de info). */
+  cornerAccessory?: React.ReactNode;
   className?: string;
   /**
    * Si es `false`, `icon` se renderiza tal cual, sin el contenedor con tono
@@ -64,6 +66,7 @@ export function KpiWidget({
   icon,
   tone = "default",
   trend,
+  cornerAccessory,
   className,
   iconWrapped = true,
   iconPosition = "auto",
@@ -99,6 +102,12 @@ export function KpiWidget({
     >
       <span aria-hidden className={cn("absolute inset-x-0 top-0 h-[2px]", t.bar)} />
 
+      {cornerAccessory && (
+        <span aria-hidden className="absolute right-2.5 top-2.5 text-muted-foreground/40">
+          {cornerAccessory}
+        </span>
+      )}
+
       {showIcon && isWatermark && (
         <span aria-hidden className="kpi-widget-icon kpi-widget-icon-watermark" data-icon-size={iconSize}>
           {renderedIcon}
@@ -115,16 +124,18 @@ export function KpiWidget({
         className={cn("kpi-widget-content relative flex items-start justify-between gap-2", isCenterLarge && "flex-col items-center text-center")}
         data-content-align={contentAlign}
       >
-        <div className="min-w-0">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground truncate">{label}</p>
+        <div className="min-w-0 flex-1">
+          <div className={cn("flex items-center gap-1.5 min-w-0", isCenterLarge && "justify-center")}>
+            {showIcon && !isWatermark && !isCenterLarge && (
+              <span className="kpi-widget-icon shrink-0" data-icon-position={iconPosition} data-icon-size={iconSize}>
+                {renderedIcon}
+              </span>
+            )}
+            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground truncate">{label}</p>
+          </div>
           <p className="mt-1 text-2xl font-semibold tracking-tight truncate">{value}</p>
           {description && <p className="mt-0.5 text-xs text-muted-foreground truncate">{description}</p>}
         </div>
-        {showIcon && !isWatermark && !isCenterLarge && (
-          <span className="kpi-widget-icon shrink-0" data-icon-position={iconPosition} data-icon-size={iconSize}>
-            {renderedIcon}
-          </span>
-        )}
       </div>
       {trend && <div className="relative mt-2 text-xs">{trend}</div>}
     </div>
