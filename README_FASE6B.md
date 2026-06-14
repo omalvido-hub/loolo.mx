@@ -1,4 +1,4 @@
-# LOOLO — Fase 6B: Cobros/Pagos base odontológicos
+# Nelzzon — Fase 6B: Cobros/Pagos base odontológicos
 
 Registro de pagos contra presupuestos **ACCEPTED**, cálculo de saldo y trazabilidad financiera, mediante un **ledger append-only** (asientos PAYMENT/REVERSAL inmutables). **Sin** facturación, CFDI, pasarelas, portal, PDF ni conciliación.
 

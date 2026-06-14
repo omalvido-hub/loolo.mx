@@ -1,4 +1,4 @@
-# LOOLO — Estado validado · Odontología
+# Nelzzon — Estado validado · Odontología
 
 > Última actualización: 2026-06-06  
 > Commit HEAD: `127aa1c`  

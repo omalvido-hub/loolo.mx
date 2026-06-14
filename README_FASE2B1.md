@@ -1,4 +1,4 @@
-# LOOLO — Fase 2B-1: Catálogo de módulos, plantillas y configuración
+# Nelzzon — Fase 2B-1: Catálogo de módulos, plantillas y configuración
 
 Capa de **configuración** (no funcionalidad). Catálogo global de módulos, plantilla Odontología
 general, módulos por organización con superficies múltiples, y operaciones de configuración con

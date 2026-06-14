@@ -1,4 +1,4 @@
-LOOLO — Fase UI-2 — Agenda solo lectura
+Nelzzon — Fase UI-2 — Agenda solo lectura
 ========================================
 Fecha: 2026-06-03
 Commit base: fe02e4c

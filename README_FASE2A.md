@@ -1,4 +1,4 @@
-# LOOLO — Fase 2A: Columna de seguridad operativa
+# Nelzzon — Fase 2A: Columna de seguridad operativa
 
 Auth real (código), selección segura de organización, enforcement de permisos en servidor,
 acceso de soporte temporal/auditado, y auditoría con `actorType`. **Sin diseño visual.**

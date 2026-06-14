@@ -1,4 +1,4 @@
-# LOOLO — Fase 3A: Identidad operativa (contacto / conversación / prospecto / paciente / oportunidad)
+# Nelzzon — Fase 3A: Identidad operativa (contacto / conversación / prospecto / paciente / oportunidad)
 
 Convierte un mensaje entrante en registros operativos **deduplicados y confiables**, sin automatizar nada (sin IA, sin respuestas, sin agenda). Promoción a paciente/oportunidad **explícita**, nunca automática.
 

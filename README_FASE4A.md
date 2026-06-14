@@ -1,4 +1,4 @@
-# LOOLO — Fase 4A: Agenda base odontológica
+# Nelzzon — Fase 4A: Agenda base odontológica
 
 Base operativa de citas conectada a contacto/paciente/prospecto/conversación/oportunidad. **Sin recordatorios, IA, UI ni drag/drop.**
 

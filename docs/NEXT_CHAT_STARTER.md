@@ -65,7 +65,7 @@ Documentación de estado en (leer primero docs/NELZZON_STATE.md y NELZZON_BACKLO
 - docs/NELZZON_BACKLOG.md — backlog priorizado de lo que sigue
 - docs/NELZZON_PRODUCTION_BASELINE.md (línea base de producción: dominio, PM2, env)
 - docs/NELZZON_PERSONALIZAR_MASTER.md / NELZZON_PERSONALIZAR_WIREFRAME.md (Design Studio)
-- docs/LOOLO_ODONTOLOGIA_STATE.md / LOOLO_ODONTOLOGIA_BACKLOG.md (referencias históricas)
+- docs/NELZZON_ODONTOLOGIA_STATE.md / NELZZON_ODONTOLOGIA_BACKLOG.md (referencias históricas)
 - docs/NEXT_CHAT_STARTER.md (este archivo)
 
 Antes de implementar cualquier cosa: propón un plan corto y espera OK de Oscar.

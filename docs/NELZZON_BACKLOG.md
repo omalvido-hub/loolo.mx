@@ -48,7 +48,7 @@ recomendada"):
 
 ## C. Trabajo funcional pendiente (de sesiones previas, sigue vigente)
 
-Tomado de `docs/NEXT_CHAT_STARTER.md` / `docs/LOOLO_ODONTOLOGIA_BACKLOG.md` —
+Tomado de `docs/NEXT_CHAT_STARTER.md` / `docs/NELZZON_ODONTOLOGIA_BACKLOG.md` —
 sigue siendo válido, no se tocó nada de esto en la serie 0A–0F:
 
 4. **GLOBAL-SEARCH-1A**

@@ -1,4 +1,4 @@
-# LOOLO — Fase 6A: Presupuestos base odontológicos
+# Nelzzon — Fase 6A: Presupuestos base odontológicos
 
 Presupuestos/cotizaciones por paciente, derivados del plan de tratamiento, con líneas autosuficientes (snapshot), totales calculados/persistidos en el servidor, moneda MXN y ciclo de vida con aceptación/rechazo por staff. **Primera fase con dinero.** Sin cobros, pagos, facturación, portal ni PDF.
 

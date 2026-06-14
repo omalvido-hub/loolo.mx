@@ -1,4 +1,4 @@
-# LOOLO — Fase 2B-2: Dashboard / widgets / preferencias / resolver
+# Nelzzon — Fase 2B-2: Dashboard / widgets / preferencias / resolver
 
 Capa de configuración de dashboard desde datos. **Sin UI final, sin drag/drop, sin KPIs reales.**
 

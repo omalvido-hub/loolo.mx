@@ -1,4 +1,4 @@
-# LOOLO — Fase 3B: Follow operativo (bandeja, tareas, trazabilidad, acciones inertes)
+# Nelzzon — Fase 3B: Follow operativo (bandeja, tareas, trazabilidad, acciones inertes)
 
 Convierte conversaciones ya registradas (3A) en una **bandeja accionable**: asignar, clasificar, priorizar, cerrar/reabrir, crear/completar/cancelar tareas y registrar acciones manuales. **Sin IA, sin automatismos, sin canal real, sin UI.**
 

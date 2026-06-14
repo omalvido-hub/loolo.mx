@@ -1,4 +1,4 @@
-# LOOLO — Fase 5B: Odontograma base odontológico
+# Nelzzon — Fase 5B: Odontograma base odontológico
 
 Registro estructurado del estado dental como **hallazgos clínicos append-only ligados a consulta** (5A); el "odontograma actual" se **deriva** con un resolver. **Sin plan de tratamiento, presupuestos, cobros, imágenes ni UI visual.**
 

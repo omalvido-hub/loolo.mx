@@ -1,4 +1,4 @@
-# LOOLO — Fase 5C: Plan de tratamiento base odontológico
+# Nelzzon — Fase 5C: Plan de tratamiento base odontológico
 
 Plan de tratamiento por paciente, nacido (opcionalmente) en una consulta, con ítems de procedimiento ligados a pieza/superficie y a hallazgos del odontograma. Modelo **mutable por estado** con transiciones controladas. **Sin presupuestos, cobros, portal ni dinero.**
 

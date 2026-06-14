@@ -1,4 +1,4 @@
-# LOOLO — Fase 1: Columna vertebral técnica
+# Nelzzon — Fase 1: Columna vertebral técnica
 
 Base multi-tenant con aislamiento a nivel de motor, RBAC, eventos tipados, auditoría
 append-only y el flujo de entrada mínimo. **Sin UI** (eso es fase posterior, por diseño).
@@ -15,7 +15,7 @@ append-only y el flujo de entrada mínimo. **Sin UI** (eso es fase posterior, po
 2. Dos roles de BD: `app_admin` (BYPASSRLS, solo identidad/migraciones) y `app_user`
    (runtime, SIN bypass, sujeto a RLS).
 3. Better Auth dueño de `users / organizations / organization_memberships / sessions /
-   accounts / invitations`. LOOLO dueño de la capa fina `roles / permissions /
+   accounts / invitations`. Nelzzon dueño de la capa fina `roles / permissions /
    role_permissions / membership_roles` (catálogos **globales**; el vínculo por org es
    `membership_roles`).
 4. `events` (hechos tipados con Zod, versionados) ≠ `audit_logs` (rastro). Ambos **append-only**.

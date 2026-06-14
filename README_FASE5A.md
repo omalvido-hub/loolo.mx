@@ -1,4 +1,4 @@
-# LOOLO — Fase 5A: Consulta clínica base odontológica
+# Nelzzon — Fase 5A: Consulta clínica base odontológica
 
 Base del expediente/consulta dental ligada a cita, paciente y profesional. Datos de **salud**: acceso estrecho, notas inmutables, contenido fuera de eventos. **Sin odontograma, plan de tratamiento, recetas avanzadas, documentos ni IA.**
 
