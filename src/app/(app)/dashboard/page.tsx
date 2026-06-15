@@ -1,23 +1,13 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-import { ZipDashboardClient } from "@/app/dev/zip-dashboard/ZipDashboardClient";
+import { ZipDashboardReactClient } from "@/app/dev/zip-dashboard-react/ZipDashboardReactClient";
 
-// Vista temporal: muestra el HTML de referencia aprobado
-// (docs/visual-references/nelzzon-dashboard.html) literal en un iframe a
-// pantalla completa, igual que /dev/zip-dashboard. La autenticación y los
-// permisos del rol siguen aplicando vía el layout de (app) — esta página no
-// agrega datos reales ni consultas nuevas.
-//
-// force-dynamic: evita prerender estático al leer el archivo en cada request.
-export const dynamic = "force-dynamic";
-
-export default async function DashboardPage() {
-  const filePath = path.join(process.cwd(), "docs/visual-references/nelzzon-dashboard.html");
-  const html = await readFile(filePath, "utf-8");
-
+// Vista temporal: muestra la versión React del diseño aprobado del ZIP
+// (ver /dev/zip-dashboard-react), a pantalla completa sobre el AppShell
+// viejo. La autenticación y los permisos del rol siguen aplicando vía el
+// layout de (app) — esta página no agrega datos reales ni consultas nuevas.
+export default function DashboardPage() {
   return (
     <div className="fixed inset-0 z-50">
-      <ZipDashboardClient html={html} />
+      <ZipDashboardReactClient />
     </div>
   );
 }
