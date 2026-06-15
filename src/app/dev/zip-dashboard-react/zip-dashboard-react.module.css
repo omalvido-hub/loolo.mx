@@ -47,21 +47,9 @@
 
 /* ---------- Shell ---------- */
 .shell {
-  position: relative;
-  z-index: 1;
   display: flex;
   height: 100vh;
   overflow: hidden;
-}
-
-/* Capa de fondo personalizable: pintada detrás de .shell, solo visible donde
-   .main es transparente (sidebar/topbar/drawer/tarjetas tienen fondo opaco). */
-.bgLayer {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  transition: background .2s, background-color .2s, opacity .2s;
 }
 
 /* ---------- Sidebar ---------- */
@@ -645,16 +633,10 @@
   border-radius: 9px;
   cursor: pointer;
   border: 1px solid var(--line-2);
-  background-repeat: no-repeat;
-  background-position: center;
   transition: .15s;
 }
 .bgsw:hover {
   transform: scale(1.06);
-}
-.bgswOn {
-  border-color: var(--ink);
-  box-shadow: 0 0 0 2px var(--accent-soft);
 }
 .wallpapers {
   display: flex;
@@ -697,69 +679,6 @@
 .upload i {
   font-size: 18px;
 }
-.uploadPreviewRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 4px;
-}
-.uploadPreview {
-  width: 62px;
-  height: 40px;
-  border-radius: 9px;
-  border: 1px solid var(--line-2);
-  background-size: cover;
-  background-position: center;
-  flex: none;
-}
-.removeImg {
-  flex: 1;
-  height: 36px;
-  border: 1px solid var(--line-2);
-  background: var(--surface);
-  color: var(--muted);
-  border-radius: 10px;
-  font: inherit;
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: .15s;
-}
-.removeImg:hover {
-  color: var(--rose);
-  border-color: var(--rose);
-}
-.uploadError {
-  font-size: 12px;
-  color: var(--rose);
-  margin-top: 8px;
-}
-.bgReset {
-  width: 100%;
-  height: 38px;
-  margin-top: 16px;
-  border: 1px solid var(--line-2);
-  background: var(--surface);
-  color: var(--muted);
-  border-radius: 11px;
-  font: inherit;
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: .15s;
-}
-.bgReset:hover {
-  color: var(--ink);
-  border-color: var(--accent);
-}
 .ctlLabel {
   font-size: 12.5px;
   font-weight: 600;
@@ -770,9 +689,6 @@
   display: flex;
   gap: 11px;
   margin-bottom: 6px;
-}
-.swatchesWrap {
-  flex-wrap: wrap;
 }
 .sw {
   width: 30px;
@@ -812,10 +728,6 @@
   color: var(--ink);
   font-weight: 600;
   box-shadow: 0 1px 2px rgba(16, 24, 40, .08);
-}
-.segSmall button {
-  font-size: 11.5px;
-  padding: 7px 0;
 }
 .drawerFoot {
   padding: 14px 20px;
