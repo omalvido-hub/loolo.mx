@@ -287,7 +287,7 @@
 }
 .grid {
   display: grid;
-  gap: 18px;
+  gap: var(--grid-gap, 18px);
 }
 .kpis {
   grid-template-columns: repeat(4, 1fr);
@@ -753,4 +753,45 @@
   border: none;
   background: var(--accent);
   color: #fff;
+}
+
+/* ---------- Personalizar: estilo general (bordes/sombras) ---------- */
+.page[data-card-style="marcado"] .card {
+  border-width: 1.5px;
+  border-radius: 18px;
+  box-shadow: 0 6px 20px rgba(16, 24, 40, .14);
+}
+.page[data-card-style="minimal"] .card {
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+/* ---------- Personalizar: iconos (forma/tamaño de tiles) ---------- */
+.page[data-icon-style="redondo"] .tile {
+  border-radius: 50%;
+}
+.page[data-icon-style="grande"] .tile {
+  width: 56px;
+  height: 56px;
+  font-size: 28px;
+}
+
+/* ---------- Personalizar: tipografía ---------- */
+.page[data-typography="grande"] .kval {
+  font-size: 34px;
+}
+.page[data-typography="grande"] .klabel {
+  font-size: 13.5px;
+}
+.page[data-typography="grande"] .greet b {
+  font-size: 18px;
+}
+.page[data-typography="compacta"] .kval {
+  font-size: 25px;
+}
+.page[data-typography="compacta"] .klabel {
+  font-size: 11px;
+}
+.page[data-typography="compacta"] .greet b {
+  font-size: 14px;
 }

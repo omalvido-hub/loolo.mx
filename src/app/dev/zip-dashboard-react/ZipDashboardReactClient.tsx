@@ -1,11 +1,15 @@
 "use client";
 
 // Conversión 1:1 a componentes React del HTML aprobado en
-// docs/visual-references/nelzzon-dashboard.html. Datos estáticos/demo,
-// iguales al ZIP. No reutiliza AppShell/sidebar/topbar/dock/KpiWidget
-// actuales — es una vista aislada para validar la migración visual.
+// docs/visual-references/nelzzon-dashboard.html. Datos demo estáticos.
+// No reutiliza AppShell/sidebar/topbar/dock/KpiWidget actuales — es una vista
+// aislada para validar la migración visual.
+//
+// Panel "Personalizar tu sistema": estado en memoria + localStorage
+// (clave PREFS_STORAGE_KEY). Sin backend, sin queries.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 import styles from "./zip-dashboard-react.module.css";
 
@@ -24,7 +28,6 @@ const NAV_ITEMS_BOTTOM = [
   { icon: "ti-settings", label: "Configuración" },
 ];
 
-const ACCENT_SWATCHES = ["#4f46e5", "#0284c7", "#059669", "#7c3aed", "#d97706", "#e11d48"];
 const BG_SWATCHES = ["#f5f6f8", "#ffffff", "#eef2f7", "#f6f3ee", "#1f2430"];
 const CARD_BG_SWATCHES = ["#ffffff", "#fafafa", "#f4f7ff", "#f3f9f5", "#1f2430"];
 const WALLPAPERS = [
@@ -56,21 +59,105 @@ const SECTIONS = [
   { icon: "ti-typography", title: "Tipografía", subtitle: "Fuente, tamaño y legibilidad", defaultOpen: false },
 ];
 
+// ---------- Preferencias "Personalizar" ----------
+
+type AccentKey = "morado" | "azul" | "verde" | "naranja" | "rosa";
+type Density = "comodo" | "compact" | "amplio";
+type CardStyle = "suave" | "marcado" | "minimal";
+type IconStyle = "normal" | "redondo" | "grande";
+type Typography = "normal" | "grande" | "compacta";
+
+interface Prefs {
+  accent: AccentKey;
+  density: Density;
+  cardStyle: CardStyle;
+  iconStyle: IconStyle;
+  typography: Typography;
+  showDock: boolean;
+}
+
+const DEFAULT_PREFS: Prefs = {
+  accent: "morado",
+  density: "comodo",
+  cardStyle: "suave",
+  iconStyle: "normal",
+  typography: "normal",
+  showDock: true,
+};
+
+const PREFS_STORAGE_KEY = "nelzzon:zip-dashboard-react:prefs";
+
+const ACCENT_MAP: Record<AccentKey, { accent: string; soft: string; label: string }> = {
+  morado: { accent: "#4f46e5", soft: "#eef2ff", label: "Morado" },
+  azul: { accent: "#0284c7", soft: "#eff8ff", label: "Azul" },
+  verde: { accent: "#059669", soft: "#ecfdf5", label: "Verde" },
+  naranja: { accent: "#d97706", soft: "#fff7ed", label: "Naranja" },
+  rosa: { accent: "#e11d48", soft: "#fff1f3", label: "Rosa" },
+};
+
+const DENSITY_VARS: Record<Density, { padCard: string; gap: string }> = {
+  comodo: { padCard: "20px", gap: "18px" },
+  compact: { padCard: "12px", gap: "12px" },
+  amplio: { padCard: "28px", gap: "24px" },
+};
+
+function loadPrefs(): Prefs {
+  if (typeof window === "undefined") return DEFAULT_PREFS;
+  try {
+    const raw = window.localStorage.getItem(PREFS_STORAGE_KEY);
+    if (!raw) return DEFAULT_PREFS;
+    const parsed = JSON.parse(raw);
+    return { ...DEFAULT_PREFS, ...parsed };
+  } catch {
+    return DEFAULT_PREFS;
+  }
+}
+
 export function ZipDashboardReactClient() {
   const [sidebarGone, setSidebarGone] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dockOpen, setDockOpen] = useState(false);
   const [openSections, setOpenSections] = useState(SECTIONS.map((s) => s.defaultOpen));
-  const [accentIndex, setAccentIndex] = useState(0);
-  const [density, setDensity] = useState<"comodo" | "compact">("comodo");
-  const [elevation, setElevation] = useState<"elev" | "flat">("elev");
+  const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
+
+  useEffect(() => {
+    setPrefs(loadPrefs());
+  }, []);
 
   function toggleSection(index: number) {
     setOpenSections((prev) => prev.map((open, i) => (i === index ? !open : open)));
   }
 
+  function applyChanges() {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(prefs));
+  }
+
+  function resetAll() {
+    setPrefs(DEFAULT_PREFS);
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(PREFS_STORAGE_KEY);
+    }
+  }
+
+  const accent = ACCENT_MAP[prefs.accent];
+  const density = DENSITY_VARS[prefs.density];
+
+  const pageStyle: CSSProperties = {
+    "--accent": accent.accent,
+    "--accent-soft": accent.soft,
+    "--pad-card": density.padCard,
+    "--grid-gap": density.gap,
+  } as CSSProperties;
+
   return (
-    <div className={styles.page}>
+    <div
+      className={styles.page}
+      style={pageStyle}
+      data-card-style={prefs.cardStyle}
+      data-icon-style={prefs.iconStyle}
+      data-typography={prefs.typography}
+    >
       <link
         rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
@@ -129,7 +216,12 @@ export function ZipDashboardReactClient() {
               <input className={styles.searchInput} placeholder="Buscar pacientes, citas, tratamientos…" />
             </div>
             <div className={styles.topRight}>
-              <button type="button" className={styles.btnAccent} onClick={() => setDrawerOpen((v) => !v)}>
+              <button
+                type="button"
+                className={styles.btnAccent}
+                aria-pressed={drawerOpen}
+                onClick={() => setDrawerOpen((v) => !v)}
+              >
                 <i className="ti ti-adjustments" />
                 Personalizar
               </button>
@@ -322,18 +414,22 @@ export function ZipDashboardReactClient() {
                     <i className={cn("ti ti-chevron-down", styles.chev)} />
                   </div>
                   <div className={styles.sectContent}>
+                    {/* 1. Colores y fondos */}
                     {index === 0 && (
                       <>
                         <div className={styles.ctlLabel}>Color de acento</div>
                         <div className={styles.swatches}>
-                          {ACCENT_SWATCHES.map((color, i) => (
-                            <span
-                              key={color}
-                              className={cn(styles.sw, accentIndex === i && styles.swOn)}
-                              style={{ background: color }}
-                              onClick={() => setAccentIndex(i)}
-                            />
-                          ))}
+                          {(Object.entries(ACCENT_MAP) as [AccentKey, typeof ACCENT_MAP[AccentKey]][]).map(
+                            ([key, value]) => (
+                              <span
+                                key={key}
+                                title={value.label}
+                                className={cn(styles.sw, prefs.accent === key && styles.swOn)}
+                                style={{ background: value.accent }}
+                                onClick={() => setPrefs((p) => ({ ...p, accent: key }))}
+                              />
+                            )
+                          )}
                         </div>
                         <div className={styles.ctlLabel} style={{ marginTop: 16 }}>
                           Color de fondo
@@ -359,6 +455,7 @@ export function ZipDashboardReactClient() {
                       </>
                     )}
 
+                    {/* 2. Tarjetas y widgets */}
                     {index === 1 && (
                       <>
                         <div className={styles.ctlLabel}>Fondo de las tarjetas</div>
@@ -368,56 +465,161 @@ export function ZipDashboardReactClient() {
                           ))}
                         </div>
                         <div className={styles.ctlLabel}>Densidad</div>
-                        <div className={styles.seg} style={{ marginBottom: 14 }}>
+                        <div className={styles.seg}>
                           <button
                             type="button"
-                            className={cn(density === "comodo" && styles.segOn)}
-                            onClick={() => setDensity("comodo")}
+                            className={cn(prefs.density === "comodo" && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, density: "comodo" }))}
                           >
                             Cómodo
                           </button>
                           <button
                             type="button"
-                            className={cn(density === "compact" && styles.segOn)}
-                            onClick={() => setDensity("compact")}
+                            className={cn(prefs.density === "compact" && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, density: "compact" }))}
                           >
                             Compacto
                           </button>
-                        </div>
-                        <div className={styles.ctlLabel}>Estilo</div>
-                        <div className={styles.seg}>
                           <button
                             type="button"
-                            className={cn(elevation === "elev" && styles.segOn)}
-                            onClick={() => setElevation("elev")}
+                            className={cn(prefs.density === "amplio" && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, density: "amplio" }))}
                           >
-                            Elevadas
-                          </button>
-                          <button
-                            type="button"
-                            className={cn(elevation === "flat" && styles.segOn)}
-                            onClick={() => setElevation("flat")}
-                          >
-                            Planas
+                            Amplio
                           </button>
                         </div>
                       </>
                     )}
 
-                    {index > 1 && (
-                      <div className={styles.ctlLabel} style={{ paddingTop: 10 }}>
-                        Próximamente en esta sección.
-                      </div>
+                    {/* 3. Estilo general */}
+                    {index === 2 && (
+                      <>
+                        <div className={styles.ctlLabel} style={{ paddingTop: 10 }}>
+                          Bordes y sombras de las tarjetas
+                        </div>
+                        <div className={styles.seg}>
+                          <button
+                            type="button"
+                            className={cn(prefs.cardStyle === "suave" && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, cardStyle: "suave" }))}
+                          >
+                            Suave
+                          </button>
+                          <button
+                            type="button"
+                            className={cn(prefs.cardStyle === "marcado" && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, cardStyle: "marcado" }))}
+                          >
+                            Marcado
+                          </button>
+                          <button
+                            type="button"
+                            className={cn(prefs.cardStyle === "minimal" && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, cardStyle: "minimal" }))}
+                          >
+                            Minimal
+                          </button>
+                        </div>
+                      </>
+                    )}
+
+                    {/* 4. Iconos */}
+                    {index === 3 && (
+                      <>
+                        <div className={styles.ctlLabel} style={{ paddingTop: 10 }}>
+                          Forma y tamaño de los iconos
+                        </div>
+                        <div className={styles.seg}>
+                          <button
+                            type="button"
+                            className={cn(prefs.iconStyle === "normal" && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, iconStyle: "normal" }))}
+                          >
+                            Normal
+                          </button>
+                          <button
+                            type="button"
+                            className={cn(prefs.iconStyle === "redondo" && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, iconStyle: "redondo" }))}
+                          >
+                            Redondo
+                          </button>
+                          <button
+                            type="button"
+                            className={cn(prefs.iconStyle === "grande" && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, iconStyle: "grande" }))}
+                          >
+                            Grande
+                          </button>
+                        </div>
+                      </>
+                    )}
+
+                    {/* 5. Accesos y menú */}
+                    {index === 4 && (
+                      <>
+                        <div className={styles.ctlLabel} style={{ paddingTop: 10 }}>
+                          Accesos directos (barra inferior)
+                        </div>
+                        <div className={styles.seg}>
+                          <button
+                            type="button"
+                            className={cn(prefs.showDock && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, showDock: true }))}
+                          >
+                            Mostrar
+                          </button>
+                          <button
+                            type="button"
+                            className={cn(!prefs.showDock && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, showDock: false }))}
+                          >
+                            Ocultar
+                          </button>
+                        </div>
+                      </>
+                    )}
+
+                    {/* 6. Tipografía */}
+                    {index === 5 && (
+                      <>
+                        <div className={styles.ctlLabel} style={{ paddingTop: 10 }}>
+                          Tamaño de texto
+                        </div>
+                        <div className={styles.seg}>
+                          <button
+                            type="button"
+                            className={cn(prefs.typography === "compacta" && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, typography: "compacta" }))}
+                          >
+                            Compacta
+                          </button>
+                          <button
+                            type="button"
+                            className={cn(prefs.typography === "normal" && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, typography: "normal" }))}
+                          >
+                            Normal
+                          </button>
+                          <button
+                            type="button"
+                            className={cn(prefs.typography === "grande" && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, typography: "grande" }))}
+                          >
+                            Grande
+                          </button>
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
               ))}
             </div>
             <div className={styles.drawerFoot}>
-              <button type="button" className={styles.ghost}>
+              <button type="button" className={styles.ghost} onClick={resetAll}>
                 <i className="ti ti-rotate" style={{ verticalAlign: -2 }} /> Restablecer
               </button>
-              <button type="button" className={styles.solid}>
+              <button type="button" className={styles.solid} onClick={applyChanges}>
                 Aplicar cambios
               </button>
             </div>
@@ -425,23 +627,25 @@ export function ZipDashboardReactClient() {
         </aside>
 
         {/* Accesos directos: fixed center pill + pop-up */}
-        <div className={cn(styles.fabWrap, dockOpen && styles.fabWrapOpen)}>
-          <div className={styles.fabPanel}>
-            <div className={styles.fabGrid}>
-              {SHORTCUTS.map((shortcut) => (
-                <a key={shortcut.label} className={styles.shortcut}>
-                  <i className={`ti ${shortcut.icon}`} style={{ color: shortcut.color }} />
-                  <span>{shortcut.label}</span>
-                </a>
-              ))}
+        {prefs.showDock && (
+          <div className={cn(styles.fabWrap, dockOpen && styles.fabWrapOpen)}>
+            <div className={styles.fabPanel}>
+              <div className={styles.fabGrid}>
+                {SHORTCUTS.map((shortcut) => (
+                  <a key={shortcut.label} className={styles.shortcut}>
+                    <i className={`ti ${shortcut.icon}`} style={{ color: shortcut.color }} />
+                    <span>{shortcut.label}</span>
+                  </a>
+                ))}
+              </div>
             </div>
+            <button type="button" className={styles.fabPill} onClick={() => setDockOpen((v) => !v)}>
+              <i className="ti ti-bolt" />
+              <span>Accesos directos</span>
+              <i className={cn("ti ti-chevron-up", styles.dockChev)} />
+            </button>
           </div>
-          <button type="button" className={styles.fabPill} onClick={() => setDockOpen((v) => !v)}>
-            <i className="ti ti-bolt" />
-            <span>Accesos directos</span>
-            <i className={cn("ti ti-chevron-up", styles.dockChev)} />
-          </button>
-        </div>
+        )}
       </div>
     </div>
   );
