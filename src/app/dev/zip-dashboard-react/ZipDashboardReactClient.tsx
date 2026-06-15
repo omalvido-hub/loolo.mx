@@ -12,6 +12,14 @@ import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 import styles from "./zip-dashboard-react.module.css";
+import {
+  DEFAULT_PREFERENCES,
+  loadPreferences,
+  resetPreferences,
+  savePreferences,
+  type AccentKey,
+  type DashboardPreferences,
+} from "./dashboard-preferences";
 
 const NAV_ITEMS = [
   { icon: "ti-layout-dashboard", label: "Inicio", active: true },
@@ -60,32 +68,9 @@ const SECTIONS = [
 ];
 
 // ---------- Preferencias "Personalizar" ----------
-
-type AccentKey = "morado" | "azul" | "verde" | "naranja" | "rosa";
-type Density = "comodo" | "compact" | "amplio";
-type CardStyle = "suave" | "marcado" | "minimal";
-type IconStyle = "normal" | "redondo" | "grande";
-type Typography = "normal" | "grande" | "compacta";
-
-interface Prefs {
-  accent: AccentKey;
-  density: Density;
-  cardStyle: CardStyle;
-  iconStyle: IconStyle;
-  typography: Typography;
-  showDock: boolean;
-}
-
-const DEFAULT_PREFS: Prefs = {
-  accent: "morado",
-  density: "comodo",
-  cardStyle: "suave",
-  iconStyle: "normal",
-  typography: "normal",
-  showDock: true,
-};
-
-const PREFS_STORAGE_KEY = "nelzzon:zip-dashboard-react:prefs";
+// El tipo, los valores por defecto y el storage versionado viven en
+// ./dashboard-preferences.ts. Aquí solo queda el mapa de presentación (qué
+// valores CSS corresponde a cada opción).
 
 const ACCENT_MAP: Record<AccentKey, { accent: string; soft: string; label: string }> = {
   morado: { accent: "#4f46e5", soft: "#eef2ff", label: "Morado" },
@@ -95,33 +80,21 @@ const ACCENT_MAP: Record<AccentKey, { accent: string; soft: string; label: strin
   rosa: { accent: "#e11d48", soft: "#fff1f3", label: "Rosa" },
 };
 
-const DENSITY_VARS: Record<Density, { padCard: string; gap: string }> = {
+const DENSITY_VARS: Record<DashboardPreferences["density"], { padCard: string; gap: string }> = {
   comodo: { padCard: "20px", gap: "18px" },
   compact: { padCard: "12px", gap: "12px" },
   amplio: { padCard: "28px", gap: "24px" },
 };
-
-function loadPrefs(): Prefs {
-  if (typeof window === "undefined") return DEFAULT_PREFS;
-  try {
-    const raw = window.localStorage.getItem(PREFS_STORAGE_KEY);
-    if (!raw) return DEFAULT_PREFS;
-    const parsed = JSON.parse(raw);
-    return { ...DEFAULT_PREFS, ...parsed };
-  } catch {
-    return DEFAULT_PREFS;
-  }
-}
 
 export function ZipDashboardReactClient() {
   const [sidebarGone, setSidebarGone] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dockOpen, setDockOpen] = useState(false);
   const [openSections, setOpenSections] = useState(SECTIONS.map((s) => s.defaultOpen));
-  const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
+  const [prefs, setPrefs] = useState<DashboardPreferences>(DEFAULT_PREFERENCES);
 
   useEffect(() => {
-    setPrefs(loadPrefs());
+    setPrefs(loadPreferences());
   }, []);
 
   function toggleSection(index: number) {
@@ -129,15 +102,11 @@ export function ZipDashboardReactClient() {
   }
 
   function applyChanges() {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(prefs));
+    savePreferences(prefs);
   }
 
   function resetAll() {
-    setPrefs(DEFAULT_PREFS);
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem(PREFS_STORAGE_KEY);
-    }
+    setPrefs(resetPreferences());
   }
 
   const accent = ACCENT_MAP[prefs.accent];
