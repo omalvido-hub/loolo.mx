@@ -9,9 +9,29 @@
 // (clave PREFS_STORAGE_KEY). Sin backend, sin queries.
 
 import { useEffect, useState } from "react";
-import type { CSSProperties } from "react";
+import type { ChangeEvent, CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 import styles from "./zip-dashboard-react.module.css";
+import {
+  BACKGROUND_INTENSITY_OPACITY,
+  DEFAULT_PREFERENCES,
+  GRADIENT_BACKGROUNDS,
+  MAX_BACKGROUND_IMAGE_BYTES,
+  PALETTE_KEYS,
+  PALETTES,
+  PATTERN_OPTIONS,
+  SOLID_BACKGROUNDS,
+  THEME_VARS,
+  getPatternBackground,
+  loadPreferences,
+  resetBackgroundPreferences,
+  resetPreferences,
+  savePreferences,
+  type BackgroundType,
+  type DashboardPreferences,
+  type PatternKey,
+  type ThemeMode,
+} from "./dashboard-preferences";
 
 const NAV_ITEMS = [
   { icon: "ti-layout-dashboard", label: "Inicio", active: true },
@@ -28,15 +48,63 @@ const NAV_ITEMS_BOTTOM = [
   { icon: "ti-settings", label: "Configuración" },
 ];
 
-const BG_SWATCHES = ["#f5f6f8", "#ffffff", "#eef2f7", "#f6f3ee", "#1f2430"];
 const CARD_BG_SWATCHES = ["#ffffff", "#fafafa", "#f4f7ff", "#f3f9f5", "#1f2430"];
-const WALLPAPERS = [
-  "linear-gradient(135deg,#c7d2fe,#818cf8)",
-  "linear-gradient(135deg,#a7f3d0,#34d399)",
-  "linear-gradient(135deg,#fed7aa,#fb923c)",
-  "linear-gradient(135deg,#bae6fd,#38bdf8)",
-  "linear-gradient(135deg,#334155,#0f172a)",
+
+const BACKGROUND_TYPE_OPTIONS: { key: BackgroundType; label: string }[] = [
+  { key: "solido", label: "Sólido" },
+  { key: "degradado", label: "Degradado" },
+  { key: "patron", label: "Patrón" },
+  { key: "imagen", label: "Imagen" },
 ];
+
+function defaultBackgroundValue(type: BackgroundType, theme: ThemeMode): string {
+  switch (type) {
+    case "solido":
+      return SOLID_BACKGROUNDS[theme][0].key;
+    case "degradado":
+      return GRADIENT_BACKGROUNDS[theme][0].key;
+    case "patron":
+      return PATTERN_OPTIONS[0].key;
+    case "imagen":
+    default:
+      return "default";
+  }
+}
+
+/** Estilo de la capa de fondo (detrás de .main, cubierta por sidebar/topbar/tarjetas). */
+function getBackgroundLayerStyle(prefs: DashboardPreferences): CSSProperties {
+  const opacity = BACKGROUND_INTENSITY_OPACITY[prefs.backgroundIntensity];
+
+  if (prefs.backgroundType === "degradado") {
+    const option =
+      GRADIENT_BACKGROUNDS[prefs.theme].find((o) => o.key === prefs.backgroundValue) ??
+      GRADIENT_BACKGROUNDS[prefs.theme][0];
+    return { background: option.value, opacity };
+  }
+
+  if (prefs.backgroundType === "patron") {
+    const pattern = getPatternBackground(prefs.backgroundValue as PatternKey, prefs.theme);
+    return {
+      backgroundColor: THEME_VARS[prefs.theme].bg,
+      backgroundImage: pattern.image,
+      backgroundSize: pattern.size,
+      opacity,
+    };
+  }
+
+  if (prefs.backgroundType === "imagen" && prefs.backgroundImage) {
+    return {
+      backgroundImage: `url(${prefs.backgroundImage})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      opacity,
+    };
+  }
+
+  const option =
+    SOLID_BACKGROUNDS[prefs.theme].find((o) => o.key === prefs.backgroundValue) ?? SOLID_BACKGROUNDS[prefs.theme][0];
+  return { background: option.value, opacity };
+}
 
 const SHORTCUTS = [
   { icon: "ti-users", color: "var(--sky)", label: "Pacientes" },
@@ -60,68 +128,26 @@ const SECTIONS = [
 ];
 
 // ---------- Preferencias "Personalizar" ----------
+// El tipo, los valores por defecto y el storage versionado viven en
+// ./dashboard-preferences.ts. Aquí solo quedan los mapas de presentación
+// (qué valores CSS corresponde a cada opción).
 
-type AccentKey = "morado" | "azul" | "verde" | "naranja" | "rosa";
-type Density = "comodo" | "compact" | "amplio";
-type CardStyle = "suave" | "marcado" | "minimal";
-type IconStyle = "normal" | "redondo" | "grande";
-type Typography = "normal" | "grande" | "compacta";
-
-interface Prefs {
-  accent: AccentKey;
-  density: Density;
-  cardStyle: CardStyle;
-  iconStyle: IconStyle;
-  typography: Typography;
-  showDock: boolean;
-}
-
-const DEFAULT_PREFS: Prefs = {
-  accent: "morado",
-  density: "comodo",
-  cardStyle: "suave",
-  iconStyle: "normal",
-  typography: "normal",
-  showDock: true,
-};
-
-const PREFS_STORAGE_KEY = "nelzzon:zip-dashboard-react:prefs";
-
-const ACCENT_MAP: Record<AccentKey, { accent: string; soft: string; label: string }> = {
-  morado: { accent: "#4f46e5", soft: "#eef2ff", label: "Morado" },
-  azul: { accent: "#0284c7", soft: "#eff8ff", label: "Azul" },
-  verde: { accent: "#059669", soft: "#ecfdf5", label: "Verde" },
-  naranja: { accent: "#d97706", soft: "#fff7ed", label: "Naranja" },
-  rosa: { accent: "#e11d48", soft: "#fff1f3", label: "Rosa" },
-};
-
-const DENSITY_VARS: Record<Density, { padCard: string; gap: string }> = {
+const DENSITY_VARS: Record<DashboardPreferences["density"], { padCard: string; gap: string }> = {
   comodo: { padCard: "20px", gap: "18px" },
   compact: { padCard: "12px", gap: "12px" },
   amplio: { padCard: "28px", gap: "24px" },
 };
-
-function loadPrefs(): Prefs {
-  if (typeof window === "undefined") return DEFAULT_PREFS;
-  try {
-    const raw = window.localStorage.getItem(PREFS_STORAGE_KEY);
-    if (!raw) return DEFAULT_PREFS;
-    const parsed = JSON.parse(raw);
-    return { ...DEFAULT_PREFS, ...parsed };
-  } catch {
-    return DEFAULT_PREFS;
-  }
-}
 
 export function ZipDashboardReactClient() {
   const [sidebarGone, setSidebarGone] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dockOpen, setDockOpen] = useState(false);
   const [openSections, setOpenSections] = useState(SECTIONS.map((s) => s.defaultOpen));
-  const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
+  const [prefs, setPrefs] = useState<DashboardPreferences>(DEFAULT_PREFERENCES);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   useEffect(() => {
-    setPrefs(loadPrefs());
+    setPrefs(loadPreferences());
   }, []);
 
   function toggleSection(index: number) {
@@ -129,23 +155,61 @@ export function ZipDashboardReactClient() {
   }
 
   function applyChanges() {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(prefs));
+    savePreferences(prefs);
   }
 
   function resetAll() {
-    setPrefs(DEFAULT_PREFS);
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem(PREFS_STORAGE_KEY);
-    }
+    setPrefs(resetPreferences());
+    setUploadError(null);
   }
 
-  const accent = ACCENT_MAP[prefs.accent];
+  function handleBackgroundImageUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > MAX_BACKGROUND_IMAGE_BYTES) {
+      setUploadError("La imagen pesa demasiado (máx. 200 KB). Elige una imagen más ligera.");
+      event.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === "string") {
+        setUploadError(null);
+        setPrefs((p) => ({ ...p, backgroundType: "imagen", backgroundImage: result }));
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeBackgroundImage() {
+    setUploadError(null);
+    setPrefs((p) => ({
+      ...p,
+      backgroundImage: null,
+      backgroundType: "solido",
+      backgroundValue: defaultBackgroundValue("solido", p.theme),
+    }));
+  }
+
+  const palette = PALETTES[prefs.palette];
+  const theme = THEME_VARS[prefs.theme];
   const density = DENSITY_VARS[prefs.density];
 
   const pageStyle: CSSProperties = {
-    "--accent": accent.accent,
-    "--accent-soft": accent.soft,
+    "--accent": palette.accent,
+    "--accent-soft": palette.accentSoft,
+    "--accent-2": palette.accent2,
+    "--bg": theme.bg,
+    "--surface": theme.surface,
+    "--card-bg": theme.cardBg,
+    "--ink": theme.ink,
+    "--muted": theme.muted,
+    "--faint": theme.faint,
+    "--line": theme.line,
+    "--line-2": theme.line2,
     "--pad-card": density.padCard,
     "--grid-gap": density.gap,
   } as CSSProperties;
@@ -168,6 +232,9 @@ export function ZipDashboardReactClient() {
       />
 
       <div className={styles.shell}>
+        {/* Capa de fondo: solo visible donde .main es transparente */}
+        <div className={styles.bgLayer} style={getBackgroundLayerStyle(prefs)} />
+
         {/* Sidebar */}
         <aside className={cn(styles.sidebar, sidebarGone && styles.sidebarGone)}>
           <div className={styles.brand}>
@@ -417,41 +484,192 @@ export function ZipDashboardReactClient() {
                     {/* 1. Colores y fondos */}
                     {index === 0 && (
                       <>
-                        <div className={styles.ctlLabel}>Color de acento</div>
-                        <div className={styles.swatches}>
-                          {(Object.entries(ACCENT_MAP) as [AccentKey, typeof ACCENT_MAP[AccentKey]][]).map(
-                            ([key, value]) => (
+                        <div className={styles.ctlLabel}>Modo</div>
+                        <div className={styles.seg}>
+                          <button
+                            type="button"
+                            className={cn(prefs.theme === "light" && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, theme: "light" }))}
+                          >
+                            Claro
+                          </button>
+                          <button
+                            type="button"
+                            className={cn(prefs.theme === "dark" && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, theme: "dark" }))}
+                          >
+                            Oscuro
+                          </button>
+                        </div>
+
+                        <div className={styles.ctlLabel} style={{ marginTop: 16 }}>
+                          Paleta de color
+                        </div>
+                        <div className={cn(styles.swatches, styles.swatchesWrap)}>
+                          {PALETTE_KEYS.map((key) => {
+                            const def = PALETTES[key];
+                            return (
                               <span
                                 key={key}
-                                title={value.label}
-                                className={cn(styles.sw, prefs.accent === key && styles.swOn)}
-                                style={{ background: value.accent }}
-                                onClick={() => setPrefs((p) => ({ ...p, accent: key }))}
+                                title={def.label}
+                                className={cn(styles.sw, prefs.palette === key && styles.swOn)}
+                                style={{ background: def.gradient }}
+                                onClick={() => setPrefs((p) => ({ ...p, palette: key }))}
                               />
-                            )
-                          )}
+                            );
+                          })}
                         </div>
+
                         <div className={styles.ctlLabel} style={{ marginTop: 16 }}>
-                          Color de fondo
+                          Tipo de fondo
                         </div>
-                        <div className={styles.swatches}>
-                          {BG_SWATCHES.map((color) => (
-                            <span key={color} className={styles.bgsw} style={{ background: color }} />
+                        <div className={cn(styles.seg, styles.segSmall)}>
+                          {BACKGROUND_TYPE_OPTIONS.map((opt) => (
+                            <button
+                              key={opt.key}
+                              type="button"
+                              className={cn(prefs.backgroundType === opt.key && styles.segOn)}
+                              onClick={() =>
+                                setPrefs((p) => ({
+                                  ...p,
+                                  backgroundType: opt.key,
+                                  backgroundValue: defaultBackgroundValue(opt.key, p.theme),
+                                }))
+                              }
+                            >
+                              {opt.label}
+                            </button>
                           ))}
                         </div>
+
+                        {prefs.backgroundType === "solido" && (
+                          <>
+                            <div className={styles.ctlLabel} style={{ marginTop: 16 }}>
+                              Color de fondo
+                            </div>
+                            <div className={styles.swatches}>
+                              {SOLID_BACKGROUNDS[prefs.theme].map((opt) => (
+                                <span
+                                  key={opt.key}
+                                  title={opt.label}
+                                  className={cn(styles.bgsw, prefs.backgroundValue === opt.key && styles.bgswOn)}
+                                  style={{ background: opt.value }}
+                                  onClick={() => setPrefs((p) => ({ ...p, backgroundValue: opt.key }))}
+                                />
+                              ))}
+                            </div>
+                          </>
+                        )}
+
+                        {prefs.backgroundType === "degradado" && (
+                          <>
+                            <div className={styles.ctlLabel} style={{ marginTop: 16 }}>
+                              Degradado
+                            </div>
+                            <div className={styles.swatches}>
+                              {GRADIENT_BACKGROUNDS[prefs.theme].map((opt) => (
+                                <span
+                                  key={opt.key}
+                                  title={opt.label}
+                                  className={cn(styles.bgsw, prefs.backgroundValue === opt.key && styles.bgswOn)}
+                                  style={{ background: opt.value }}
+                                  onClick={() => setPrefs((p) => ({ ...p, backgroundValue: opt.key }))}
+                                />
+                              ))}
+                            </div>
+                          </>
+                        )}
+
+                        {prefs.backgroundType === "patron" && (
+                          <>
+                            <div className={styles.ctlLabel} style={{ marginTop: 16 }}>
+                              Patrón
+                            </div>
+                            <div className={styles.swatches}>
+                              {PATTERN_OPTIONS.map((opt) => {
+                                const pattern = getPatternBackground(opt.key, prefs.theme);
+                                return (
+                                  <span
+                                    key={opt.key}
+                                    title={opt.label}
+                                    className={cn(styles.bgsw, prefs.backgroundValue === opt.key && styles.bgswOn)}
+                                    style={{
+                                      background: THEME_VARS[prefs.theme].bg,
+                                      backgroundImage: pattern.image,
+                                      backgroundSize: pattern.size,
+                                    }}
+                                    onClick={() => setPrefs((p) => ({ ...p, backgroundValue: opt.key }))}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </>
+                        )}
+
+                        {prefs.backgroundType === "imagen" && (
+                          <>
+                            <div className={styles.ctlLabel} style={{ marginTop: 16 }}>
+                              Imagen decorativa
+                            </div>
+                            {prefs.backgroundImage ? (
+                              <div className={styles.uploadPreviewRow}>
+                                <span
+                                  className={styles.uploadPreview}
+                                  style={{ backgroundImage: `url(${prefs.backgroundImage})` }}
+                                />
+                                <button type="button" className={styles.removeImg} onClick={removeBackgroundImage}>
+                                  <i className="ti ti-trash" /> Quitar
+                                </button>
+                              </div>
+                            ) : (
+                              <label className={styles.upload}>
+                                <input type="file" accept="image/*" hidden onChange={handleBackgroundImageUpload} />
+                                <i className="ti ti-photo-up" />
+                                Subir imagen (máx. 200 KB)
+                              </label>
+                            )}
+                            {uploadError && <div className={styles.uploadError}>{uploadError}</div>}
+                          </>
+                        )}
+
                         <div className={styles.ctlLabel} style={{ marginTop: 16 }}>
-                          Fondos de imagen
+                          Intensidad del fondo
                         </div>
-                        <div className={styles.wallpapers}>
-                          {WALLPAPERS.map((bg) => (
-                            <span key={bg} className={styles.wp} style={{ background: bg }} />
-                          ))}
+                        <div className={styles.seg}>
+                          <button
+                            type="button"
+                            className={cn(prefs.backgroundIntensity === "suave" && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, backgroundIntensity: "suave" }))}
+                          >
+                            Suave
+                          </button>
+                          <button
+                            type="button"
+                            className={cn(prefs.backgroundIntensity === "media" && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, backgroundIntensity: "media" }))}
+                          >
+                            Media
+                          </button>
+                          <button
+                            type="button"
+                            className={cn(prefs.backgroundIntensity === "alta" && styles.segOn)}
+                            onClick={() => setPrefs((p) => ({ ...p, backgroundIntensity: "alta" }))}
+                          >
+                            Alta
+                          </button>
                         </div>
-                        <label className={styles.upload}>
-                          <input type="file" accept="image/*" hidden />
-                          <i className="ti ti-photo-up" />
-                          Subir tu imagen
-                        </label>
+
+                        <button
+                          type="button"
+                          className={styles.bgReset}
+                          onClick={() => {
+                            setUploadError(null);
+                            setPrefs((p) => resetBackgroundPreferences(p));
+                          }}
+                        >
+                          <i className="ti ti-rotate" style={{ verticalAlign: -2 }} />
+                          Volver al fondo original
+                        </button>
                       </>
                     )}
 
