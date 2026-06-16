@@ -29,6 +29,7 @@ export interface DashboardPreferences {
   gradientFrom:      string;
   gradientTo:        string;
   backgroundImage:   string | null;
+  recentAccents:     string[];
   density:           Density;
   cardStyle:         CardStyle;
   iconStyle:         IconStyle;
@@ -203,6 +204,7 @@ export const DEFAULT_PREFERENCES: DashboardPreferences = {
   gradientFrom:      "#eef2ff",
   gradientTo:        "#f5f3ff",
   backgroundImage:   null,
+  recentAccents:     [],
   density:           "comodo",
   cardStyle:         "suave",
   iconStyle:         "normal",
@@ -257,6 +259,9 @@ export function sanitizePreferences(value: unknown): DashboardPreferences {
                          c.backgroundImage.startsWith("data:image/") &&
                          c.backgroundImage.length <= MAX_BACKGROUND_IMAGE_BYTES * 1.4
                        ) ? c.backgroundImage : null,
+    recentAccents:     Array.isArray(c.recentAccents)
+                         ? (c.recentAccents as unknown[]).filter(isValidHex).slice(0, 8)
+                         : DEFAULT_PREFERENCES.recentAccents,
     density:           isOneOf(c.density, DENSITY_KEYS)            ? c.density            : DEFAULT_PREFERENCES.density,
     cardStyle:         isOneOf(c.cardStyle, CARD_STYLE_KEYS)       ? c.cardStyle          : DEFAULT_PREFERENCES.cardStyle,
     iconStyle:         isOneOf(c.iconStyle, ICON_STYLE_KEYS)       ? c.iconStyle          : DEFAULT_PREFERENCES.iconStyle,
