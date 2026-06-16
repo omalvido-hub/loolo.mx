@@ -6,7 +6,7 @@
 // aislada para validar la migración visual.
 //
 // Panel "Personalizar tu sistema": estado en memoria + localStorage
-// (clave PREFS_STORAGE_KEY). Sin backend, sin queries.
+// (clave PREFERENCES_STORAGE_KEY). Sin backend, sin queries.
 
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, CSSProperties } from "react";
@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import styles from "./zip-dashboard-react.module.css";
 import {
   DEFAULT_PREFERENCES,
-  GRADIENT_BACKGROUNDS,
+  GALLERY_BACKGROUNDS,
   MAX_BACKGROUND_IMAGE_BYTES,
   PATTERN_KEYS,
   PATTERN_LABELS,
@@ -29,6 +29,7 @@ import {
   type AccentKey,
   type BackgroundType,
   type DashboardPreferences,
+  type GalleryBg,
   type GradientDirection,
   type PatternKey,
 } from "./dashboard-preferences";
@@ -72,9 +73,6 @@ const SECTIONS = [
 ];
 
 // ---------- Preferencias "Personalizar" ----------
-// El tipo, los valores por defecto y el storage versionado viven en
-// ./dashboard-preferences.ts. Aquí solo queda el mapa de presentación (qué
-// valores CSS corresponde a cada opción).
 
 type CuratedAccentKey = Exclude<AccentKey, "personalizado">;
 
@@ -88,6 +86,91 @@ const ACCENT_MAP: Record<CuratedAccentKey, { accent: string; soft: string; label
   aqua:    { accent: "#0891b2", soft: "#ecfeff", label: "Aqua" },
   grafito: { accent: "#475569", soft: "#f1f5f9", label: "Grafito" },
 };
+
+// Paleta curada por categoría — UI only, no se almacena
+interface PaletteSwatch { value: string; soft: string; label: string; }
+interface PaletteCategory { label: string; swatches: PaletteSwatch[]; }
+
+const PALETTE_CATEGORIES: PaletteCategory[] = [
+  {
+    label: "Nelzzon",
+    swatches: [
+      { value: "#4f46e5", soft: "#eef2ff", label: "Índigo" },
+      { value: "#0284c7", soft: "#eff8ff", label: "Azul" },
+      { value: "#059669", soft: "#ecfdf5", label: "Verde" },
+      { value: "#7c3aed", soft: "#f5f3ff", label: "Violeta" },
+      { value: "#0891b2", soft: "#ecfeff", label: "Aqua" },
+    ],
+  },
+  {
+    label: "Pasteles",
+    swatches: [
+      { value: "#8b5cf6", soft: "#f5f3ff", label: "Lavanda" },
+      { value: "#ec4899", soft: "#fdf2f8", label: "Rosa" },
+      { value: "#14b8a6", soft: "#f0fdfa", label: "Teal" },
+      { value: "#f59e0b", soft: "#fffbeb", label: "Ámbar" },
+      { value: "#84cc16", soft: "#f7fee7", label: "Lima" },
+    ],
+  },
+  {
+    label: "Vibrantes",
+    swatches: [
+      { value: "#ef4444", soft: "#fef2f2", label: "Rojo" },
+      { value: "#f97316", soft: "#fff7ed", label: "Naranja" },
+      { value: "#eab308", soft: "#fefce8", label: "Amarillo" },
+      { value: "#22c55e", soft: "#f0fdf4", label: "Verde vivo" },
+      { value: "#3b82f6", soft: "#eff6ff", label: "Azul vivo" },
+    ],
+  },
+  {
+    label: "Neutros",
+    swatches: [
+      { value: "#475569", soft: "#f1f5f9", label: "Pizarra" },
+      { value: "#64748b", soft: "#f8fafc", label: "Gris azulado" },
+      { value: "#6b7280", soft: "#f9fafb", label: "Gris" },
+      { value: "#57534e", soft: "#fafaf9", label: "Piedra" },
+      { value: "#374151", soft: "#f9fafb", label: "Carbón" },
+    ],
+  },
+  {
+    label: "Profesionales",
+    swatches: [
+      { value: "#1e40af", soft: "#eff6ff", label: "Azul marino" },
+      { value: "#15803d", soft: "#f0fdf4", label: "Verde botella" },
+      { value: "#7e22ce", soft: "#faf5ff", label: "Ciruela" },
+      { value: "#9f1239", soft: "#fff1f2", label: "Granate" },
+      { value: "#0f766e", soft: "#f0fdfa", label: "Esmeralda" },
+    ],
+  },
+];
+
+// Categorías de galería agrupadas desde GALLERY_BACKGROUNDS
+interface GalleryCategory { label: string; items: GalleryBg[]; }
+
+const GALLERY_CAT_DEFS = [
+  { label: "Minimal / limpio",    cat: "minimal" },
+  { label: "Pastel / suave",      cat: "pastel" },
+  { label: "Abstracto / premium", cat: "abstracto" },
+  { label: "Ondas / fluidos",     cat: "ondas" },
+  { label: "Glass / moderno",     cat: "glass" },
+  { label: "Oscuro elegante",     cat: "oscuro" },
+  { label: "Creativo / colorido", cat: "creativo" },
+];
+
+const GALLERY_CATEGORIES: GalleryCategory[] = GALLERY_CAT_DEFS.map(({ label, cat }) => ({
+  label,
+  items: GALLERY_BACKGROUNDS.filter((b) => b.category === cat),
+}));
+
+// Categorías de fondos sólidos para el drawer
+const SOLID_CATEGORIES = [
+  { label: "Claros",    keys: ["default", "blanco", "nieve", "perla"] },
+  { label: "Pasteles",  keys: ["azulado", "menta-sol", "lavanda-sol", "durazno-sol"] },
+  { label: "Neutros",   keys: ["calido", "arena", "pizarra", "piedra"] },
+  { label: "Oscuros",   keys: ["azul-noche", "carbon", "bosque-n"] },
+];
+
+// ---------- Helpers de presentación ----------
 
 function getAccentColors(p: DashboardPreferences): { accent: string; soft: string } {
   if (p.accent === "personalizado") {
@@ -104,12 +187,12 @@ function getMainBackgroundStyle(p: DashboardPreferences): CSSProperties {
       backgroundPosition: "center",
     };
   }
-  if (p.backgroundType === "degradado") {
-    if (p.gradientMode === "manual") {
-      return { background: `linear-gradient(${p.gradientDirection}, ${p.gradientFrom}, ${p.gradientTo})` };
-    }
-    const opt = GRADIENT_BACKGROUNDS.find((o) => o.key === p.backgroundValue) ?? GRADIENT_BACKGROUNDS[0];
-    return { background: opt.value };
+  if (p.backgroundType === "manual") {
+    return { background: `linear-gradient(${p.gradientDirection}, ${p.gradientFrom}, ${p.gradientTo})` };
+  }
+  if (p.backgroundType === "galeria") {
+    const bg = GALLERY_BACKGROUNDS.find((b) => b.key === p.backgroundValue);
+    return bg ? { background: bg.css } : {};
   }
   if (p.backgroundType === "patron") {
     const key = (PATTERN_KEYS as readonly string[]).includes(p.backgroundValue)
@@ -117,15 +200,23 @@ function getMainBackgroundStyle(p: DashboardPreferences): CSSProperties {
       : PATTERN_KEYS[0];
     return getPatternBackground(key);
   }
+  // solido
   if (p.backgroundValue === "default") return {};
   const opt = SOLID_BACKGROUNDS.find((o) => o.key === p.backgroundValue);
   return opt ? { background: opt.value } : {};
 }
 
 const DENSITY_VARS: Record<DashboardPreferences["density"], { padCard: string; gap: string }> = {
-  comodo: { padCard: "20px", gap: "18px" },
+  comodo:  { padCard: "20px", gap: "18px" },
   compact: { padCard: "12px", gap: "12px" },
-  amplio: { padCard: "28px", gap: "24px" },
+  amplio:  { padCard: "28px", gap: "24px" },
+};
+
+const GRADIENT_DIR_LABELS: Record<GradientDirection, string> = {
+  "135deg": "↘ 135°",
+  "90deg":  "→ 90°",
+  "180deg": "↓ 180°",
+  "45deg":  "↗ 45°",
 };
 
 export function ZipDashboardReactClient() {
@@ -136,12 +227,16 @@ export function ZipDashboardReactClient() {
   const [prefs, setPrefs] = useState<DashboardPreferences>(DEFAULT_PREFERENCES);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [hexDraft, setHexDraft] = useState(DEFAULT_PREFERENCES.customAccentColor);
+  const [gradFromDraft, setGradFromDraft] = useState(DEFAULT_PREFERENCES.gradientFrom);
+  const [gradToDraft, setGradToDraft] = useState(DEFAULT_PREFERENCES.gradientTo);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const loaded = loadPreferences();
     setPrefs(loaded);
     setHexDraft(loaded.customAccentColor);
+    setGradFromDraft(loaded.gradientFrom);
+    setGradToDraft(loaded.gradientTo);
   }, []);
 
   function toggleSection(index: number) {
@@ -175,11 +270,23 @@ export function ZipDashboardReactClient() {
     const defaults = resetPreferences();
     setPrefs(defaults);
     setHexDraft(defaults.customAccentColor);
+    setGradFromDraft(defaults.gradientFrom);
+    setGradToDraft(defaults.gradientTo);
+    setUploadError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function handleResetBackground() {
+    const reset = resetBackgroundPreferences(prefs);
+    setPrefs(reset);
+    setGradFromDraft(reset.gradientFrom);
+    setGradToDraft(reset.gradientTo);
     setUploadError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   const accentColors = getAccentColors(prefs);
+  const activeAccentHex = accentColors.accent;
   const density = DENSITY_VARS[prefs.density];
 
   const pageStyle: CSSProperties = {
@@ -188,6 +295,14 @@ export function ZipDashboardReactClient() {
     "--pad-card": density.padCard,
     "--grid-gap": density.gap,
   } as CSSProperties;
+
+  const bgTypeDefaults: Record<BackgroundType, string> = {
+    solido:  "default",
+    galeria: GALLERY_BACKGROUNDS[0]?.key ?? "min-1",
+    patron:  PATTERN_KEYS[0],
+    manual:  "",
+    imagen:  "",
+  };
 
   return (
     <div
@@ -453,41 +568,43 @@ export function ZipDashboardReactClient() {
                     <i className={cn("ti ti-chevron-down", styles.chev)} />
                   </div>
                   <div className={styles.sectContent}>
-                    {/* 1. Colores y fondos */}
+
+                    {/* ── 1. Colores y fondos ── */}
                     {index === 0 && (
                       <>
-                        {/* — Acento — */}
-                        <div className={styles.ctlLabel}>Color de acento</div>
-                        <div className={styles.swatchesWrap}>
-                          {(Object.entries(ACCENT_MAP) as [CuratedAccentKey, typeof ACCENT_MAP[CuratedAccentKey]][]).map(
-                            ([key, val]) => (
-                              <span
-                                key={key}
-                                title={val.label}
-                                className={cn(styles.sw, prefs.accent === key && styles.swOn)}
-                                style={{ background: val.accent }}
-                                onClick={() => setPrefs((p) => ({ ...p, accent: key }))}
-                              />
-                            )
-                          )}
+                        {/* ─ Color de acento ─ */}
+                        <div className={styles.ctlLabel} style={{ marginTop: 4 }}>Color de acento</div>
+                        {PALETTE_CATEGORIES.map((cat, catIdx) => (
+                          <div key={cat.label}>
+                            <div
+                              className={styles.galleryCatLabel}
+                              style={{ marginTop: catIdx === 0 ? 4 : 10 }}
+                            >
+                              {cat.label}
+                            </div>
+                            <div className={styles.swatchesWrap}>
+                              {cat.swatches.map((sw) => (
+                                <span
+                                  key={sw.value}
+                                  title={sw.label}
+                                  className={cn(styles.sw, activeAccentHex === sw.value && styles.swOn)}
+                                  style={{ background: sw.value }}
+                                  onClick={() => {
+                                    setPrefs((p) => ({ ...p, accent: "personalizado", customAccentColor: sw.value }));
+                                    setHexDraft(sw.value);
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* HEX personalizado */}
+                        <div className={styles.hexInputRow} style={{ marginTop: 10 }}>
                           <span
-                            title="Personalizado"
-                            className={cn(styles.sw, styles.colorPickerSwatch, prefs.accent === "personalizado" && styles.swOn)}
-                            style={{ background: prefs.customAccentColor }}
-                          >
-                            <input
-                              type="color"
-                              className={styles.colorPickerInput}
-                              value={prefs.customAccentColor}
-                              onChange={(e) => {
-                                setPrefs((p) => ({ ...p, accent: "personalizado", customAccentColor: e.target.value }));
-                                setHexDraft(e.target.value);
-                              }}
-                              title="Color personalizado"
-                            />
-                          </span>
-                        </div>
-                        <div className={styles.hexInputRow}>
+                            className={styles.hexPreview}
+                            style={{ background: isValidHex(hexDraft) ? hexDraft : prefs.customAccentColor }}
+                          />
                           <input
                             type="text"
                             className={cn(
@@ -511,141 +628,85 @@ export function ZipDashboardReactClient() {
                           )}
                         </div>
 
-                        {/* — Tipo de fondo — */}
-                        <div className={styles.ctlLabel} style={{ marginTop: 16 }}>Tipo de fondo</div>
+                        {/* ─ Fondo ─ */}
+                        <div className={styles.ctlLabel} style={{ marginTop: 18 }}>Fondo</div>
                         <div className={styles.seg}>
-                          {(["solido", "degradado", "patron", "imagen"] as BackgroundType[]).map((type, i) => {
-                            const labels = ["Sólido", "Degradado", "Patrón", "Imagen"];
-                            const bgDefaults: Record<BackgroundType, string> = {
-                              solido:    "default",
-                              degradado: GRADIENT_BACKGROUNDS[0].key,
-                              patron:    PATTERN_KEYS[0],
-                              imagen:    "",
-                            };
-                            return (
-                              <button
-                                key={type}
-                                type="button"
-                                className={cn(prefs.backgroundType === type && styles.segOn)}
-                                onClick={() =>
-                                  setPrefs((p) => ({ ...p, backgroundType: type, backgroundValue: bgDefaults[type] }))
-                                }
-                              >
-                                {labels[i]}
-                              </button>
-                            );
-                          })}
+                          {(["solido", "galeria", "patron", "manual", "imagen"] as BackgroundType[]).map(
+                            (type, i) => {
+                              const labels = ["Sólido", "Galería", "Patrón", "Manual", "Imagen"];
+                              return (
+                                <button
+                                  key={type}
+                                  type="button"
+                                  className={cn(prefs.backgroundType === type && styles.segOn)}
+                                  onClick={() =>
+                                    setPrefs((p) => ({
+                                      ...p,
+                                      backgroundType: type,
+                                      backgroundValue: bgTypeDefaults[type],
+                                    }))
+                                  }
+                                >
+                                  {labels[i]}
+                                </button>
+                              );
+                            }
+                          )}
                         </div>
 
                         {/* Sólido */}
                         {prefs.backgroundType === "solido" && (
-                          <div className={styles.swatchesWrap} style={{ marginTop: 10 }}>
-                            {SOLID_BACKGROUNDS.map((opt) => (
-                              <span
-                                key={opt.key}
-                                title={opt.label}
-                                className={cn(styles.bgsw, prefs.backgroundValue === opt.key && styles.bgswOn)}
-                                style={{ background: opt.value === "transparent" ? "#f5f6f8" : opt.value }}
-                                onClick={() => setPrefs((p) => ({ ...p, backgroundValue: opt.key }))}
-                              />
+                          <>
+                            {SOLID_CATEGORIES.map((cat) => (
+                              <div key={cat.label}>
+                                <div className={styles.galleryCatLabel}>{cat.label}</div>
+                                <div className={styles.swatchesWrap}>
+                                  {cat.keys.map((k) => {
+                                    const opt = SOLID_BACKGROUNDS.find((s) => s.key === k);
+                                    if (!opt) return null;
+                                    return (
+                                      <span
+                                        key={k}
+                                        title={opt.label}
+                                        className={cn(
+                                          styles.bgsw,
+                                          prefs.backgroundValue === k && styles.bgswOn,
+                                        )}
+                                        style={{
+                                          background: opt.value === "transparent" ? "#f5f6f8" : opt.value,
+                                        }}
+                                        onClick={() => setPrefs((p) => ({ ...p, backgroundValue: k }))}
+                                      />
+                                    );
+                                  })}
+                                </div>
+                              </div>
                             ))}
-                          </div>
+                          </>
                         )}
 
-                        {/* Degradado */}
-                        {prefs.backgroundType === "degradado" && (
+                        {/* Galería */}
+                        {prefs.backgroundType === "galeria" && (
                           <>
-                            <div className={styles.seg} style={{ marginTop: 10 }}>
-                              <button
-                                type="button"
-                                className={cn(prefs.gradientMode === "predefinido" && styles.segOn)}
-                                onClick={() => setPrefs((p) => ({ ...p, gradientMode: "predefinido" }))}
-                              >
-                                Predefinido
-                              </button>
-                              <button
-                                type="button"
-                                className={cn(prefs.gradientMode === "manual" && styles.segOn)}
-                                onClick={() => setPrefs((p) => ({ ...p, gradientMode: "manual" }))}
-                              >
-                                Manual
-                              </button>
-                            </div>
-                            {prefs.gradientMode === "predefinido" && (
-                              <div className={styles.wallpapers} style={{ marginTop: 10 }}>
-                                {GRADIENT_BACKGROUNDS.map((opt) => (
-                                  <span
-                                    key={opt.key}
-                                    title={opt.label}
-                                    className={cn(styles.wp, prefs.backgroundValue === opt.key && styles.wpOn)}
-                                    style={{ background: opt.value }}
-                                    onClick={() => setPrefs((p) => ({ ...p, backgroundValue: opt.key }))}
-                                  />
-                                ))}
-                              </div>
-                            )}
-                            {prefs.gradientMode === "manual" && (
-                              <>
-                              <div className={styles.ctlLabel} style={{ marginTop: 10 }}>Dirección</div>
-                              <div className={styles.seg}>
-                                {(["135deg", "90deg", "180deg", "45deg"] as GradientDirection[]).map((dir) => {
-                                  const labels: Record<GradientDirection, string> = {
-                                    "135deg": "↘ 135°",
-                                    "90deg":  "→ 90°",
-                                    "180deg": "↓ 180°",
-                                    "45deg":  "↗ 45°",
-                                  };
-                                  return (
-                                    <button
-                                      key={dir}
-                                      type="button"
-                                      className={cn(prefs.gradientDirection === dir && styles.segOn)}
-                                      onClick={() => setPrefs((p) => ({ ...p, gradientDirection: dir }))}
-                                    >
-                                      {labels[dir]}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                              <div className={styles.gradientPair}>
-                                <div className={styles.gradientColorItem}>
-                                  <div className={styles.ctlLabel}>Desde</div>
-                                  <span
-                                    className={styles.gradientColorSwatch}
-                                    style={{ background: prefs.gradientFrom }}
-                                  >
-                                    <input
-                                      type="color"
-                                      className={styles.colorPickerInput}
-                                      value={prefs.gradientFrom}
-                                      onChange={(e) => setPrefs((p) => ({ ...p, gradientFrom: e.target.value }))}
+                            {GALLERY_CATEGORIES.map((cat) => (
+                              <div key={cat.label}>
+                                <div className={styles.galleryCatLabel}>{cat.label}</div>
+                                <div className={styles.galleryGrid}>
+                                  {cat.items.map((bg) => (
+                                    <span
+                                      key={bg.key}
+                                      title={bg.label}
+                                      className={cn(
+                                        styles.galleryItem,
+                                        prefs.backgroundValue === bg.key && styles.galleryItemOn,
+                                      )}
+                                      style={{ background: bg.css }}
+                                      onClick={() => setPrefs((p) => ({ ...p, backgroundValue: bg.key }))}
                                     />
-                                  </span>
+                                  ))}
                                 </div>
-                                <span className={styles.gradientArrow}>→</span>
-                                <div className={styles.gradientColorItem}>
-                                  <div className={styles.ctlLabel}>Hasta</div>
-                                  <span
-                                    className={styles.gradientColorSwatch}
-                                    style={{ background: prefs.gradientTo }}
-                                  >
-                                    <input
-                                      type="color"
-                                      className={styles.colorPickerInput}
-                                      value={prefs.gradientTo}
-                                      onChange={(e) => setPrefs((p) => ({ ...p, gradientTo: e.target.value }))}
-                                    />
-                                  </span>
-                                </div>
-                                <div
-                                  className={styles.gradientPreviewRect}
-                                  style={{
-                                    background: `linear-gradient(${prefs.gradientDirection}, ${prefs.gradientFrom}, ${prefs.gradientTo})`,
-                                  }}
-                                />
                               </div>
-                              </>
-                            )}
+                            ))}
                           </>
                         )}
 
@@ -671,7 +732,92 @@ export function ZipDashboardReactClient() {
                           </div>
                         )}
 
-                        {/* Imagen */}
+                        {/* Degradado manual */}
+                        {prefs.backgroundType === "manual" && (
+                          <>
+                            <div className={styles.ctlLabel} style={{ marginTop: 10 }}>Dirección</div>
+                            <div className={styles.seg}>
+                              {(["135deg", "90deg", "180deg", "45deg"] as GradientDirection[]).map((dir) => (
+                                <button
+                                  key={dir}
+                                  type="button"
+                                  className={cn(prefs.gradientDirection === dir && styles.segOn)}
+                                  onClick={() => setPrefs((p) => ({ ...p, gradientDirection: dir }))}
+                                >
+                                  {GRADIENT_DIR_LABELS[dir]}
+                                </button>
+                              ))}
+                            </div>
+                            <div className={styles.gradientPair}>
+                              <div className={styles.gradientColorItem}>
+                                <div className={styles.ctlLabel} style={{ margin: "8px 0 5px" }}>Desde</div>
+                                <div className={styles.hexInputRow}>
+                                  <span
+                                    className={styles.hexPreview}
+                                    style={{
+                                      background: isValidHex(gradFromDraft)
+                                        ? gradFromDraft
+                                        : prefs.gradientFrom,
+                                    }}
+                                  />
+                                  <input
+                                    type="text"
+                                    className={cn(
+                                      styles.hexInput,
+                                      gradFromDraft.length >= 4 && !isValidHex(gradFromDraft) && styles.hexInputError,
+                                    )}
+                                    value={gradFromDraft}
+                                    placeholder="#eef2ff"
+                                    maxLength={7}
+                                    spellCheck={false}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setGradFromDraft(val);
+                                      if (isValidHex(val)) setPrefs((p) => ({ ...p, gradientFrom: val }));
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              <div className={styles.gradientColorItem}>
+                                <div className={styles.ctlLabel} style={{ margin: "8px 0 5px" }}>Hasta</div>
+                                <div className={styles.hexInputRow}>
+                                  <span
+                                    className={styles.hexPreview}
+                                    style={{
+                                      background: isValidHex(gradToDraft)
+                                        ? gradToDraft
+                                        : prefs.gradientTo,
+                                    }}
+                                  />
+                                  <input
+                                    type="text"
+                                    className={cn(
+                                      styles.hexInput,
+                                      gradToDraft.length >= 4 && !isValidHex(gradToDraft) && styles.hexInputError,
+                                    )}
+                                    value={gradToDraft}
+                                    placeholder="#f5f3ff"
+                                    maxLength={7}
+                                    spellCheck={false}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setGradToDraft(val);
+                                      if (isValidHex(val)) setPrefs((p) => ({ ...p, gradientTo: val }));
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <div
+                              className={styles.gradientPreviewRect}
+                              style={{
+                                background: `linear-gradient(${prefs.gradientDirection}, ${prefs.gradientFrom}, ${prefs.gradientTo})`,
+                              }}
+                            />
+                          </>
+                        )}
+
+                        {/* Imagen propia */}
                         {prefs.backgroundType === "imagen" && (
                           <>
                             {prefs.backgroundImage ? (
@@ -718,11 +864,7 @@ export function ZipDashboardReactClient() {
                         <button
                           type="button"
                           className={styles.bgResetBtn}
-                          onClick={() => {
-                            setPrefs((p) => resetBackgroundPreferences(p));
-                            setUploadError(null);
-                            if (fileInputRef.current) fileInputRef.current.value = "";
-                          }}
+                          onClick={handleResetBackground}
                         >
                           <i className="ti ti-rotate" style={{ verticalAlign: -2 }} />
                           Quitar fondo / Volver al original
@@ -730,7 +872,7 @@ export function ZipDashboardReactClient() {
                       </>
                     )}
 
-                    {/* 2. Tarjetas y widgets */}
+                    {/* ── 2. Tarjetas y widgets ── */}
                     {index === 1 && (
                       <>
                         <div className={styles.ctlLabel}>Fondo de las tarjetas</div>
@@ -766,7 +908,7 @@ export function ZipDashboardReactClient() {
                       </>
                     )}
 
-                    {/* 3. Estilo general */}
+                    {/* ── 3. Estilo general ── */}
                     {index === 2 && (
                       <>
                         <div className={styles.ctlLabel} style={{ paddingTop: 10 }}>
@@ -798,7 +940,7 @@ export function ZipDashboardReactClient() {
                       </>
                     )}
 
-                    {/* 4. Iconos */}
+                    {/* ── 4. Iconos ── */}
                     {index === 3 && (
                       <>
                         <div className={styles.ctlLabel} style={{ paddingTop: 10 }}>
@@ -830,7 +972,7 @@ export function ZipDashboardReactClient() {
                       </>
                     )}
 
-                    {/* 5. Accesos y menú */}
+                    {/* ── 5. Accesos y menú ── */}
                     {index === 4 && (
                       <>
                         <div className={styles.ctlLabel} style={{ paddingTop: 10 }}>
@@ -855,7 +997,7 @@ export function ZipDashboardReactClient() {
                       </>
                     )}
 
-                    {/* 6. Tipografía */}
+                    {/* ── 6. Tipografía ── */}
                     {index === 5 && (
                       <>
                         <div className={styles.ctlLabel} style={{ paddingTop: 10 }}>

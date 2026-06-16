@@ -624,7 +624,7 @@
   transition: max-height .25s, padding .25s;
 }
 .sectOpen .sectContent {
-  max-height: 1200px;
+  max-height: 3000px;
   padding: 0 14px 16px;
 }
 .bgsw {
@@ -786,24 +786,46 @@
   margin-bottom: 6px;
 }
 
-/* Swatch que contiene un input[type=color] nativo */
-.colorPickerSwatch {
-  position: relative;
-  overflow: hidden;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+/* Etiqueta de categoría en paleta y galería */
+.galleryCatLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--faint);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin: 10px 0 6px;
 }
-.colorPickerInput {
-  position: absolute;
-  inset: -8px;
-  width: calc(100% + 16px);
-  height: calc(100% + 16px);
-  border: none;
-  padding: 0;
+
+/* Galería de fondos visuales: grid 3 columnas */
+.galleryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.galleryItem {
+  height: 48px;
+  border-radius: 10px;
+  border: 2px solid transparent;
   cursor: pointer;
-  opacity: 1;
-  background: none;
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.galleryItem:hover {
+  transform: scale(1.04);
+}
+.galleryItemOn {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Punto de color para preview en fila HEX */
+.hexPreview {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--line-2);
+  flex-shrink: 0;
 }
 
 /* Input HEX para color personalizado */
@@ -866,32 +888,17 @@
   flex-wrap: wrap;
 }
 .gradientColorItem {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-.gradientArrow {
-  color: var(--muted);
-  font-size: 18px;
-  padding-bottom: 4px;
-}
-.gradientColorSwatch {
-  width: 36px;
-  height: 36px;
-  border-radius: 9px;
-  border: 1px solid var(--line-2);
-  display: inline-block;
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-  flex-shrink: 0;
-}
 .gradientPreviewRect {
-  flex: 1;
-  min-width: 60px;
-  height: 36px;
-  border-radius: 9px;
+  width: 100%;
+  height: 44px;
+  border-radius: 10px;
   border: 1px solid var(--line-2);
+  margin-top: 12px;
 }
 
 /* Imagen subida: fila preview + botón quitar */
