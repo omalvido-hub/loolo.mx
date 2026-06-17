@@ -466,7 +466,7 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
   const panelRef = useRef<HTMLDivElement>(null);
   const [activeKey, setActiveKey] = useState(BLOCKS[0].key);
   const [query, setQuery] = useState("");
-  const { resetAllPersonalization } = useVisualPreferences();
+  const { resetAllPersonalization, saveNow } = useVisualPreferences();
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -705,7 +705,7 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
           </button>
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => { saveNow(); onClose(); }}
             className="inline-flex items-center rounded-full bg-violet-600 px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-violet-700"
           >
             Aplicar cambios

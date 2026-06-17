@@ -137,7 +137,7 @@ export function ZipDashboardReactClient() {
     setOpenSections((prev) => prev.map((open, i) => (i === index ? !open : open)));
   }
 
-  function applyChanges() { savePreferences(prefs); }
+  function applyChanges() { savePreferences(prefs); setDrawerOpen(false); }
 
   function resetAll() {
     const defaults = resetPreferences();

@@ -692,6 +692,8 @@ interface VisualPreferencesContextValue {
   applyBusinessTemplate: (id: BusinessTemplateId) => void;
   /** Quita la plantilla de negocio activa y vuelve a los valores de fábrica. */
   resetBusinessTemplate: () => void;
+  /** Persiste el estado actual en localStorage de forma inmediata (útil antes de cerrar el panel). */
+  saveNow: () => void;
 }
 
 const VisualPreferencesContext = createContext<VisualPreferencesContextValue | null>(null);
@@ -849,6 +851,9 @@ export function VisualPreferencesProvider({ children }: { children: ReactNode })
       });
     },
     resetBusinessTemplate: () => setPreferences(DEFAULT_VISUAL_PREFERENCES),
+    saveNow: () => {
+      try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences)); } catch { /* ignorar */ }
+    },
   };
 
   return <VisualPreferencesContext.Provider value={value}>{children}</VisualPreferencesContext.Provider>;
