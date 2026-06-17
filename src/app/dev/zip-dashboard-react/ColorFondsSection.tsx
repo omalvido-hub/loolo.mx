@@ -13,7 +13,6 @@ import {
   resetBackgroundPreferences,
   type BackgroundType,
   type DashboardPreferences,
-  type GalleryBg,
   type GradientDirection,
 } from "./dashboard-preferences";
 
@@ -23,7 +22,7 @@ interface PaletteSwatch   { value: string; label: string; }
 interface PaletteCategory { label: string; swatches: PaletteSwatch[]; }
 
 const PALETTE_CATEGORIES: PaletteCategory[] = [
-  { label: "Nelzzon", swatches: [
+  { label: "Marca", swatches: [
     { value: "#4f46e5", label: "Índigo" },
     { value: "#0284c7", label: "Azul" },
     { value: "#059669", label: "Verde" },
@@ -58,38 +57,22 @@ const PALETTE_CATEGORIES: PaletteCategory[] = [
     { value: "#9f1239", label: "Granate" },
     { value: "#0f766e", label: "Esmeralda" },
   ]},
+  { label: "Glass / suave", swatches: [
+    { value: "#bfdbfe", label: "Cielo pálido" },
+    { value: "#ddd6fe", label: "Lavanda pálida" },
+    { value: "#bbf7d0", label: "Menta pálida" },
+    { value: "#fde68a", label: "Ámbar pálido" },
+    { value: "#fecdd3", label: "Rosa pálido" },
+  ]},
 ];
-
-// ── Gallery categories ────────────────────────────────────────────────────────
-
-interface GalleryCategory { label: string; items: GalleryBg[]; }
-
-const GALLERY_CAT_DEFS = [
-  { label: "Minimal / limpio",    cat: "minimal"    },
-  { label: "Pastel / suave",      cat: "pastel"     },
-  { label: "Abstracto premium",   cat: "abstracto"  },
-  { label: "Ondas / fluidos",     cat: "ondas"      },
-  { label: "Glass / moderno",     cat: "glass"      },
-  { label: "Oscuro elegante",     cat: "oscuro"     },
-  { label: "Creativo / colorido", cat: "creativo"   },
-  { label: "Naturaleza suave",    cat: "naturaleza" },
-  { label: "Espacios limpios",    cat: "espacios"   },
-  { label: "Patrones sutiles",    cat: "patron"     },
-];
-
-const GALLERY_CATEGORIES: GalleryCategory[] = GALLERY_CAT_DEFS.map(({ label, cat }) => ({
-  label,
-  items: GALLERY_BACKGROUNDS.filter((b) => b.category === cat),
-}));
 
 // ── Solid categories ──────────────────────────────────────────────────────────
 
 const SOLID_CATEGORIES = [
-  { label: "Claros",           keys: ["default","blanco","nieve","perla","marfil","crema"] },
-  { label: "Pasteles",         keys: ["azulado","menta-sol","lavanda-sol","durazno-sol","rosa-suave","limon-sol","teal-sol","violeta-sol"] },
-  { label: "Neutros",          keys: ["calido","arena","pizarra","piedra","beige","platino"] },
-  { label: "Vibrantes suaves", keys: ["cielo-vivo","verde-vivo","violeta-vivo","amber-vivo","rosa-vivo"] },
-  { label: "Oscuros",          keys: ["azul-noche","carbon","bosque-n","pizarra-oscura","vino"] },
+  { label: "Recomendados", keys: ["default", "nieve", "carbon"] },
+  { label: "Claros",       keys: ["blanco", "perla", "crema"] },
+  { label: "Oscuros",      keys: ["azul-noche", "pizarra-oscura", "vino"] },
+  { label: "Glass",        keys: ["cielo-vivo", "lavanda-sol", "teal-sol"] },
 ];
 
 function solidKeyToHex(key: string): string {
@@ -106,16 +89,10 @@ interface GradientPreset { label: string; dir: GradientDirection; from: string; 
 const GRADIENT_PRESETS: GradientPreset[] = [
   { label: "Índigo",    dir: "135deg", from: "#4f46e5", to: "#7c3aed" },
   { label: "Océano",    dir: "135deg", from: "#0284c7", to: "#0891b2" },
-  { label: "Bosque",    dir: "135deg", from: "#059669", to: "#15803d" },
   { label: "Atardecer", dir: "135deg", from: "#f97316", to: "#ef4444" },
-  { label: "Fresa",     dir: "135deg", from: "#ec4899", to: "#e11d48" },
   { label: "Lavanda",   dir: "135deg", from: "#8b5cf6", to: "#ec4899" },
-  { label: "Neón",      dir: "135deg", from: "#14b8a6", to: "#3b82f6" },
-  { label: "Dorado",    dir: "135deg", from: "#f59e0b", to: "#d97706" },
   { label: "Noche",     dir: "135deg", from: "#1e1b4b", to: "#312e81" },
   { label: "Amanecer",  dir: "90deg",  from: "#fce7f3", to: "#ede9fe" },
-  { label: "Menta",     dir: "135deg", from: "#d1fae5", to: "#a7f3d0" },
-  { label: "Humo",      dir: "180deg", from: "#f8fafc", to: "#e2e8f0" },
 ];
 
 const GRADIENT_DIR_LABELS: Record<GradientDirection, string> = {
@@ -156,6 +133,8 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
   const [gradFromDraft,   setGradFromDraft]   = useState(() => prefs.gradientFrom);
   const [gradToDraft,     setGradToDraft]     = useState(() => prefs.gradientTo);
   const [gradActiveSlot,  setGradActiveSlot]  = useState<"from" | "to">("from");
+  const [gradCustomOpen,  setGradCustomOpen]  = useState(false);
+  const [solidCustomOpen, setSolidCustomOpen] = useState(false);
   // Upload
   const [uploadError,   setUploadError]   = useState<string | null>(null);
 
@@ -170,8 +149,6 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
     prefs.backgroundType === "patron"  ||
     prefs.backgroundType === "imagen"
   );
-
-  const activeGalleryKey = prefs.backgroundType === "galeria" ? prefs.backgroundValue : "";
 
   // ── Accent handlers ──────────────────────────────────────────────────────────
 
@@ -359,51 +336,23 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
           className={cn(isGaleriaActive && styles.segOn)}
           onClick={() => setPrefs((p) => ({ ...p, backgroundType: "galeria", backgroundValue: BG_TYPE_DEFAULT.galeria }))}
         >
-          Galería
+          Imagen
         </button>
       </div>
 
       {/* ── Tab: Color sólido ── */}
       {prefs.backgroundType === "solido" && (
         <>
-          <div className={styles.pickerWrap} style={{ marginTop: 10 }}>
-            <HexColorPicker
-              color={isValidHex(solidHexDraft) ? solidHexDraft : "#f5f6f8"}
-              onChange={handleSolidPickerChange}
-            />
-          </div>
-          <div className={styles.hexInputRow} style={{ marginTop: 8 }}>
-            <span className={styles.hexPreview}
-              style={{ background: isValidHex(solidHexDraft) ? solidHexDraft : "#f5f6f8" }}
-            />
-            <input type="text"
-              className={cn(styles.hexInput, solidHexDraft.length >= 4 && !isValidHex(solidHexDraft) && styles.hexInputError)}
-              value={solidHexDraft}
-              placeholder="#f5f6f8"
-              maxLength={7}
-              spellCheck={false}
-              onChange={(e) => {
-                const val = e.target.value;
-                setSolidHexDraft(val);
-                if (isValidHex(val)) handleSolidPickerChange(val);
-              }}
-            />
-            {solidHexDraft.length >= 4 && !isValidHex(solidHexDraft) && (
-              <span className={styles.hexInputErrorMsg}>HEX inválido</span>
-            )}
-          </div>
-
-          <div className={styles.ctlLabel} style={{ marginTop: 12 }}>Colores rápidos</div>
           {SOLID_CATEGORIES.map((cat) => (
             <div key={cat.label}>
               <div className={styles.galleryCatLabel}>{cat.label}</div>
-              <div className={styles.colorChipGrid}>
+              <div className={styles.swatchesWrap}>
                 {cat.keys.map((k) => {
                   const opt = SOLID_BACKGROUNDS.find((s) => s.key === k);
                   if (!opt) return null;
                   return (
                     <span key={k} title={opt.label}
-                      className={cn(styles.colorChip, prefs.backgroundValue === k && styles.colorChipOn)}
+                      className={cn(styles.sw, prefs.backgroundValue === k && styles.swOn)}
                       style={{ background: opt.value === "transparent" ? "#f5f6f8" : opt.value }}
                       onClick={() => handleSolidChipClick(k)}
                     />
@@ -412,6 +361,47 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
               </div>
             </div>
           ))}
+
+          {/* Color personalizado — picker oculto hasta abrir */}
+          <button type="button"
+            className={cn(styles.gradCustomBtn, solidCustomOpen && styles.gradCustomBtnOn)}
+            onClick={() => setSolidCustomOpen((v) => !v)}
+          >
+            <i className="ti ti-palette" />
+            Color personalizado
+          </button>
+
+          {solidCustomOpen && (
+            <>
+              <div className={styles.pickerWrap} style={{ marginTop: 10 }}>
+                <HexColorPicker
+                  color={isValidHex(solidHexDraft) ? solidHexDraft : "#f5f6f8"}
+                  onChange={handleSolidPickerChange}
+                />
+              </div>
+              <div className={styles.hexInputRow} style={{ marginTop: 8 }}>
+                <span className={styles.hexPreview}
+                  style={{ background: isValidHex(solidHexDraft) ? solidHexDraft : "#f5f6f8" }}
+                />
+                <input type="text"
+                  className={cn(styles.hexInput,
+                    solidHexDraft.length >= 4 && !isValidHex(solidHexDraft) && styles.hexInputError)}
+                  value={solidHexDraft}
+                  placeholder="#f5f6f8"
+                  maxLength={7}
+                  spellCheck={false}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSolidHexDraft(val);
+                    if (isValidHex(val)) handleSolidPickerChange(val);
+                  }}
+                />
+                {solidHexDraft.length >= 4 && !isValidHex(solidHexDraft) && (
+                  <span className={styles.hexInputErrorMsg}>HEX inválido</span>
+                )}
+              </div>
+            </>
+          )}
         </>
       )}
 
@@ -449,80 +439,92 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
             ))}
           </div>
 
-          {/* Toggle Desde / Hasta → un solo picker */}
-          <div className={styles.gradSlotToggle}>
-            <button type="button"
-              className={cn(styles.gradSlotBtn, gradActiveSlot === "from" && styles.gradSlotBtnOn)}
-              onClick={() => setGradActiveSlot("from")}
-            >
-              <span className={styles.gradSlotSwatch}
-                style={{ background: isValidHex(gradFromDraft) ? gradFromDraft : prefs.gradientFrom }}
-              />
-              Desde
-            </button>
-            <button type="button"
-              className={cn(styles.gradSlotBtn, gradActiveSlot === "to" && styles.gradSlotBtnOn)}
-              onClick={() => setGradActiveSlot("to")}
-            >
-              <span className={styles.gradSlotSwatch}
-                style={{ background: isValidHex(gradToDraft) ? gradToDraft : prefs.gradientTo }}
-              />
-              Hasta
-            </button>
-          </div>
+          {/* Personalizar degradado — picker oculto hasta abrir */}
+          <button type="button"
+            className={cn(styles.gradCustomBtn, gradCustomOpen && styles.gradCustomBtnOn)}
+            onClick={() => setGradCustomOpen((v) => !v)}
+          >
+            <i className="ti ti-sliders" />
+            Personalizar degradado
+          </button>
 
-          <div className={styles.pickerWrap} style={{ marginTop: 10 }}>
-            <HexColorPicker
-              color={gradActiveSlot === "from"
-                ? (isValidHex(gradFromDraft) ? gradFromDraft : prefs.gradientFrom)
-                : (isValidHex(gradToDraft)   ? gradToDraft   : prefs.gradientTo)}
-              onChange={gradActiveSlot === "from" ? handleGradFromPicker : handleGradToPicker}
-            />
-          </div>
+          {gradCustomOpen && (
+            <>
+              <div className={styles.gradSlotToggle}>
+                <button type="button"
+                  className={cn(styles.gradSlotBtn, gradActiveSlot === "from" && styles.gradSlotBtnOn)}
+                  onClick={() => setGradActiveSlot("from")}
+                >
+                  <span className={styles.gradSlotSwatch}
+                    style={{ background: isValidHex(gradFromDraft) ? gradFromDraft : prefs.gradientFrom }}
+                  />
+                  Desde
+                </button>
+                <button type="button"
+                  className={cn(styles.gradSlotBtn, gradActiveSlot === "to" && styles.gradSlotBtnOn)}
+                  onClick={() => setGradActiveSlot("to")}
+                >
+                  <span className={styles.gradSlotSwatch}
+                    style={{ background: isValidHex(gradToDraft) ? gradToDraft : prefs.gradientTo }}
+                  />
+                  Hasta
+                </button>
+              </div>
 
-          <div className={styles.hexInputRow} style={{ marginTop: 8 }}>
-            <span className={styles.hexPreview}
-              style={{ background: gradActiveSlot === "from"
-                ? (isValidHex(gradFromDraft) ? gradFromDraft : prefs.gradientFrom)
-                : (isValidHex(gradToDraft)   ? gradToDraft   : prefs.gradientTo)
-              }}
-            />
-            {gradActiveSlot === "from" ? (
-              <input type="text"
-                className={cn(styles.hexInput,
-                  gradFromDraft.length >= 4 && !isValidHex(gradFromDraft) && styles.hexInputError)}
-                value={gradFromDraft}
-                placeholder="#eef2ff"
-                maxLength={7}
-                spellCheck={false}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setGradFromDraft(val);
-                  if (isValidHex(val)) setPrefs((p) => ({ ...p, gradientFrom: val }));
-                }}
-              />
-            ) : (
-              <input type="text"
-                className={cn(styles.hexInput,
-                  gradToDraft.length >= 4 && !isValidHex(gradToDraft) && styles.hexInputError)}
-                value={gradToDraft}
-                placeholder="#f5f3ff"
-                maxLength={7}
-                spellCheck={false}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setGradToDraft(val);
-                  if (isValidHex(val)) setPrefs((p) => ({ ...p, gradientTo: val }));
-                }}
-              />
-            )}
-            {gradActiveSlot === "from" && gradFromDraft.length >= 4 && !isValidHex(gradFromDraft) && (
-              <span className={styles.hexInputErrorMsg}>HEX inválido</span>
-            )}
-            {gradActiveSlot === "to" && gradToDraft.length >= 4 && !isValidHex(gradToDraft) && (
-              <span className={styles.hexInputErrorMsg}>HEX inválido</span>
-            )}
-          </div>
+              <div className={styles.pickerWrap} style={{ marginTop: 10 }}>
+                <HexColorPicker
+                  color={gradActiveSlot === "from"
+                    ? (isValidHex(gradFromDraft) ? gradFromDraft : prefs.gradientFrom)
+                    : (isValidHex(gradToDraft)   ? gradToDraft   : prefs.gradientTo)}
+                  onChange={gradActiveSlot === "from" ? handleGradFromPicker : handleGradToPicker}
+                />
+              </div>
+
+              <div className={styles.hexInputRow} style={{ marginTop: 8 }}>
+                <span className={styles.hexPreview}
+                  style={{ background: gradActiveSlot === "from"
+                    ? (isValidHex(gradFromDraft) ? gradFromDraft : prefs.gradientFrom)
+                    : (isValidHex(gradToDraft)   ? gradToDraft   : prefs.gradientTo)
+                  }}
+                />
+                {gradActiveSlot === "from" ? (
+                  <input type="text"
+                    className={cn(styles.hexInput,
+                      gradFromDraft.length >= 4 && !isValidHex(gradFromDraft) && styles.hexInputError)}
+                    value={gradFromDraft}
+                    placeholder="#eef2ff"
+                    maxLength={7}
+                    spellCheck={false}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setGradFromDraft(val);
+                      if (isValidHex(val)) setPrefs((p) => ({ ...p, gradientFrom: val }));
+                    }}
+                  />
+                ) : (
+                  <input type="text"
+                    className={cn(styles.hexInput,
+                      gradToDraft.length >= 4 && !isValidHex(gradToDraft) && styles.hexInputError)}
+                    value={gradToDraft}
+                    placeholder="#f5f3ff"
+                    maxLength={7}
+                    spellCheck={false}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setGradToDraft(val);
+                      if (isValidHex(val)) setPrefs((p) => ({ ...p, gradientTo: val }));
+                    }}
+                  />
+                )}
+                {gradActiveSlot === "from" && gradFromDraft.length >= 4 && !isValidHex(gradFromDraft) && (
+                  <span className={styles.hexInputErrorMsg}>HEX inválido</span>
+                )}
+                {gradActiveSlot === "to" && gradToDraft.length >= 4 && !isValidHex(gradToDraft) && (
+                  <span className={styles.hexInputErrorMsg}>HEX inválido</span>
+                )}
+              </div>
+            </>
+          )}
 
           {/* Preview rect */}
           <div className={styles.gradientPreviewRect}
@@ -531,21 +533,23 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
         </>
       )}
 
-      {/* ── Tab: Galería (fondos Nelzzon + imagen propia) ── */}
+      {/* ── Tab: Imagen (placeholders + imagen propia) ── */}
       {isGaleriaActive && (
         <>
-          {GALLERY_CATEGORIES.map((cat) => (
-            <div key={cat.label}>
-              <div className={styles.galleryCatLabel}>{cat.label}</div>
+          {[
+            { group: "Fondos reales",      items: ["Montaña","Bosque","Cielo","Agua"] },
+            { group: "Abstractos premium", items: ["Orbes","Glass","Fluido","Blobs"] },
+          ].map(({ group, items }) => (
+            <div key={group}>
+              <div className={styles.galleryCatLabel}>{group}</div>
               <div className={styles.galleryCatalog}>
-                {cat.items.map((bg) => (
-                  <div key={bg.key} className={styles.galleryCell}>
-                    <span
-                      className={cn(styles.galleryThumb, activeGalleryKey === bg.key && styles.galleryThumbOn)}
-                      style={{ background: bg.css }}
-                      onClick={() => setPrefs((p) => ({ ...p, backgroundType: "galeria", backgroundValue: bg.key }))}
-                    />
-                    <span className={styles.galleryThumbLabel}>{bg.label}</span>
+                {items.map((label) => (
+                  <div key={label} className={styles.galleryCell}>
+                    <div className={styles.imgPlaceholder}>
+                      <i className="ti ti-photo" />
+                    </div>
+                    <span className={styles.galleryThumbLabel}>{label}</span>
+                    <span className={styles.imgPlaceholderSoon}>Próximamente</span>
                   </div>
                 ))}
               </div>
