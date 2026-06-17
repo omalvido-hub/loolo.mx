@@ -547,9 +547,9 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
                   <div key={label} className={styles.galleryCell}>
                     <div className={styles.imgPlaceholder}>
                       <i className="ti ti-photo" />
+                      <span className={styles.imgPlaceholderBadge}>Próximamente</span>
                     </div>
                     <span className={styles.galleryThumbLabel}>{label}</span>
-                    <span className={styles.imgPlaceholderSoon}>Próximamente</span>
                   </div>
                 ))}
               </div>
