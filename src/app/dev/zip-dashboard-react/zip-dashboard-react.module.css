@@ -729,13 +729,73 @@
   font-weight: 600;
   box-shadow: 0 1px 2px rgba(16, 24, 40, .08);
 }
-/* Variant más pequeño para 4 pestañas con labels largos */
-.segSm button {
+/* ── Picker compacto para gradiente (2 columnas) ── */
+.gradPickerGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+.gradPickerSlot {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.gradPickerLabel {
   font-size: 11px;
-  padding: 7px 2px;
-  white-space: nowrap;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.pickerWrapSm {
+  border-radius: 10px;
   overflow: hidden;
-  text-overflow: ellipsis;
+}
+.pickerWrapSm :global(.react-colorful) {
+  width: 100% !important;
+  height: 110px;
+}
+.pickerWrapSm :global(.react-colorful__hue) {
+  height: 13px;
+}
+.pickerWrapSm :global(.react-colorful__pointer) {
+  width: 15px;
+  height: 15px;
+  border: 2.5px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,.25), 0 0 0 1px rgba(0,0,0,.07);
+}
+
+/* HEX input compacto para gradiente */
+.hexInputSm {
+  font-size: 11.5px;
+  padding: 0 7px;
+}
+
+/* Separador dentro de Galería */
+.gallerySep {
+  height: 1px;
+  background: var(--line);
+  margin: 14px 0 10px;
+}
+
+/* Preview de imagen subida dentro de Galería */
+.galleryImgPreviewRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.galleryImgThumb {
+  flex: 1;
+  height: 56px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+}
+.galleryImgThumb:hover {
+  border-color: var(--line-2);
 }
 .drawerFoot {
   padding: 14px 20px;

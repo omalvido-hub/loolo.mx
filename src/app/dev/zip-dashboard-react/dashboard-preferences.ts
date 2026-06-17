@@ -37,7 +37,7 @@ export interface DashboardPreferences {
   showDock:          boolean;
 }
 
-// ---------- Fondos sólidos (4 categorías) ----------
+// ---------- Fondos sólidos (5 categorías) ----------
 
 export interface BgOption {
   key:   string;
@@ -83,7 +83,7 @@ export const SOLID_BACKGROUNDS: BgOption[] = [
   { key: "vino",           label: "Vino",           value: "#2d1220" },
 ];
 
-// ---------- Galería de fondos visuales (CSS/gradientes puros) ----------
+// ---------- Galería de fondos visuales (10 categorías, CSS puro) ----------
 
 export interface GalleryBg {
   key:      string;
@@ -93,83 +93,92 @@ export interface GalleryBg {
 }
 
 export const GALLERY_BACKGROUNDS: GalleryBg[] = [
-  // Minimal / limpio (6)
-  { key: "min-1", category: "minimal",    label: "Humo",          css: "linear-gradient(180deg,#f8fafc,#f1f5f9)" },
-  { key: "min-2", category: "minimal",    label: "Papel",         css: "linear-gradient(180deg,#fefefe,#efefef)" },
-  { key: "min-3", category: "minimal",    label: "Hielo",         css: "linear-gradient(180deg,#f0f9ff,#e0f2fe)" },
-  { key: "min-4", category: "minimal",    label: "Caliza",        css: "linear-gradient(180deg,#faf9f7,#f0ece6)" },
-  { key: "min-5", category: "minimal",    label: "Seda",          css: "linear-gradient(180deg,#ffffff,#f4f4f6)" },
-  { key: "min-6", category: "minimal",    label: "Nube",          css: "linear-gradient(165deg,#f9fafb,#e5e7eb)" },
-  // Pastel / suave (8)
-  { key: "pas-1", category: "pastel",     label: "Lavanda",       css: "linear-gradient(135deg,#faf5ff,#ede9fe)" },
-  { key: "pas-2", category: "pastel",     label: "Menta",         css: "linear-gradient(135deg,#f0fdf4,#dcfce7)" },
-  { key: "pas-3", category: "pastel",     label: "Cielo",         css: "linear-gradient(135deg,#eff6ff,#dbeafe)" },
-  { key: "pas-4", category: "pastel",     label: "Durazno",       css: "linear-gradient(135deg,#fff7ed,#fed7aa)" },
-  { key: "pas-5", category: "pastel",     label: "Rosa palo",     css: "linear-gradient(135deg,#fff1f2,#fce7eb)" },
-  { key: "pas-6", category: "pastel",     label: "Limón",         css: "linear-gradient(135deg,#fefce8,#fef9c3)" },
-  { key: "pas-7", category: "pastel",     label: "Teal suave",    css: "linear-gradient(135deg,#f0fdfa,#ccfbf1)" },
-  { key: "pas-8", category: "pastel",     label: "Violeta suave", css: "linear-gradient(135deg,#fdf4ff,#f5d0fe)" },
-  // Abstracto premium (8, rgba sobre base — sin opacity en contenedor)
-  { key: "abs-1", category: "abstracto",  label: "Aurora",        css: "linear-gradient(135deg,rgba(99,102,241,.08) 0%,rgba(139,92,246,.08) 100%),#f9f8ff" },
-  { key: "abs-2", category: "abstracto",  label: "Atardecer",     css: "linear-gradient(135deg,rgba(251,146,60,.09) 0%,rgba(239,68,68,.07) 100%),#fff9f7" },
-  { key: "abs-3", category: "abstracto",  label: "Océano",        css: "linear-gradient(135deg,rgba(14,165,233,.09) 0%,rgba(99,102,241,.07) 100%),#f0f8ff" },
-  { key: "abs-4", category: "abstracto",  label: "Bosque",        css: "linear-gradient(135deg,rgba(5,150,105,.08) 0%,rgba(6,182,212,.07) 100%),#f0fdf8" },
-  { key: "abs-5", category: "abstracto",  label: "Crepúsculo",    css: "linear-gradient(135deg,rgba(126,34,206,.08) 0%,rgba(219,39,119,.07) 100%),#fff5f8" },
-  { key: "abs-6", category: "abstracto",  label: "Cielo norte",   css: "linear-gradient(135deg,rgba(2,132,199,.08) 0%,rgba(14,165,233,.07) 100%),#f0f9ff" },
-  { key: "abs-7", category: "abstracto",  label: "Tierra cálida", css: "linear-gradient(135deg,rgba(180,83,9,.07) 0%,rgba(161,98,7,.06) 100%),#fffbf0" },
-  { key: "abs-8", category: "abstracto",  label: "Jade",          css: "linear-gradient(135deg,rgba(5,150,105,.07) 0%,rgba(16,185,129,.06) 100%),#f0fdf6" },
-  // Ondas / fluidos (6)
-  { key: "ond-1", category: "ondas",      label: "Burbuja",       css: "radial-gradient(ellipse at 20% 50%,rgba(99,102,241,.12) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(139,92,246,.10) 0%,transparent 50%),#f8f7ff" },
-  { key: "ond-2", category: "ondas",      label: "Marea",         css: "radial-gradient(ellipse at top,rgba(14,165,233,.12) 0%,transparent 60%),radial-gradient(ellipse at bottom,rgba(6,182,212,.09) 0%,transparent 60%),#f0f8ff" },
-  { key: "ond-3", category: "ondas",      label: "Bruma",         css: "radial-gradient(ellipse at 30% 70%,rgba(5,150,105,.09) 0%,transparent 50%),radial-gradient(ellipse at 70% 30%,rgba(234,179,8,.07) 0%,transparent 50%),#f5fdf8" },
-  { key: "ond-4", category: "ondas",      label: "Coral",         css: "radial-gradient(ellipse at 25% 25%,rgba(251,146,60,.14) 0%,transparent 50%),radial-gradient(ellipse at 75% 75%,rgba(249,115,22,.10) 0%,transparent 50%),#fff8f2" },
-  { key: "ond-5", category: "ondas",      label: "Índigo fluido", css: "radial-gradient(ellipse at top left,rgba(79,70,229,.12) 0%,transparent 45%),radial-gradient(ellipse at bottom right,rgba(109,40,217,.09) 0%,transparent 45%),#f5f4ff" },
-  { key: "ond-6", category: "ondas",      label: "Solar",         css: "radial-gradient(ellipse at center,rgba(234,179,8,.10) 0%,transparent 60%),radial-gradient(ellipse at bottom,rgba(251,146,60,.08) 0%,transparent 60%),#fffdf0" },
-  // Glass / moderno (6)
-  { key: "gls-1", category: "glass",      label: "Cristal",       css: "linear-gradient(160deg,#e0f2fe 0%,#f0f9ff 35%,#faf5ff 70%,#fdf4ff 100%)" },
-  { key: "gls-2", category: "glass",      label: "Prisma",        css: "linear-gradient(160deg,#ecfdf5 0%,#eff6ff 50%,#fdf4ff 100%)" },
-  { key: "gls-3", category: "glass",      label: "Cálido",        css: "linear-gradient(160deg,#fff7ed 0%,#fffbeb 50%,#f0fdf4 100%)" },
-  { key: "gls-4", category: "glass",      label: "Hielo polar",   css: "linear-gradient(160deg,#e0f7fa 0%,#e8f5e9 50%,#f3e5f5 100%)" },
-  { key: "gls-5", category: "glass",      label: "Neón suave",    css: "linear-gradient(160deg,#e8f5e9 0%,#e3f2fd 50%,#fce4ec 100%)" },
-  { key: "gls-6", category: "glass",      label: "Espejo",        css: "linear-gradient(160deg,#b3e5fc 0%,#e1f5fe 50%,#f8f9fa 100%)" },
-  // Oscuro elegante (6, tarjetas siguen blancas y opacas)
-  { key: "osc-1", category: "oscuro",     label: "Índigo",        css: "linear-gradient(135deg,#1e1b4b,#312e81)" },
-  { key: "osc-2", category: "oscuro",     label: "Pizarra",       css: "linear-gradient(135deg,#0f172a,#1e293b)" },
-  { key: "osc-3", category: "oscuro",     label: "Bosque",        css: "linear-gradient(135deg,#042f2e,#064e3b)" },
-  { key: "osc-4", category: "oscuro",     label: "Madera",        css: "linear-gradient(135deg,#1c0a00,#292524)" },
-  { key: "osc-5", category: "oscuro",     label: "Marina",        css: "linear-gradient(135deg,#0c1445,#1a237e)" },
-  { key: "osc-6", category: "oscuro",     label: "Carbón",        css: "linear-gradient(135deg,#212121,#37474f)" },
-  // Creativo / colorido (6)
-  { key: "cre-1", category: "creativo",   label: "Arcoíris",      css: "linear-gradient(135deg,#fce7f3,#e0e7ff,#d1fae5)" },
-  { key: "cre-2", category: "creativo",   label: "Amanecer",      css: "linear-gradient(135deg,#fef3c7,#fde68a 30%,#fca5a5 70%,#fde8d8)" },
-  { key: "cre-3", category: "creativo",   label: "Cielo vivo",    css: "linear-gradient(135deg,#a5f3fc,#93c5fd,#d8b4fe)" },
-  { key: "cre-4", category: "creativo",   label: "Tropical",      css: "linear-gradient(135deg,#bbf7d0,#bae6fd,#c7d2fe)" },
-  { key: "cre-5", category: "creativo",   label: "Candy",         css: "linear-gradient(135deg,#ffecd2,#fcb69f 50%,#ffecd2)" },
-  { key: "cre-6", category: "creativo",   label: "Retro pastel",  css: "linear-gradient(135deg,#f8e1c8,#e8c9d0 50%,#d4b8e0)" },
-  // Naturaleza suave (6)
-  { key: "nat-1", category: "naturaleza", label: "Musgo",         css: "linear-gradient(180deg,#ecfdf5,#d1fae5)" },
-  { key: "nat-2", category: "naturaleza", label: "Pino",          css: "linear-gradient(135deg,#f0fdf4,#bbf7d0 60%,#a7f3d0)" },
-  { key: "nat-3", category: "naturaleza", label: "Otoño",         css: "linear-gradient(135deg,#fef3c7,#fde68a 30%,#fed7aa 70%,#fca5a5)" },
-  { key: "nat-4", category: "naturaleza", label: "Brezo",         css: "linear-gradient(135deg,#fdf4ff,#e9d5ff 50%,#c4b5fd)" },
-  { key: "nat-5", category: "naturaleza", label: "Pétalo",        css: "linear-gradient(180deg,#fff0f3,#ffd6e0 50%,#ffb3c6)" },
-  { key: "nat-6", category: "naturaleza", label: "Tierra verde",  css: "linear-gradient(135deg,#f7fee7,#d9f99d 50%,#bbf7d0)" },
-  // Espacios / interiores limpios (6)
-  { key: "esp-1", category: "espacios",   label: "Lino",          css: "linear-gradient(180deg,#fdf9f3,#f5ede0)" },
-  { key: "esp-2", category: "espacios",   label: "Concreto",      css: "linear-gradient(180deg,#e9e9e9,#d4d4d8)" },
-  { key: "esp-3", category: "espacios",   label: "Yeso",          css: "linear-gradient(180deg,#fafafa,#f4f4f5)" },
-  { key: "esp-4", category: "espacios",   label: "Madera clara",  css: "linear-gradient(135deg,#fef3c7,#fde68a 40%,#fef9c3)" },
-  { key: "esp-5", category: "espacios",   label: "Mármol",        css: "linear-gradient(135deg,#f9f9f9 0%,#e8e8e8 30%,#f9f9f9 60%,#f0f0f0 100%)" },
-  { key: "esp-6", category: "espacios",   label: "Cuero suave",   css: "linear-gradient(135deg,#fdf4e3,#f9e4b7 50%,#fdf4e3)" },
-  // Patrones sutiles (6, CSS background shorthand con tamaño incluido)
-  { key: "pat-1", category: "patron",     label: "Puntos",        css: "radial-gradient(circle,#cbd5e1 1.5px,transparent 1.5px) 0 0/20px 20px #f5f6f8" },
-  { key: "pat-2", category: "patron",     label: "Cuadrícula",    css: "linear-gradient(#e5e7eb 1px,transparent 1px) 0 0/28px 28px,linear-gradient(90deg,#e5e7eb 1px,transparent 1px) 0 0/28px 28px #f9fafb" },
-  { key: "pat-3", category: "patron",     label: "Diagonal",      css: "repeating-linear-gradient(45deg,#e3e5ea,#e3e5ea 1px,transparent 0,transparent 50%) 0 0/16px 16px #f5f6f8" },
-  { key: "pat-4", category: "patron",     label: "Puntos finos",  css: "radial-gradient(circle,#d1d5db 1px,transparent 1px) 0 0/12px 12px #ffffff" },
-  { key: "pat-5", category: "patron",     label: "Rombos",        css: "repeating-linear-gradient(45deg,transparent,transparent 8px,#e9eaed 8px,#e9eaed 9px),repeating-linear-gradient(-45deg,transparent,transparent 8px,#e9eaed 8px,#e9eaed 9px) #f8f9fa" },
-  { key: "pat-6", category: "patron",     label: "Puntos grandes",css: "radial-gradient(circle,#e2e8f0 2px,transparent 2px) 0 0/30px 30px #f8fafc" },
+  // ── Minimal / limpio (6) — gradientes suaves con profundidad visible ──
+  { key: "min-1", category: "minimal", label: "Humo",    css: "linear-gradient(160deg,#f8fafc 0%,#e2e8f0 60%,#cbd5e1 100%)" },
+  { key: "min-2", category: "minimal", label: "Papel",   css: "linear-gradient(150deg,#fffbf5 0%,#f0ede8 55%,#e0d8cc 100%)" },
+  { key: "min-3", category: "minimal", label: "Hielo",   css: "linear-gradient(135deg,#e0f7ff 0%,#bae6fd 50%,#7dd3fc 100%)" },
+  { key: "min-4", category: "minimal", label: "Caliza",  css: "linear-gradient(155deg,#faf9f7 0%,#e8dfd4 60%,#cfc0b0 100%)" },
+  { key: "min-5", category: "minimal", label: "Seda",    css: "radial-gradient(ellipse at 30% 20%,#ddd6fe 0%,#ede9fe 50%,#f5f3ff 100%)" },
+  { key: "min-6", category: "minimal", label: "Nube",    css: "radial-gradient(ellipse at 70% 30%,#c7d2fe 0%,#e0e7ff 50%,#f0f4ff 100%)" },
+
+  // ── Pastel / suave (8) — pasteles con midtone visible ──
+  { key: "pas-1", category: "pastel", label: "Lavanda",       css: "linear-gradient(135deg,#ede9fe 0%,#d8b4fe 60%,#c084fc 100%)" },
+  { key: "pas-2", category: "pastel", label: "Menta",         css: "linear-gradient(135deg,#dcfce7 0%,#86efac 60%,#4ade80 100%)" },
+  { key: "pas-3", category: "pastel", label: "Cielo",         css: "linear-gradient(135deg,#dbeafe 0%,#93c5fd 60%,#60a5fa 100%)" },
+  { key: "pas-4", category: "pastel", label: "Durazno",       css: "linear-gradient(135deg,#ffedd5 0%,#fdba74 60%,#fb923c 100%)" },
+  { key: "pas-5", category: "pastel", label: "Rosa palo",     css: "linear-gradient(135deg,#ffe4e6 0%,#fda4af 60%,#fb7185 100%)" },
+  { key: "pas-6", category: "pastel", label: "Limón",         css: "linear-gradient(135deg,#fef9c3 0%,#fde047 60%,#eab308 100%)" },
+  { key: "pas-7", category: "pastel", label: "Teal suave",    css: "linear-gradient(135deg,#ccfbf1 0%,#5eead4 60%,#2dd4bf 100%)" },
+  { key: "pas-8", category: "pastel", label: "Violeta suave", css: "linear-gradient(135deg,#f5d0fe 0%,#e879f9 60%,#c026d3 100%)" },
+
+  // ── Abstracto premium (8) — degradados multi-stop de 4 colores ──
+  { key: "abs-1", category: "abstracto", label: "Aurora",        css: "linear-gradient(135deg,#6366f1 0%,#a855f7 33%,#ec4899 66%,#f97316 100%)" },
+  { key: "abs-2", category: "abstracto", label: "Atardecer",     css: "linear-gradient(135deg,#fbbf24 0%,#f97316 33%,#ef4444 66%,#be185d 100%)" },
+  { key: "abs-3", category: "abstracto", label: "Océano",        css: "linear-gradient(135deg,#06b6d4 0%,#3b82f6 50%,#8b5cf6 100%)" },
+  { key: "abs-4", category: "abstracto", label: "Bosque",        css: "linear-gradient(135deg,#34d399 0%,#059669 35%,#0d9488 70%,#0284c7 100%)" },
+  { key: "abs-5", category: "abstracto", label: "Crepúsculo",    css: "linear-gradient(160deg,#7c3aed 0%,#a21caf 35%,#db2777 70%,#f97316 100%)" },
+  { key: "abs-6", category: "abstracto", label: "Cielo norte",   css: "linear-gradient(135deg,#0ea5e9 0%,#38bdf8 40%,#22d3ee 70%,#2dd4bf 100%)" },
+  { key: "abs-7", category: "abstracto", label: "Tierra cálida", css: "linear-gradient(135deg,#78350f 0%,#b45309 40%,#d97706 70%,#fbbf24 100%)" },
+  { key: "abs-8", category: "abstracto", label: "Jade",          css: "linear-gradient(135deg,#064e3b 0%,#059669 40%,#10b981 70%,#6ee7b7 100%)" },
+
+  // ── Ondas / fluidos (6) — radiales superpuestos (efecto orbe/lens flare) ──
+  { key: "ond-1", category: "ondas", label: "Burbuja",       css: "radial-gradient(circle at 25% 35%,#c4b5fd 0%,transparent 55%),radial-gradient(circle at 75% 70%,#fbcfe8 0%,transparent 55%),#f0e8ff" },
+  { key: "ond-2", category: "ondas", label: "Marea",         css: "radial-gradient(circle at 30% 30%,#7dd3fc 0%,transparent 55%),radial-gradient(circle at 70% 70%,#38bdf8 0%,transparent 55%),#ddf4ff" },
+  { key: "ond-3", category: "ondas", label: "Bruma",         css: "radial-gradient(circle at 20% 80%,#86efac 0%,transparent 55%),radial-gradient(circle at 80% 20%,#fde047 0%,transparent 55%),#edfff4" },
+  { key: "ond-4", category: "ondas", label: "Coral",         css: "radial-gradient(circle at 30% 30%,#fdba74 0%,transparent 55%),radial-gradient(circle at 70% 70%,#f97316 0%,transparent 55%),#fff3e0" },
+  { key: "ond-5", category: "ondas", label: "Índigo fluido", css: "radial-gradient(circle at 20% 80%,#818cf8 0%,transparent 55%),radial-gradient(circle at 80% 20%,#a78bfa 0%,transparent 55%),#eef0ff" },
+  { key: "ond-6", category: "ondas", label: "Solar",         css: "radial-gradient(circle at 50% 20%,#fde047 0%,#fbbf24 30%,transparent 65%),radial-gradient(circle at 80% 80%,#fb923c 0%,transparent 50%),#fffce0" },
+
+  // ── Glass / moderno (6) — candy multicolor tipo holográfico ──
+  { key: "gls-1", category: "glass", label: "Cristal",     css: "linear-gradient(135deg,#bfdbfe 0%,#ddd6fe 33%,#fbcfe8 66%,#fed7aa 100%)" },
+  { key: "gls-2", category: "glass", label: "Prisma",      css: "linear-gradient(160deg,#a7f3d0 0%,#bfdbfe 50%,#ddd6fe 100%)" },
+  { key: "gls-3", category: "glass", label: "Cálido",      css: "linear-gradient(135deg,#fde68a 0%,#fca5a5 50%,#f9a8d4 100%)" },
+  { key: "gls-4", category: "glass", label: "Hielo polar", css: "linear-gradient(135deg,#a5f3fc 0%,#a7f3d0 50%,#ddd6fe 100%)" },
+  { key: "gls-5", category: "glass", label: "Neón suave",  css: "linear-gradient(135deg,#6ee7b7 0%,#93c5fd 50%,#f9a8d4 100%)" },
+  { key: "gls-6", category: "glass", label: "Espejo",      css: "linear-gradient(135deg,#bae6fd 0%,#c7d2fe 33%,#ddd6fe 66%,#f5d0fe 100%)" },
+
+  // ── Oscuro elegante (6) — oscuros profundos con gradiente real ──
+  { key: "osc-1", category: "oscuro", label: "Índigo",   css: "linear-gradient(135deg,#0f0a2e 0%,#1e1b4b 50%,#3730a3 100%)" },
+  { key: "osc-2", category: "oscuro", label: "Pizarra",  css: "linear-gradient(135deg,#020617 0%,#0f172a 50%,#1e293b 100%)" },
+  { key: "osc-3", category: "oscuro", label: "Bosque",   css: "linear-gradient(135deg,#022c22 0%,#064e3b 50%,#065f46 100%)" },
+  { key: "osc-4", category: "oscuro", label: "Madera",   css: "linear-gradient(135deg,#0c0502 0%,#1c0a00 50%,#292524 100%)" },
+  { key: "osc-5", category: "oscuro", label: "Marina",   css: "linear-gradient(135deg,#020740 0%,#0c1445 50%,#1e3a8a 100%)" },
+  { key: "osc-6", category: "oscuro", label: "Carbón",   css: "linear-gradient(135deg,#030712 0%,#111827 50%,#1f2937 100%)" },
+
+  // ── Creativo / colorido (6) — arcoíris y candy bold ──
+  { key: "cre-1", category: "creativo", label: "Arcoíris",    css: "linear-gradient(135deg,#f87171 0%,#fb923c 20%,#fbbf24 40%,#4ade80 60%,#60a5fa 80%,#c084fc 100%)" },
+  { key: "cre-2", category: "creativo", label: "Amanecer",    css: "linear-gradient(135deg,#fef3c7 0%,#fca5a5 50%,#f43f5e 100%)" },
+  { key: "cre-3", category: "creativo", label: "Cielo vivo",  css: "linear-gradient(135deg,#67e8f9 0%,#818cf8 50%,#c084fc 100%)" },
+  { key: "cre-4", category: "creativo", label: "Tropical",    css: "linear-gradient(135deg,#4ade80 0%,#22d3ee 50%,#818cf8 100%)" },
+  { key: "cre-5", category: "creativo", label: "Candy",       css: "linear-gradient(135deg,#f9a8d4 0%,#fde68a 50%,#f9a8d4 100%)" },
+  { key: "cre-6", category: "creativo", label: "Retro pastel",css: "linear-gradient(135deg,#fed7aa 0%,#fda4af 33%,#c4b5fd 66%,#a5f3fc 100%)" },
+
+  // ── Naturaleza suave (6) — tonos tierra y naturaleza ──
+  { key: "nat-1", category: "naturaleza", label: "Musgo",        css: "linear-gradient(160deg,#ecfdf5 0%,#86efac 50%,#4ade80 100%)" },
+  { key: "nat-2", category: "naturaleza", label: "Pino",         css: "linear-gradient(135deg,#052e16 0%,#166534 50%,#15803d 100%)" },
+  { key: "nat-3", category: "naturaleza", label: "Otoño",        css: "linear-gradient(135deg,#fef3c7 0%,#fbbf24 30%,#f97316 65%,#dc2626 100%)" },
+  { key: "nat-4", category: "naturaleza", label: "Brezo",        css: "linear-gradient(135deg,#fdf4ff 0%,#c084fc 50%,#7c3aed 100%)" },
+  { key: "nat-5", category: "naturaleza", label: "Pétalo",       css: "radial-gradient(ellipse at top,#fff1f2 0%,#fda4af 50%,#fb7185 100%)" },
+  { key: "nat-6", category: "naturaleza", label: "Tierra verde", css: "linear-gradient(160deg,#f7fee7 0%,#bef264 50%,#84cc16 100%)" },
+
+  // ── Espacios limpios (6) — interiores cálidos con profundidad ──
+  { key: "esp-1", category: "espacios", label: "Lino",        css: "linear-gradient(160deg,#fdf9f3 0%,#d4b896 50%,#a07030 100%)" },
+  { key: "esp-2", category: "espacios", label: "Concreto",    css: "linear-gradient(160deg,#f3f4f6 0%,#9ca3af 50%,#6b7280 100%)" },
+  { key: "esp-3", category: "espacios", label: "Yeso",        css: "radial-gradient(ellipse at 30% 20%,#ffffff 0%,#f3f4f6 50%,#d1d5db 100%)" },
+  { key: "esp-4", category: "espacios", label: "Madera clara",css: "linear-gradient(135deg,#fef9c3 0%,#ca8a04 50%,#92400e 100%)" },
+  { key: "esp-5", category: "espacios", label: "Mármol",      css: "linear-gradient(145deg,#f9f9f9 0%,#d1d5db 25%,#f5f5f5 50%,#9ca3af 75%,#e5e7eb 100%)" },
+  { key: "esp-6", category: "espacios", label: "Cuero suave", css: "linear-gradient(135deg,#fef3c7 0%,#b45309 50%,#78350f 100%)" },
+
+  // ── Patrones sutiles (6, background shorthand con size incluido) ──
+  { key: "pat-1", category: "patron", label: "Puntos",         css: "radial-gradient(circle,#cbd5e1 1.5px,transparent 1.5px) 0 0/20px 20px #f5f6f8" },
+  { key: "pat-2", category: "patron", label: "Cuadrícula",     css: "linear-gradient(#e5e7eb 1px,transparent 1px) 0 0/28px 28px,linear-gradient(90deg,#e5e7eb 1px,transparent 1px) 0 0/28px 28px #f9fafb" },
+  { key: "pat-3", category: "patron", label: "Diagonal",       css: "repeating-linear-gradient(45deg,#e3e5ea,#e3e5ea 1px,transparent 0,transparent 50%) 0 0/16px 16px #f5f6f8" },
+  { key: "pat-4", category: "patron", label: "Puntos finos",   css: "radial-gradient(circle,#d1d5db 1px,transparent 1px) 0 0/12px 12px #ffffff" },
+  { key: "pat-5", category: "patron", label: "Rombos",         css: "repeating-linear-gradient(45deg,transparent,transparent 8px,#e9eaed 8px,#e9eaed 9px),repeating-linear-gradient(-45deg,transparent,transparent 8px,#e9eaed 8px,#e9eaed 9px) #f8f9fa" },
+  { key: "pat-6", category: "patron", label: "Puntos grandes", css: "radial-gradient(circle,#e2e8f0 2px,transparent 2px) 0 0/30px 30px #f8fafc" },
 ];
 
-// ---------- Patrones ----------
+// ---------- Patrones (legacy, mantenidos para compatibilidad) ----------
 
 export const PATTERN_KEYS: PatternKey[] = ["puntos", "cuadricula", "diagonal", "papel"];
 

@@ -17,9 +17,9 @@ import {
   type GradientDirection,
 } from "./dashboard-preferences";
 
-// ── Accent palette categories (UI only) ──────────────────────────────────────
+// ── Accent palette ─────────────────────────────────────────────────────────────
 
-interface PaletteSwatch  { value: string; label: string; }
+interface PaletteSwatch   { value: string; label: string; }
 interface PaletteCategory { label: string; swatches: PaletteSwatch[]; }
 
 const PALETTE_CATEGORIES: PaletteCategory[] = [
@@ -60,7 +60,7 @@ const PALETTE_CATEGORIES: PaletteCategory[] = [
   ]},
 ];
 
-// ── Gallery categories (10) ───────────────────────────────────────────────────
+// ── Gallery categories ────────────────────────────────────────────────────────
 
 interface GalleryCategory { label: string; items: GalleryBg[]; }
 
@@ -82,7 +82,7 @@ const GALLERY_CATEGORIES: GalleryCategory[] = GALLERY_CAT_DEFS.map(({ label, cat
   items: GALLERY_BACKGROUNDS.filter((b) => b.category === cat),
 }));
 
-// ── Solid background categories (5) ──────────────────────────────────────────
+// ── Solid categories ──────────────────────────────────────────────────────────
 
 const SOLID_CATEGORIES = [
   { label: "Claros",           keys: ["default","blanco","nieve","perla","marfil","crema"] },
@@ -99,7 +99,7 @@ function solidKeyToHex(key: string): string {
   return isValidHex(opt.value) ? opt.value : "#f5f6f8";
 }
 
-// ── Gradient presets (UI only) ────────────────────────────────────────────────
+// ── Gradient presets ──────────────────────────────────────────────────────────
 
 interface GradientPreset { label: string; dir: GradientDirection; from: string; to: string; }
 
@@ -133,6 +133,8 @@ const BG_TYPE_DEFAULT: Record<BackgroundType, string> = {
   imagen:  "",
 };
 
+const FIRST_GALLERY_KEY = GALLERY_BACKGROUNDS[0]?.key ?? "min-1";
+
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 export interface ColorFondsSectionProps {
@@ -144,21 +146,31 @@ export interface ColorFondsSectionProps {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFondsSectionProps) {
+  // Accent
   const [hexDraft,      setHexDraft]      = useState(() => activeAccentHex);
-  const [solidHexDraft, setSolidHexDraft] = useState(() => solidKeyToHex(
-    prefs.backgroundType === "solido" ? prefs.backgroundValue : "default"
-  ));
+  // Solid background
+  const [solidHexDraft, setSolidHexDraft] = useState(() =>
+    solidKeyToHex(prefs.backgroundType === "solido" ? prefs.backgroundValue : "default")
+  );
+  // Gradient
   const [gradFromDraft, setGradFromDraft] = useState(() => prefs.gradientFrom);
   const [gradToDraft,   setGradToDraft]   = useState(() => prefs.gradientTo);
+  // Upload
   const [uploadError,   setUploadError]   = useState<string | null>(null);
+
   const fileInputRef   = useRef<HTMLInputElement | null>(null);
   const recentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const recentAccents    = prefs.recentAccents ?? [];
-  const isGaleriaActive  = prefs.backgroundType === "galeria" || prefs.backgroundType === "patron";
-  const activeGalleryKey = isGaleriaActive && prefs.backgroundType === "galeria"
-    ? prefs.backgroundValue
-    : "";
+  const recentAccents = prefs.recentAccents ?? [];
+
+  // Galería tab is active for: galeria, patron (legacy), imagen
+  const isGaleriaActive = (
+    prefs.backgroundType === "galeria" ||
+    prefs.backgroundType === "patron"  ||
+    prefs.backgroundType === "imagen"
+  );
+
+  const activeGalleryKey = prefs.backgroundType === "galeria" ? prefs.backgroundValue : "";
 
   // ── Accent handlers ──────────────────────────────────────────────────────────
 
@@ -200,15 +212,26 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
   function applyGradientPreset(preset: GradientPreset) {
     setPrefs((p) => ({
       ...p,
+      backgroundType:    "manual",
       gradientDirection: preset.dir,
-      gradientFrom: preset.from,
-      gradientTo: preset.to,
+      gradientFrom:      preset.from,
+      gradientTo:        preset.to,
     }));
     setGradFromDraft(preset.from);
     setGradToDraft(preset.to);
   }
 
-  // ── Image handler ─────────────────────────────────────────────────────────────
+  function handleGradFromPicker(hex: string) {
+    setGradFromDraft(hex);
+    setPrefs((p) => ({ ...p, gradientFrom: hex }));
+  }
+
+  function handleGradToPicker(hex: string) {
+    setGradToDraft(hex);
+    setPrefs((p) => ({ ...p, gradientTo: hex }));
+  }
+
+  // ── Image handlers ────────────────────────────────────────────────────────────
 
   function handleImageUpload(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -222,10 +245,24 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
     const reader = new FileReader();
     reader.onload = (ev) => {
       const result = ev.target?.result;
-      if (typeof result === "string") setPrefs((p) => ({ ...p, backgroundImage: result }));
+      if (typeof result === "string")
+        setPrefs((p) => ({ ...p, backgroundType: "imagen", backgroundImage: result }));
     };
     reader.readAsDataURL(file);
   }
+
+  function handleRemoveImage() {
+    setPrefs((p) => ({
+      ...p,
+      backgroundImage: null,
+      backgroundType:  "galeria",
+      backgroundValue: FIRST_GALLERY_KEY,
+    }));
+    setUploadError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  // ── Reset ─────────────────────────────────────────────────────────────────────
 
   function handleResetBackground() {
     const reset = resetBackgroundPreferences(prefs);
@@ -241,7 +278,7 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
 
   return (
     <>
-      {/* ═══ COLOR DE ACENTO ═══ */}
+      {/* ══════════ COLOR DE ACENTO ══════════ */}
       <div className={styles.ctlLabel} style={{ marginTop: 4 }}>Color de acento</div>
 
       <div className={styles.pickerWrap}>
@@ -252,16 +289,10 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
       </div>
 
       <div className={styles.hexInputRow} style={{ marginTop: 8 }}>
-        <span
-          className={styles.hexPreview}
-          style={{ background: isValidHex(hexDraft) ? hexDraft : activeAccentHex }}
-        />
+        <span className={styles.hexPreview} style={{ background: isValidHex(hexDraft) ? hexDraft : activeAccentHex }} />
         <input
           type="text"
-          className={cn(
-            styles.hexInput,
-            hexDraft.length >= 4 && !isValidHex(hexDraft) && styles.hexInputError,
-          )}
+          className={cn(styles.hexInput, hexDraft.length >= 4 && !isValidHex(hexDraft) && styles.hexInputError)}
           value={hexDraft}
           placeholder="#4f46e5"
           maxLength={7}
@@ -282,9 +313,7 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
           <div className={styles.galleryCatLabel}>Recientes</div>
           <div className={styles.swatchesWrap}>
             {recentAccents.map((hex) => (
-              <span
-                key={hex}
-                title={hex}
+              <span key={hex} title={hex}
                 className={cn(styles.sw, activeAccentHex === hex && styles.swOn)}
                 style={{ background: hex }}
                 onClick={() => applyAccentColor(hex)}
@@ -299,9 +328,7 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
           <div className={styles.galleryCatLabel}>{cat.label}</div>
           <div className={styles.swatchesWrap}>
             {cat.swatches.map((sw) => (
-              <span
-                key={sw.value}
-                title={sw.label}
+              <span key={sw.value} title={sw.label}
                 className={cn(styles.sw, activeAccentHex === sw.value && styles.swOn)}
                 style={{ background: sw.value }}
                 onClick={() => applyAccentColor(sw.value)}
@@ -311,42 +338,31 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
         </div>
       ))}
 
-      {/* ═══ FONDO ═══ */}
+      {/* ══════════ FONDO — 3 tabs ══════════ */}
       <div className={styles.ctlLabel} style={{ marginTop: 20 }}>Fondo</div>
 
-      {/* 4 tabs — fuente más pequeña para que "Imagen propia" quepa */}
-      <div className={cn(styles.seg, styles.segSm)}>
-        <button
-          type="button"
+      <div className={styles.seg}>
+        <button type="button"
           className={cn(prefs.backgroundType === "solido" && styles.segOn)}
           onClick={() => setPrefs((p) => ({ ...p, backgroundType: "solido", backgroundValue: BG_TYPE_DEFAULT.solido }))}
         >
           Color
         </button>
-        <button
-          type="button"
+        <button type="button"
           className={cn(prefs.backgroundType === "manual" && styles.segOn)}
           onClick={() => setPrefs((p) => ({ ...p, backgroundType: "manual", backgroundValue: BG_TYPE_DEFAULT.manual }))}
         >
           Degradado
         </button>
-        <button
-          type="button"
+        <button type="button"
           className={cn(isGaleriaActive && styles.segOn)}
           onClick={() => setPrefs((p) => ({ ...p, backgroundType: "galeria", backgroundValue: BG_TYPE_DEFAULT.galeria }))}
         >
           Galería
         </button>
-        <button
-          type="button"
-          className={cn(prefs.backgroundType === "imagen" && styles.segOn)}
-          onClick={() => setPrefs((p) => ({ ...p, backgroundType: "imagen", backgroundValue: BG_TYPE_DEFAULT.imagen }))}
-        >
-          Imagen propia
-        </button>
       </div>
 
-      {/* ── Tab: Color sólido — picker + HEX + colores rápidos ── */}
+      {/* ── Tab: Color sólido ── */}
       {prefs.backgroundType === "solido" && (
         <>
           <div className={styles.pickerWrap} style={{ marginTop: 10 }}>
@@ -355,18 +371,12 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
               onChange={handleSolidPickerChange}
             />
           </div>
-
           <div className={styles.hexInputRow} style={{ marginTop: 8 }}>
-            <span
-              className={styles.hexPreview}
+            <span className={styles.hexPreview}
               style={{ background: isValidHex(solidHexDraft) ? solidHexDraft : "#f5f6f8" }}
             />
-            <input
-              type="text"
-              className={cn(
-                styles.hexInput,
-                solidHexDraft.length >= 4 && !isValidHex(solidHexDraft) && styles.hexInputError,
-              )}
+            <input type="text"
+              className={cn(styles.hexInput, solidHexDraft.length >= 4 && !isValidHex(solidHexDraft) && styles.hexInputError)}
               value={solidHexDraft}
               placeholder="#f5f6f8"
               maxLength={7}
@@ -390,12 +400,9 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
                 {cat.keys.map((k) => {
                   const opt = SOLID_BACKGROUNDS.find((s) => s.key === k);
                   if (!opt) return null;
-                  const isActive = prefs.backgroundValue === k;
                   return (
-                    <span
-                      key={k}
-                      title={opt.label}
-                      className={cn(styles.colorChip, isActive && styles.colorChipOn)}
+                    <span key={k} title={opt.label}
+                      className={cn(styles.colorChip, prefs.backgroundValue === k && styles.colorChipOn)}
                       style={{ background: opt.value === "transparent" ? "#f5f6f8" : opt.value }}
                       onClick={() => handleSolidChipClick(k)}
                     />
@@ -410,17 +417,16 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
       {/* ── Tab: Degradado ── */}
       {prefs.backgroundType === "manual" && (
         <>
+          {/* Presets */}
           <div className={styles.galleryCatLabel} style={{ marginTop: 10 }}>Presets</div>
           <div className={styles.gradPresets}>
             {GRADIENT_PRESETS.map((preset) => {
               const isActive =
                 prefs.gradientFrom      === preset.from &&
-                prefs.gradientTo        === preset.to &&
+                prefs.gradientTo        === preset.to   &&
                 prefs.gradientDirection === preset.dir;
               return (
-                <span
-                  key={preset.label}
-                  title={preset.label}
+                <span key={preset.label} title={preset.label}
                   className={cn(styles.gradPreset, isActive && styles.gradPresetOn)}
                   style={{ background: `linear-gradient(${preset.dir},${preset.from},${preset.to})` }}
                   onClick={() => applyGradientPreset(preset)}
@@ -429,12 +435,11 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
             })}
           </div>
 
-          <div className={styles.galleryCatLabel} style={{ marginTop: 14 }}>Personalizar</div>
+          {/* Dirección */}
+          <div className={styles.galleryCatLabel} style={{ marginTop: 12 }}>Dirección</div>
           <div className={styles.seg}>
-            {(["135deg", "90deg", "180deg", "45deg"] as GradientDirection[]).map((dir) => (
-              <button
-                key={dir}
-                type="button"
+            {(["135deg","90deg","180deg","45deg"] as GradientDirection[]).map((dir) => (
+              <button key={dir} type="button"
                 className={cn(prefs.gradientDirection === dir && styles.segOn)}
                 onClick={() => setPrefs((p) => ({ ...p, gradientDirection: dir }))}
               >
@@ -443,20 +448,24 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
             ))}
           </div>
 
-          <div className={styles.gradientPair}>
-            <div className={styles.gradientColorItem}>
-              <div className={styles.ctlLabel} style={{ margin: "8px 0 5px" }}>Desde</div>
-              <div className={styles.hexInputRow}>
-                <span
-                  className={styles.hexPreview}
+          {/* Dos pickers visuales: Desde / Hasta */}
+          <div className={styles.gradPickerGrid}>
+            {/* Desde */}
+            <div className={styles.gradPickerSlot}>
+              <span className={styles.gradPickerLabel}>Desde</span>
+              <div className={styles.pickerWrapSm}>
+                <HexColorPicker
+                  color={isValidHex(gradFromDraft) ? gradFromDraft : prefs.gradientFrom}
+                  onChange={handleGradFromPicker}
+                />
+              </div>
+              <div className={styles.hexInputRow} style={{ marginTop: 4 }}>
+                <span className={styles.hexPreview}
                   style={{ background: isValidHex(gradFromDraft) ? gradFromDraft : prefs.gradientFrom }}
                 />
-                <input
-                  type="text"
-                  className={cn(
-                    styles.hexInput,
-                    gradFromDraft.length >= 4 && !isValidHex(gradFromDraft) && styles.hexInputError,
-                  )}
+                <input type="text"
+                  className={cn(styles.hexInput, styles.hexInputSm,
+                    gradFromDraft.length >= 4 && !isValidHex(gradFromDraft) && styles.hexInputError)}
                   value={gradFromDraft}
                   placeholder="#eef2ff"
                   maxLength={7}
@@ -469,19 +478,23 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
                 />
               </div>
             </div>
-            <div className={styles.gradientColorItem}>
-              <div className={styles.ctlLabel} style={{ margin: "8px 0 5px" }}>Hasta</div>
-              <div className={styles.hexInputRow}>
-                <span
-                  className={styles.hexPreview}
+
+            {/* Hasta */}
+            <div className={styles.gradPickerSlot}>
+              <span className={styles.gradPickerLabel}>Hasta</span>
+              <div className={styles.pickerWrapSm}>
+                <HexColorPicker
+                  color={isValidHex(gradToDraft) ? gradToDraft : prefs.gradientTo}
+                  onChange={handleGradToPicker}
+                />
+              </div>
+              <div className={styles.hexInputRow} style={{ marginTop: 4 }}>
+                <span className={styles.hexPreview}
                   style={{ background: isValidHex(gradToDraft) ? gradToDraft : prefs.gradientTo }}
                 />
-                <input
-                  type="text"
-                  className={cn(
-                    styles.hexInput,
-                    gradToDraft.length >= 4 && !isValidHex(gradToDraft) && styles.hexInputError,
-                  )}
+                <input type="text"
+                  className={cn(styles.hexInput, styles.hexInputSm,
+                    gradToDraft.length >= 4 && !isValidHex(gradToDraft) && styles.hexInputError)}
                   value={gradToDraft}
                   placeholder="#f5f3ff"
                   maxLength={7}
@@ -496,71 +509,58 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
             </div>
           </div>
 
-          <div
-            className={styles.gradientPreviewRect}
-            style={{
-              background: `linear-gradient(${prefs.gradientDirection}, ${prefs.gradientFrom}, ${prefs.gradientTo})`,
-            }}
+          {/* Preview rect */}
+          <div className={styles.gradientPreviewRect}
+            style={{ background: `linear-gradient(${prefs.gradientDirection},${prefs.gradientFrom},${prefs.gradientTo})` }}
           />
         </>
       )}
 
-      {/* ── Tab: Galería (catálogo visual premium) ── */}
-      {isGaleriaActive && GALLERY_CATEGORIES.map((cat) => (
-        <div key={cat.label}>
-          <div className={styles.galleryCatLabel}>{cat.label}</div>
-          <div className={styles.galleryCatalog}>
-            {cat.items.map((bg) => (
-              <div key={bg.key} className={styles.galleryCell}>
-                <span
-                  className={cn(styles.galleryThumb, activeGalleryKey === bg.key && styles.galleryThumbOn)}
-                  style={{ background: bg.css }}
-                  onClick={() =>
-                    setPrefs((p) => ({ ...p, backgroundType: "galeria", backgroundValue: bg.key }))
-                  }
-                />
-                <span className={styles.galleryThumbLabel}>{bg.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-
-      {/* ── Tab: Imagen propia ── */}
-      {prefs.backgroundType === "imagen" && (
+      {/* ── Tab: Galería (fondos Nelzzon + imagen propia) ── */}
+      {isGaleriaActive && (
         <>
+          {GALLERY_CATEGORIES.map((cat) => (
+            <div key={cat.label}>
+              <div className={styles.galleryCatLabel}>{cat.label}</div>
+              <div className={styles.galleryCatalog}>
+                {cat.items.map((bg) => (
+                  <div key={bg.key} className={styles.galleryCell}>
+                    <span
+                      className={cn(styles.galleryThumb, activeGalleryKey === bg.key && styles.galleryThumbOn)}
+                      style={{ background: bg.css }}
+                      onClick={() => setPrefs((p) => ({ ...p, backgroundType: "galeria", backgroundValue: bg.key }))}
+                    />
+                    <span className={styles.galleryThumbLabel}>{bg.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {/* Separador + sección "Tu imagen" */}
+          <div className={styles.gallerySep} />
+          <div className={styles.galleryCatLabel}>Tu imagen</div>
+
           {prefs.backgroundImage ? (
-            <div className={styles.uploadImgRow}>
+            <div className={styles.galleryImgPreviewRow}>
               <div
-                className={styles.uploadImgThumb}
+                className={cn(styles.galleryImgThumb, prefs.backgroundType === "imagen" && styles.galleryThumbOn)}
                 style={{
-                  backgroundImage: `url(${prefs.backgroundImage})`,
-                  backgroundSize: "cover",
+                  backgroundImage:    `url(${prefs.backgroundImage})`,
+                  backgroundSize:     "cover",
                   backgroundPosition: "center",
                 }}
+                onClick={() => setPrefs((p) => ({ ...p, backgroundType: "imagen" }))}
+                title="Aplicar esta imagen"
               />
-              <button
-                type="button"
-                className={styles.removeImgBtn}
-                onClick={() => {
-                  setPrefs((p) => ({ ...p, backgroundImage: null }));
-                  setUploadError(null);
-                  if (fileInputRef.current) fileInputRef.current.value = "";
-                }}
-              >
+              <button type="button" className={styles.removeImgBtn} onClick={handleRemoveImage}>
                 <i className="ti ti-trash" />
                 Quitar imagen
               </button>
             </div>
           ) : (
             <label className={styles.uploadImgArea}>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={handleImageUpload}
-              />
+              <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleImageUpload} />
               <i className="ti ti-photo-up" />
               <span>Subir imagen propia</span>
               <span className={styles.uploadImgHint}>JPG · PNG · WEBP · máx. 200 KB</span>
@@ -570,7 +570,7 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
         </>
       )}
 
-      {/* Volver al original */}
+      {/* Quitar fondo */}
       <button type="button" className={styles.bgResetBtn} onClick={handleResetBackground}>
         <i className="ti ti-rotate" style={{ verticalAlign: -2 }} />
         Quitar fondo / Volver al original
