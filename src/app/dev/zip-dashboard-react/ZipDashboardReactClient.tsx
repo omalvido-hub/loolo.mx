@@ -19,6 +19,7 @@ import {
   SOLID_BACKGROUNDS,
   deriveAccentSoft,
   getPatternBackground,
+  isValidHex,
   loadPreferences,
   resetPreferences,
   savePreferences,
@@ -107,6 +108,7 @@ function getMainBackgroundStyle(p: DashboardPreferences): CSSProperties {
   }
   // solido
   if (p.backgroundValue === "default") return {};
+  if (isValidHex(p.backgroundValue)) return { background: p.backgroundValue };
   const opt = SOLID_BACKGROUNDS.find((o) => o.key === p.backgroundValue);
   return opt ? { background: opt.value } : {};
 }

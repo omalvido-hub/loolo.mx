@@ -624,7 +624,7 @@
   transition: max-height .25s, padding .25s;
 }
 .sectOpen .sectContent {
-  max-height: 3000px;
+  max-height: 8000px;
   padding: 0 14px 16px;
 }
 .bgsw {
@@ -728,6 +728,14 @@
   color: var(--ink);
   font-weight: 600;
   box-shadow: 0 1px 2px rgba(16, 24, 40, .08);
+}
+/* Variant más pequeño para 4 pestañas con labels largos */
+.segSm button {
+  font-size: 11px;
+  padding: 7px 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .drawerFoot {
   padding: 14px 20px;
@@ -966,6 +974,123 @@
   color: var(--accent);
 }
 .bgResetBtn i { font-size: 16px; }
+
+/* ── Color chips (fondo sólido) ── */
+.colorChipGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.colorChip {
+  height: 30px;
+  border-radius: 7px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform .15s, border-color .15s;
+}
+.colorChip:hover {
+  transform: scale(1.06);
+  border-color: var(--line-2);
+}
+.colorChipOn {
+  border-color: var(--ink) !important;
+  box-shadow: 0 0 0 1px var(--ink);
+}
+
+/* ── Galería premium (2 columnas con etiqueta) ── */
+.galleryCatalog {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.galleryCell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.galleryThumb {
+  height: 72px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  display: block;
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.galleryThumb:hover {
+  transform: scale(1.03);
+  border-color: var(--line-2);
+}
+.galleryThumbOn {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.galleryThumbLabel {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--muted);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 2px;
+}
+
+/* ── Presets de degradado (4 columnas) ── */
+.gradPresets {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.gradPreset {
+  height: 40px;
+  border-radius: 9px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.gradPreset:hover {
+  transform: scale(1.05);
+}
+.gradPresetOn {
+  border-color: #fff;
+  box-shadow: 0 0 0 3px var(--accent);
+}
+
+/* ── Zona de subida de imagen propia ── */
+.uploadImgArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 80px;
+  margin-top: 12px;
+  border: 1.5px dashed var(--line-2);
+  border-radius: 14px;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--muted);
+  transition: border-color .15s, color .15s, background .15s;
+  padding: 16px;
+}
+.uploadImgArea:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.uploadImgArea i {
+  font-size: 28px;
+}
+.uploadImgHint {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--faint);
+}
 
 /* ---------- Color picker (react-colorful) ---------- */
 .pickerWrap {
