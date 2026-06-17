@@ -537,21 +537,34 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
       {isGaleriaActive && (
         <>
           {[
-            { group: "Fondos reales",      items: ["Montaña","Bosque","Cielo","Agua"] },
-            { group: "Abstractos premium", items: ["Orbes","Glass","Fluido","Blobs"] },
+            { group: "Fondos reales", items: [
+              { key: "mountain", label: "Montaña" },
+              { key: "forest",   label: "Bosque"  },
+              { key: "sky",      label: "Cielo"   },
+              { key: "water",    label: "Agua"    },
+            ]},
+            { group: "Abstractos premium", items: [
+              { key: "orbs",  label: "Orbes"  },
+              { key: "glass", label: "Glass"  },
+              { key: "fluid", label: "Fluido" },
+              { key: "blobs", label: "Blobs"  },
+            ]},
           ].map(({ group, items }) => (
             <div key={group}>
               <div className={styles.galleryCatLabel}>{group}</div>
               <div className={styles.galleryCatalog}>
-                {items.map((label) => (
-                  <div key={label} className={styles.galleryCell}>
-                    <div className={styles.imgPlaceholder}>
-                      <i className="ti ti-photo" />
-                      <span className={styles.imgPlaceholderBadge}>Próximamente</span>
+                {items.map(({ key, label }) => {
+                  const url = `/nelzzon/backgrounds/${key}.webp`;
+                  const isActive = prefs.backgroundType === "imagen" && prefs.backgroundImage === url;
+                  return (
+                    <div key={key} className={styles.galleryCell}>
+                      <div className={cn(styles.galleryThumb, isActive && styles.galleryThumbOn)}
+                           style={{ backgroundImage: `url(${url})`, backgroundSize: "cover", backgroundPosition: "center" }}
+                           onClick={() => setPrefs((p) => ({ ...p, backgroundType: "imagen", backgroundImage: url }))}/>
+                      <span className={styles.galleryThumbLabel}>{label}</span>
                     </div>
-                    <span className={styles.galleryThumbLabel}>{label}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -560,7 +573,7 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
           <div className={styles.gallerySep} />
           <div className={styles.galleryCatLabel}>Tu imagen</div>
 
-          {prefs.backgroundImage ? (
+          {prefs.backgroundImage && !prefs.backgroundImage.startsWith("/nelzzon/backgrounds/") ? (
             <div className={styles.galleryImgPreviewRow}>
               <div
                 className={cn(styles.galleryImgThumb, prefs.backgroundType === "imagen" && styles.galleryThumbOn)}
