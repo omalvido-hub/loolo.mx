@@ -153,8 +153,9 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
     solidKeyToHex(prefs.backgroundType === "solido" ? prefs.backgroundValue : "default")
   );
   // Gradient
-  const [gradFromDraft, setGradFromDraft] = useState(() => prefs.gradientFrom);
-  const [gradToDraft,   setGradToDraft]   = useState(() => prefs.gradientTo);
+  const [gradFromDraft,   setGradFromDraft]   = useState(() => prefs.gradientFrom);
+  const [gradToDraft,     setGradToDraft]     = useState(() => prefs.gradientTo);
+  const [gradActiveSlot,  setGradActiveSlot]  = useState<"from" | "to">("from");
   // Upload
   const [uploadError,   setUploadError]   = useState<string | null>(null);
 
@@ -448,65 +449,79 @@ export function ColorFondsSection({ prefs, setPrefs, activeAccentHex }: ColorFon
             ))}
           </div>
 
-          {/* Dos pickers visuales: Desde / Hasta */}
-          <div className={styles.gradPickerGrid}>
-            {/* Desde */}
-            <div className={styles.gradPickerSlot}>
-              <span className={styles.gradPickerLabel}>Desde</span>
-              <div className={styles.pickerWrapSm}>
-                <HexColorPicker
-                  color={isValidHex(gradFromDraft) ? gradFromDraft : prefs.gradientFrom}
-                  onChange={handleGradFromPicker}
-                />
-              </div>
-              <div className={styles.hexInputRow} style={{ marginTop: 4 }}>
-                <span className={styles.hexPreview}
-                  style={{ background: isValidHex(gradFromDraft) ? gradFromDraft : prefs.gradientFrom }}
-                />
-                <input type="text"
-                  className={cn(styles.hexInput, styles.hexInputSm,
-                    gradFromDraft.length >= 4 && !isValidHex(gradFromDraft) && styles.hexInputError)}
-                  value={gradFromDraft}
-                  placeholder="#eef2ff"
-                  maxLength={7}
-                  spellCheck={false}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setGradFromDraft(val);
-                    if (isValidHex(val)) setPrefs((p) => ({ ...p, gradientFrom: val }));
-                  }}
-                />
-              </div>
-            </div>
+          {/* Toggle Desde / Hasta → un solo picker */}
+          <div className={styles.gradSlotToggle}>
+            <button type="button"
+              className={cn(styles.gradSlotBtn, gradActiveSlot === "from" && styles.gradSlotBtnOn)}
+              onClick={() => setGradActiveSlot("from")}
+            >
+              <span className={styles.gradSlotSwatch}
+                style={{ background: isValidHex(gradFromDraft) ? gradFromDraft : prefs.gradientFrom }}
+              />
+              Desde
+            </button>
+            <button type="button"
+              className={cn(styles.gradSlotBtn, gradActiveSlot === "to" && styles.gradSlotBtnOn)}
+              onClick={() => setGradActiveSlot("to")}
+            >
+              <span className={styles.gradSlotSwatch}
+                style={{ background: isValidHex(gradToDraft) ? gradToDraft : prefs.gradientTo }}
+              />
+              Hasta
+            </button>
+          </div>
 
-            {/* Hasta */}
-            <div className={styles.gradPickerSlot}>
-              <span className={styles.gradPickerLabel}>Hasta</span>
-              <div className={styles.pickerWrapSm}>
-                <HexColorPicker
-                  color={isValidHex(gradToDraft) ? gradToDraft : prefs.gradientTo}
-                  onChange={handleGradToPicker}
-                />
-              </div>
-              <div className={styles.hexInputRow} style={{ marginTop: 4 }}>
-                <span className={styles.hexPreview}
-                  style={{ background: isValidHex(gradToDraft) ? gradToDraft : prefs.gradientTo }}
-                />
-                <input type="text"
-                  className={cn(styles.hexInput, styles.hexInputSm,
-                    gradToDraft.length >= 4 && !isValidHex(gradToDraft) && styles.hexInputError)}
-                  value={gradToDraft}
-                  placeholder="#f5f3ff"
-                  maxLength={7}
-                  spellCheck={false}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setGradToDraft(val);
-                    if (isValidHex(val)) setPrefs((p) => ({ ...p, gradientTo: val }));
-                  }}
-                />
-              </div>
-            </div>
+          <div className={styles.pickerWrap} style={{ marginTop: 10 }}>
+            <HexColorPicker
+              color={gradActiveSlot === "from"
+                ? (isValidHex(gradFromDraft) ? gradFromDraft : prefs.gradientFrom)
+                : (isValidHex(gradToDraft)   ? gradToDraft   : prefs.gradientTo)}
+              onChange={gradActiveSlot === "from" ? handleGradFromPicker : handleGradToPicker}
+            />
+          </div>
+
+          <div className={styles.hexInputRow} style={{ marginTop: 8 }}>
+            <span className={styles.hexPreview}
+              style={{ background: gradActiveSlot === "from"
+                ? (isValidHex(gradFromDraft) ? gradFromDraft : prefs.gradientFrom)
+                : (isValidHex(gradToDraft)   ? gradToDraft   : prefs.gradientTo)
+              }}
+            />
+            {gradActiveSlot === "from" ? (
+              <input type="text"
+                className={cn(styles.hexInput,
+                  gradFromDraft.length >= 4 && !isValidHex(gradFromDraft) && styles.hexInputError)}
+                value={gradFromDraft}
+                placeholder="#eef2ff"
+                maxLength={7}
+                spellCheck={false}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setGradFromDraft(val);
+                  if (isValidHex(val)) setPrefs((p) => ({ ...p, gradientFrom: val }));
+                }}
+              />
+            ) : (
+              <input type="text"
+                className={cn(styles.hexInput,
+                  gradToDraft.length >= 4 && !isValidHex(gradToDraft) && styles.hexInputError)}
+                value={gradToDraft}
+                placeholder="#f5f3ff"
+                maxLength={7}
+                spellCheck={false}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setGradToDraft(val);
+                  if (isValidHex(val)) setPrefs((p) => ({ ...p, gradientTo: val }));
+                }}
+              />
+            )}
+            {gradActiveSlot === "from" && gradFromDraft.length >= 4 && !isValidHex(gradFromDraft) && (
+              <span className={styles.hexInputErrorMsg}>HEX inválido</span>
+            )}
+            {gradActiveSlot === "to" && gradToDraft.length >= 4 && !isValidHex(gradToDraft) && (
+              <span className={styles.hexInputErrorMsg}>HEX inválido</span>
+            )}
           </div>
 
           {/* Preview rect */}
