@@ -64,7 +64,7 @@ function Segmented<T extends string>({
 
 export function BackgroundCustomizer() {
   const {
-    preferences,
+    editorPreferences: preferences,
     setBackgroundStyle,
     setBackgroundIntensity,
     setBackgroundBlur,

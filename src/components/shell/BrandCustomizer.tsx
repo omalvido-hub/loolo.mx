@@ -58,7 +58,7 @@ function Segmented<T extends string>({
 
 export function BrandCustomizer() {
   const {
-    preferences,
+    editorPreferences: preferences,
     setBrandName,
     setBrandTagline,
     setBrandSize,

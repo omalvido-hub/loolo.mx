@@ -648,6 +648,8 @@ export const DEFAULT_VISUAL_PREFERENCES: VisualPreferences = {
 
 interface VisualPreferencesContextValue {
   preferences: VisualPreferences;
+  /** Preferencias para controles del panel: borrador si hay uno activo, reales si no. */
+  editorPreferences: VisualPreferences;
   setPreset: (preset: VisualPreset) => void;
   setAccent: (accent: VisualAccent) => void;
   setDensity: (density: VisualDensity) => void;
@@ -692,8 +694,14 @@ interface VisualPreferencesContextValue {
   applyBusinessTemplate: (id: BusinessTemplateId) => void;
   /** Quita la plantilla de negocio activa y vuelve a los valores de fábrica. */
   resetBusinessTemplate: () => void;
-  /** Persiste el estado actual en localStorage de forma inmediata (útil antes de cerrar el panel). */
+  /** Persiste el estado actual en localStorage de forma inmediata. */
   saveNow: () => void;
+  /** Abre el panel de personalización en modo borrador: los cambios NO se aplican al sistema hasta applyDraft(). */
+  enterDraftMode: () => void;
+  /** Aplica el borrador al sistema (guarda + aplica al documento) y sale del modo borrador. */
+  applyDraft: () => void;
+  /** Descarta el borrador sin aplicar ningún cambio. Las preferencias reales quedan intactas. */
+  discardDraft: () => void;
 }
 
 const VisualPreferencesContext = createContext<VisualPreferencesContextValue | null>(null);
@@ -753,6 +761,9 @@ export function VisualPreferencesProvider({ children }: { children: ReactNode })
   // tras montar, en un efecto — sin tocar el documento durante SSR.
   const [preferences, setPreferences] = useState<VisualPreferences>(DEFAULT_VISUAL_PREFERENCES);
   const [hydrated, setHydrated] = useState(false);
+  // Borrador: cuando no es null, el panel está abierto y los cambios van aquí, no al sistema.
+  const [draftPreferences, setDraftPreferences] = useState<VisualPreferences | null>(null);
+  const isDraftMode = draftPreferences !== null;
 
   useEffect(() => {
     setPreferences(readStoredPreferences());
@@ -771,7 +782,20 @@ export function VisualPreferencesProvider({ children }: { children: ReactNode })
   }, [preferences, hydrated]);
 
   function update(partial: Partial<VisualPreferences>) {
-    setPreferences((prev) => ({ ...prev, ...partial }));
+    if (isDraftMode) {
+      setDraftPreferences((prev) => ({ ...(prev ?? preferences), ...partial }));
+    } else {
+      setPreferences((prev) => ({ ...prev, ...partial }));
+    }
+  }
+
+  // Reemplaza el estado completo respetando el modo borrador.
+  function setAll(all: VisualPreferences) {
+    if (isDraftMode) {
+      setDraftPreferences(all);
+    } else {
+      setPreferences(all);
+    }
   }
 
   function applyPreset(preset: VisualPreset) {
@@ -780,6 +804,7 @@ export function VisualPreferencesProvider({ children }: { children: ReactNode })
 
   const value: VisualPreferencesContextValue = {
     preferences,
+    editorPreferences: draftPreferences ?? preferences,
     setPreset: applyPreset,
     setAccent: (accent) => update({ accent }),
     setDensity: (density) => update({ density }),
@@ -787,7 +812,7 @@ export function VisualPreferencesProvider({ children }: { children: ReactNode })
     setRadius: (radius) => update({ radius }),
     setCardStyle: (cardStyle) => update({ cardStyle }),
     applyPreset,
-    resetVisualPreferences: () => setPreferences(DEFAULT_VISUAL_PREFERENCES),
+    resetVisualPreferences: () => setAll(DEFAULT_VISUAL_PREFERENCES),
 
     setBackgroundStyle: (backgroundStyle) => update({ backgroundStyle }),
     setBackgroundIntensity: (backgroundIntensity) => update({ backgroundIntensity }),
@@ -816,7 +841,7 @@ export function VisualPreferencesProvider({ children }: { children: ReactNode })
         brandSymbolStyle: DEFAULT_VISUAL_PREFERENCES.brandSymbolStyle,
       }),
 
-    resetAllPersonalization: () => setPreferences(DEFAULT_VISUAL_PREFERENCES),
+    resetAllPersonalization: () => setAll(DEFAULT_VISUAL_PREFERENCES),
 
     setBackgroundPresetId: (backgroundPresetId) => update({ backgroundPresetId }),
     setModuleTileStyle: (moduleTileStyle) => update({ moduleTileStyle }),
@@ -850,10 +875,16 @@ export function VisualPreferencesProvider({ children }: { children: ReactNode })
         dockLabelVisibility: tpl.dockLabelVisibility,
       });
     },
-    resetBusinessTemplate: () => setPreferences(DEFAULT_VISUAL_PREFERENCES),
+    resetBusinessTemplate: () => setAll(DEFAULT_VISUAL_PREFERENCES),
     saveNow: () => {
       try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences)); } catch { /* ignorar */ }
     },
+    enterDraftMode: () => { setDraftPreferences(preferences); },
+    applyDraft: () => {
+      if (draftPreferences) setPreferences(draftPreferences);
+      setDraftPreferences(null);
+    },
+    discardDraft: () => { setDraftPreferences(null); },
   };
 
   return <VisualPreferencesContext.Provider value={value}>{children}</VisualPreferencesContext.Provider>;

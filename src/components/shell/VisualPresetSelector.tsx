@@ -97,7 +97,7 @@ interface VisualPresetSelectorProps {
 }
 
 export function VisualPresetSelector({ className }: VisualPresetSelectorProps) {
-  const { preferences, setPreset, setAccent, setDensity, setShadow, setRadius, setCardStyle } = useVisualPreferences();
+  const { editorPreferences: preferences, setPreset, setAccent, setDensity, setShadow, setRadius, setCardStyle } = useVisualPreferences();
 
   return (
     <div className={cn("space-y-4", className)}>

@@ -23,7 +23,7 @@ const BRAND_SIZE_CLASS: Record<string, string> = {
 };
 
 export function PersonalizationPreviewCanvas() {
-  const { preferences } = useVisualPreferences();
+  const { editorPreferences: preferences } = useVisualPreferences();
   const { brandName, brandTagline, brandSize, brandTextStyle } = preferences;
 
   return (

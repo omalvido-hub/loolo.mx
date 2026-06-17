@@ -102,7 +102,7 @@ function Segmented<T extends string>({
 }
 
 function BusinessTemplatesSection() {
-  const { preferences, applyBusinessTemplate, resetBusinessTemplate } = useVisualPreferences();
+  const { editorPreferences: preferences, applyBusinessTemplate, resetBusinessTemplate } = useVisualPreferences();
 
   return (
     <div className="space-y-2">
@@ -189,7 +189,7 @@ function PersonalizationActions() {
 // Expone dashboardCardStyle (ya aplicado vía data-visual-dashboard-card en
 // globals.css) con el mismo patrón de cuadrícula que "Estilo de módulos".
 function DashboardCardStyleSection() {
-  const { preferences, setDashboardCardStyle } = useVisualPreferences();
+  const { editorPreferences: preferences, setDashboardCardStyle } = useVisualPreferences();
 
   return (
     <div className="space-y-2 rounded-xl border bg-muted/20 p-3">
@@ -225,7 +225,7 @@ function DashboardCardStyleSection() {
 // Bloque 3 (Tarjetas y widgets) — forma y textura de las tarjetas de módulo
 // en toda la app (antes vivía dentro de ModuleIdentityCustomizer).
 function ModuleTileStyleSection() {
-  const { preferences, setModuleTileStyle } = useVisualPreferences();
+  const { editorPreferences: preferences, setModuleTileStyle } = useVisualPreferences();
 
   return (
     <div className="space-y-2 rounded-xl border bg-muted/20 p-3">
@@ -260,7 +260,7 @@ function ModuleTileStyleSection() {
 
 // Bloque 3 (Tarjetas y widgets) — tamaño y forma del dock inferior.
 function DockSizeSection() {
-  const { preferences, setDockSize, setDockShadow, setDockRadius } = useVisualPreferences();
+  const { editorPreferences: preferences, setDockSize, setDockShadow, setDockRadius } = useVisualPreferences();
 
   return (
     <div className="space-y-3 rounded-xl border bg-muted/20 p-3">
@@ -274,7 +274,7 @@ function DockSizeSection() {
 
 // Bloque 5 (Accesos y menú) — estilo, resaltado y etiquetas del dock inferior.
 function DockStyleSection() {
-  const { preferences, setDockStyle, setDockActiveStyle, setDockLabelVisibility } = useVisualPreferences();
+  const { editorPreferences: preferences, setDockStyle, setDockActiveStyle, setDockLabelVisibility } = useVisualPreferences();
 
   return (
     <div className="space-y-3 rounded-xl border bg-muted/20 p-3">
@@ -466,17 +466,25 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
   const panelRef = useRef<HTMLDivElement>(null);
   const [activeKey, setActiveKey] = useState(BLOCKS[0].key);
   const [query, setQuery] = useState("");
-  const { resetAllPersonalization, saveNow } = useVisualPreferences();
+  const { resetAllPersonalization, enterDraftMode, applyDraft, discardDraft } = useVisualPreferences();
+
+  // Activa modo borrador al abrir; lo descarta si el componente se desmonta sin aplicar.
+  useEffect(() => {
+    enterDraftMode();
+    return () => { discardDraft(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleCancel = () => { discardDraft(); onClose(); };
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") handleCancel();
     }
     document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [onClose]);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const searchResults = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -527,7 +535,7 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
             </div>
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleCancel}
               aria-label="Cerrar Personalizar"
               className="flex items-center justify-center size-8 shrink-0 rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
@@ -705,7 +713,7 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
           </button>
           <button
             type="button"
-            onClick={() => { saveNow(); onClose(); }}
+            onClick={() => { applyDraft(); onClose(); }}
             className="inline-flex items-center rounded-full bg-violet-600 px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-violet-700"
           >
             Aplicar cambios
