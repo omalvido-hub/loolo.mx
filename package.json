@@ -33,6 +33,7 @@
     "react": "^19.2.7",
     "react-colorful": "^5.7.0",
     "react-dom": "^19.2.7",
+    "resend": "^6.18.1",
     "shadcn": "^4.10.0",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.0",

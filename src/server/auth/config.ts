@@ -8,14 +8,28 @@ import { betterAuth } from "better-auth";
 import { organization } from "better-auth/plugins";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { adminDb } from "../db/admin.js";
+import { sendResetPasswordEmail } from "../email/resend.js";
 
 const extraOrigins = process.env.BETTER_AUTH_TRUSTED_ORIGINS
   ? process.env.BETTER_AUTH_TRUSTED_ORIGINS.split(",").map((s) => s.trim())
   : [];
 
+// Subdominio por clínica (ROOT_DOMAIN=nelzzon.app): habilita baseURL dinámico
+// (acepta *.nelzzon.app) y cookie de sesión compartida en todo el dominio raíz.
+// Sin ROOT_DOMAIN configurado, el comportamiento queda idéntico al de antes.
+const rootDomain = process.env.ROOT_DOMAIN;
+
 export const auth = betterAuth({
   database: prismaAdapter(adminDb, { provider: "postgresql" }),
-  emailAndPassword: { enabled: true },
+  emailAndPassword: {
+    enabled: true,
+    sendResetPassword: async ({ user, url }) => {
+      await sendResetPasswordEmail(user.email, url);
+    },
+  },
+  ...(rootDomain
+    ? { baseURL: { allowedHosts: [rootDomain, `*.${rootDomain}`], fallback: process.env.BETTER_AUTH_URL } }
+    : {}),
   trustedOrigins: extraOrigins,
   plugins: [
     organization({
@@ -35,6 +49,7 @@ export const auth = betterAuth({
     ipAddress: {
       ipAddressHeaders: ["cf-connecting-ip", "x-forwarded-for"],
     },
+    ...(rootDomain ? { crossSubDomainCookies: { enabled: true, domain: `.${rootDomain}` } } : {}),
   },
 });
 

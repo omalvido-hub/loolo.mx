@@ -45,18 +45,19 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 const SETTINGS_ITEM: NavItem = {
-  label: "Configuración", href: "/configuracion", icon: Settings, permission: "settings.view", available: false,
+  label: "Configuración", href: "/configuracion", icon: Settings, permission: "settings.view", available: true,
 };
 
 interface AppSidebarProps {
   roleKey: string;
   orgName: string;
+  orgLogo?: string | null;
   collapsed: boolean;
   onToggleCollapse: () => void;
   onOpenPersonalization: () => void;
 }
 
-export function AppSidebar({ roleKey, orgName, collapsed, onToggleCollapse, onOpenPersonalization }: AppSidebarProps) {
+export function AppSidebar({ roleKey, orgName, orgLogo, collapsed, onToggleCollapse, onOpenPersonalization }: AppSidebarProps) {
   const pathname = usePathname();
   const { preferences } = useVisualPreferences();
   const { brandTagline, brandTextStyle } = preferences;
@@ -79,7 +80,12 @@ export function AppSidebar({ roleKey, orgName, collapsed, onToggleCollapse, onOp
       <div className="flex items-center justify-between gap-2 border-b px-4 py-5">
         <div className="brand-block min-w-0">
           <span className="brand-symbol inline-block">
-            <BrandLogo size="compact" className="text-sidebar-foreground" />
+            {orgLogo ? (
+              // eslint-disable-next-line @next/next/no-img-element -- logo de la clínica, host arbitrario (no configurable de antemano en next/image)
+              <img src={orgLogo} alt={orgName} className="h-[42px] max-w-[160px] object-contain object-left" />
+            ) : (
+              <BrandLogo size="compact" className="text-sidebar-foreground" />
+            )}
           </span>
           <p className="text-xs text-muted-foreground mt-0.5 truncate">{orgName}</p>
           {brandTextStyle !== "hide" && (

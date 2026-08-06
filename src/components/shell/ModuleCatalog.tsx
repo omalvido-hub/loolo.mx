@@ -65,7 +65,7 @@ const CATALOG_GROUPS: CatalogGroup[] = [
     key: "organizacion",
     label: "Organización",
     modules: [
-      { key: "configuracion",name: "Configuración",      description: "Preferencias de la organización y del módulo de trabajo.",            href: "/configuracion",icon: Settings,    accent: "bg-slate-500/10 text-slate-600", available: false },
+      { key: "configuracion",name: "Configuración",      description: "Preferencias de la organización y del módulo de trabajo.",            href: "/configuracion",icon: Settings,    accent: "bg-slate-500/10 text-slate-600", available: true },
     ],
   },
 ];
