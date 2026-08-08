@@ -25,9 +25,9 @@ const globalsContent = readFileSync(GLOBALS_CSS_PATH, "utf-8");
 const patientViewContent = readFileSync(PATIENT_VIEW_PATH, "utf-8");
 
 describe("1L-B — integridad de archivos", () => {
-  it("no existe migración 0021 ni superior (sin migraciones nuevas en esta fase)", () => {
+  it("no existe migración 0023 ni superior (sin migraciones nuevas en esta fase)", () => {
     const files = readdirSync(resolve("prisma/migrations"));
-    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 21)).toBe(false);
+    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 23)).toBe(false);
   });
 
   it("src/components/ui/stat-card.tsx existe", () => {

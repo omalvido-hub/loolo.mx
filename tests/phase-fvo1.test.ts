@@ -193,9 +193,9 @@ describe("integridad estructural FVO-1", () => {
     expect(files.some((f: string) => f.startsWith("0016"))).toBe(true);
   });
 
-  it("no existe migración 0021 ni superior (snapshot: FVO-1 no creó más de 0016; 0017-0019 son de fases posteriores legítimas; 0020 es de 1I-D-3 — cobertura/aseguradora)", () => {
+  it("no existe migración 0023 ni superior (snapshot: FVO-1 no creó más de 0016; 0017-0019 son de fases posteriores legítimas; 0020 es de 1I-D-3 — cobertura/aseguradora)", () => {
     const files = readdirSync(resolve("prisma/migrations"));
-    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 21)).toBe(false);
+    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 23)).toBe(false);
   });
 
   it("las 9 tablas FVO-1 existen en la BD", async () => {

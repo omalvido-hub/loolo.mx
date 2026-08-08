@@ -1333,6 +1333,24 @@ model PaymentMethodConfig {
   @@map("payment_method_config")
 }
 
+model OrganizationFinancePeriod {
+  id                      String   @id @default(uuid()) @db.Uuid
+  organizationId          String   @db.Uuid
+  periodYear              Int      @db.SmallInt
+  periodMonth             Int      @db.SmallInt
+  monthlyGoalCents        BigInt   @default(0)
+  fixedCostRentCents      BigInt   @default(0)
+  fixedCostPayrollCents   BigInt   @default(0)
+  fixedCostUtilitiesCents BigInt   @default(0)
+  fixedCostSuppliesCents  BigInt   @default(0)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@unique([organizationId, periodYear, periodMonth])
+  @@index([organizationId])
+  @@map("organization_finance_periods")
+}
+
 model QuoteSetting {
   id                String   @id @default(uuid()) @db.Uuid
   organizationId    String   @unique @db.Uuid

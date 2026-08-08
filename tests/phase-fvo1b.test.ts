@@ -68,9 +68,9 @@ afterAll(async () => {
 // ══════════════════════════════════════════════════════════════════════
 
 describe("integridad de archivos FVO-1b", () => {
-  it("no existe migración 0021 ni superior (snapshot: 0018-0019 son de fases posteriores legítimas; 0020 es de 1I-D-3 — cobertura/aseguradora)", () => {
+  it("no existe migración 0023 ni superior (snapshot: 0018-0019 son de fases posteriores legítimas; 0020 es de 1I-D-3 — cobertura/aseguradora)", () => {
     const files = readdirSync(resolve("prisma/migrations"));
-    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 21)).toBe(false);
+    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 23)).toBe(false);
   });
 });
 

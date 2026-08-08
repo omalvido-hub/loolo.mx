@@ -34,9 +34,9 @@ const EXPECTED_ACTIONS = [
 // ══════════════════════════════════════════════════════════════════════════════
 
 describe("FVO-1d — integridad de archivos", () => {
-  it("no existe migración 0021 ni superior (snapshot: 0018-0019 son de fases posteriores legítimas; 0020 es de 1I-D-3 — cobertura/aseguradora)", () => {
+  it("no existe migración 0023 ni superior (snapshot: 0018-0019 son de fases posteriores legítimas; 0020 es de 1I-D-3 — cobertura/aseguradora)", () => {
     const files = readdirSync(resolve("prisma/migrations"));
-    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 21)).toBe(false);
+    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 23)).toBe(false);
   });
 
   it("src/server/actions/fvo.ts existe", () => {
