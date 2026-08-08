@@ -2,6 +2,7 @@
 // Incluye diagrama dental, leyenda y panel de hallazgos activos.
 // Solo lectura. No muta, no registra, no supervisa.
 
+import Link from "next/link";
 import type { OdontogramMasterView } from "@/server/domain/clinical/odontogram-views";
 import { OdontogramChartInteractive } from "./OdontogramChartInteractive";
 import { OdontogramLegend } from "./OdontogramLegend";
@@ -52,6 +53,14 @@ export function OdontogramMasterSection({ view, patientId, activeEncounterId, ca
       {/* Diagrama dental a ancho completo (todas las piezas visibles sin scroll
           en desktop), con leyenda colapsada dentro de la misma tarjeta */}
       <SectionCard title="Diagrama dental">
+        <div className="flex justify-end mb-2">
+          <Link
+            href={`/odontograma-3d/${patientId}`}
+            className="text-xs font-medium px-2 py-1 rounded border border-input text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            Ver en 3D →
+          </Link>
+        </div>
         <div className="overflow-x-auto pb-2">
           <div className="w-max lg:mx-auto">
             <OdontogramChartInteractive
