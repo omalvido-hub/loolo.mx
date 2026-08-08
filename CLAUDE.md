@@ -149,7 +149,41 @@ pm2 start ecosystem.config.cjs
 
 ---
 
-## 8. Glosario rápido
+## 9. Estándar de diseño de UI — Concepto "Sinapsis" (NO NEGOCIABLE sin aprobación de Oscar)
+
+### Pregunta de auditoría (aplica a toda pantalla nueva)
+**"Si soy la Dra. Rentería un viernes con 24 citas, ¿en 5 segundos sé cómo va mi día y qué necesita mi atención?"**
+
+Ninguna pantalla nueva se da por terminada sin pasar esta pregunta.
+
+### Principios de diseño (software y web por igual)
+1. **Concepto único** — nunca copiar visualmente a competidores (Pearl/Overjet), aunque se tome prestada la lógica.
+2. **Tecnología real, no simulada** — 3D funcional solo donde el contenido lo pide, nunca decorativo.
+3. **Disciplina** — una sola cosa respira por pantalla, sin saturar.
+4. **"De alto nivel" se define por confiabilidad, velocidad y profundidad detrás de cada clic**, NO por espectacularidad visual.
+
+### Concepto Sinapsis (Panel principal / Inicio)
+La clínica se representa como un organismo / red neuronal de luz:
+
+- Fondo oscuro, acento verde de marca.
+- Header: INGRESOS, META %, OCUPACIÓN %, CITAS X/24, fecha y hora.
+- Titular: "Hoy solo decides tres cosas." + subtítulo "Todo lo demás va bien y no te necesita. Cada tarjeta abre su mundo."
+- Nav lateral: Panel, Agenda, Pacientes, Tratamientos, Cobros, Reportes.
+- 5 tarjetas en rejilla alineada (misma altura por fila): ESPERAN TU FIRMA, AHORA, DINERO, GASTO Y EQUILIBRIO, TENDENCIA.
+- Núcleo central con % de meta, conectado a las 5 tarjetas por filamentos visibles.
+- Barra de dictado por voz abajo: al dictar, un pulso de luz viaja visualmente desde la barra, pasa por el núcleo, e ilumina la tarjeta correspondiente que se actualiza.
+
+### Reglas de tarjetas
+- Máximo 2 conceptos por tarjeta.
+- Tarjetas tipo lista (ESPERAN TU FIRMA, AHORA): scroll interno; orden por prioridad, lo más urgente siempre visible sin scroll; indicador de scroll solo si de verdad hay contenido abajo.
+- Tarjetas de métrica: sin scroll; el detalle vive detrás del clic.
+- Sin emojis como iconografía.
+- Tarjeta financiera (DINERO): métrica principal = "flujo neto sobre lo cobrado" (nunca "ganancia neta" genérica), con esa etiqueta exacta. Sale de datos reales incluyendo nómina y costos fijos. Si faltan esos datos, mostrar "sin datos suficientes" — nunca una cifra inflada o simulada.
+- Todo dato en pantalla conecta a datos reales del backend — nada hardcodeado.
+
+---
+
+## 10. Glosario rápido
 
 - **Tenant / organización:** una clínica. Todo dato pertenece a una `organizationId`.
 - **Odontograma:** mapa visual de la dentadura donde se marcan hallazgos por pieza/superficie.
@@ -158,3 +192,8 @@ pm2 start ecosystem.config.cjs
 - **Presupuesto (quote):** cotización con líneas y totales; editable solo en DRAFT.
 - **Pago (payment):** asiento en el ledger; PAYMENT o REVERSAL; inmutable.
 - **FDI:** numeración dental internacional (11–48 para dientes permanentes).
+
+## 11. Pendientes del roadmap
+
+- **Módulo de registro de gastos reales** (facturas, compras, nómina pagada). Hoy el backend solo tiene costos fijos *configurados* (`organization_finance_periods`, meta 0022) — un presupuesto, no un ledger de gasto real. Sin este módulo, la línea "Gastado" de la tarjeta GASTO Y EQUILIBRIO del Panel seguirá mostrando "sin datos suficientes" en vez de un monto real, porque no hay de dónde sacarlo.
+- **Pantalla de configuración financiera** (meta mensual y costos fijos: renta, nómina, servicios, insumos), incluyendo la ruta de navegación para llegar a ella. Hoy `organization_finance_periods` (migración 0022) solo se llena por seed/SQL directo — no existe ninguna pantalla ni ruta donde el usuario pueda configurar esto desde la UI. El botón "Configura tus costos fijos" de la tarjeta GASTO Y EQUILIBRIO del Panel apunta a `/configuracion`, que hoy solo tiene el formulario de cambiar contraseña.

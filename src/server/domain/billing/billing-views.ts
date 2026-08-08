@@ -84,6 +84,7 @@ export interface QuoteOverviewItem {
   balanceCents: number;
   liquidado: boolean;
   createdAt: string;
+  acceptedAt: string | null;
   updatedAt: string | null;
 }
 
@@ -302,7 +303,7 @@ export async function getQuotesOverviewSafeView(
     // SELECT explícito — sin notes, sin createdBy, sin organizationId.
     const quoteRows = await exec(
       `SELECT q."id",q."status",q."quoteNumber",q."patientId",q."totalCents",
-              q."createdAt",q."updatedAt",c."fullName" AS "patientName"
+              q."createdAt",q."acceptedAt",q."updatedAt",c."fullName" AS "patientName"
        FROM "quotes" q
        JOIN "patients" p ON p."id" = q."patientId"
        JOIN "contacts" c ON c."id" = p."contactId"
@@ -349,6 +350,7 @@ export async function getQuotesOverviewSafeView(
         balanceCents,
         liquidado,
         createdAt: toIso(q.createdAt) ?? new Date().toISOString(),
+        acceptedAt: toIso(q.acceptedAt),
         updatedAt: toIso(q.updatedAt),
       };
     });

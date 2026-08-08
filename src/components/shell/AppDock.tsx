@@ -6,14 +6,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserCircle, CalendarDays, Stethoscope, FileText, CreditCard, FolderOpen, BarChart3, Globe, Plus, ChevronDown, ChevronUp } from "lucide-react";
+import { UserCircle, CalendarDays, Stethoscope, FileText, CreditCard, FolderOpen, BarChart3, Globe, Plus, ChevronDown, ChevronUp, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { hasPermission } from "@/lib/permissions";
 
 interface DockItem {
   label: string;
   href: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   permission: string;
   // Solo true cuando existe una página real en src/app para este href. Los
   // accesos sin página propia se muestran como "Próximamente" — sin navegar —

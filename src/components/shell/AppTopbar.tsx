@@ -21,6 +21,7 @@ function greetingFor(date: Date): string {
 interface AppTopbarProps {
   showSearch: boolean;
   orgName: string;
+  orgBrandColor?: string | null;
   userName: string;
   userEmail: string;
   roleName: string;
@@ -32,6 +33,7 @@ interface AppTopbarProps {
 export function AppTopbar({
   showSearch,
   orgName,
+  orgBrandColor,
   userName,
   userEmail,
   roleName,
@@ -42,7 +44,12 @@ export function AppTopbar({
   const firstName = userName.split(" ")[0];
 
   return (
-    <header className="flex items-center gap-3 border-b bg-background/80 px-6 py-3.5 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header
+      className={cn(
+        "flex items-center gap-3 border-b bg-background/80 px-6 py-3.5 backdrop-blur supports-[backdrop-filter]:bg-background/60",
+        orgBrandColor && "border-b-2 border-b-primary/40"
+      )}
+    >
       {menuTrigger}
       <span className="hidden shrink-0 text-sm font-medium text-foreground sm:inline" suppressHydrationWarning>
         {greetingFor(new Date())}, {firstName}

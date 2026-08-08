@@ -14,6 +14,7 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -23,7 +24,7 @@ import { useVisualPreferences } from "@/lib/visual-preferences";
 interface NavItem {
   label: string;
   href: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   permission: string;
   // Solo true cuando existe una página real en src/app para este href. Los
   // accesos sin página propia se muestran como "Próximamente" — sin navegar —

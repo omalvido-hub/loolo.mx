@@ -33,9 +33,9 @@ const globalsCssContent = readFileSync(GLOBALS_CSS_PATH, "utf-8");
 const panelContent = readFileSync(PANEL_PATH, "utf-8");
 
 describe("1M-D — integridad de archivos", () => {
-  it("no existe migración 0021 ni superior (sin migraciones nuevas en esta fase)", () => {
+  it("no existe migración 0023 ni superior (sin migraciones nuevas en esta fase)", () => {
     const files = readdirSync(resolve("prisma/migrations"));
-    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 21)).toBe(false);
+    expect(files.some((f: string) => parseInt(f.slice(0, 4)) >= 23)).toBe(false);
   });
 
   it("existen BackgroundCustomizer.tsx y BrandCustomizer.tsx", () => {
@@ -179,7 +179,7 @@ describe("1M-D — visual-preferences: campos, constantes y acciones de fondo/ma
   });
 
   it("declara DEFAULT_BRAND_NAME y DEFAULT_BRAND_TAGLINE", () => {
-    expect(visualPrefsContent).toContain('DEFAULT_BRAND_NAME = "nelzzon"');
+    expect(visualPrefsContent).toContain('DEFAULT_BRAND_NAME = "Nelzzon"');
     expect(visualPrefsContent).toContain("DEFAULT_BRAND_TAGLINE");
   });
 
@@ -220,8 +220,8 @@ describe("1M-D — visual-preferences: campos, constantes y acciones de fondo/ma
   });
 
   it("resetVisualPreferences y resetAllPersonalization vuelven a DEFAULT_VISUAL_PREFERENCES", () => {
-    expect(visualPrefsContent).toMatch(/resetVisualPreferences:\s*\(\)\s*=>\s*setPreferences\(DEFAULT_VISUAL_PREFERENCES\)/);
-    expect(visualPrefsContent).toMatch(/resetAllPersonalization:\s*\(\)\s*=>\s*setPreferences\(DEFAULT_VISUAL_PREFERENCES\)/);
+    expect(visualPrefsContent).toMatch(/resetVisualPreferences:\s*\(\)\s*=>\s*setAll\(DEFAULT_VISUAL_PREFERENCES\)/);
+    expect(visualPrefsContent).toMatch(/resetAllPersonalization:\s*\(\)\s*=>\s*setAll\(DEFAULT_VISUAL_PREFERENCES\)/);
   });
 
   it("applyPreferencesToDocument aplica data-visual-background*, data-visual-brand-* y --visual-bg-image", () => {

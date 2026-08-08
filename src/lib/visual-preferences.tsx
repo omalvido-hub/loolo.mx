@@ -10,8 +10,8 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-export type VisualPreset = "minimal-clinico" | "premium-cards" | "kpi-dashboard" | "glass-soft" | "ejecutivo" | "showcase";
-export type VisualAccent = "teal" | "violet" | "emerald" | "amber" | "rose" | "slate";
+export type VisualPreset = "minimal-clinico" | "premium-cards" | "kpi-dashboard" | "glass-soft" | "ejecutivo" | "showcase" | "instrumento-precision" | "atlas-clinico";
+export type VisualAccent = "teal" | "violet" | "emerald" | "amber" | "rose" | "slate" | "copper" | "oxblood";
 export type VisualDensity = "compact" | "comfortable" | "spacious";
 export type VisualShadow = "soft" | "elevated" | "glass";
 export type VisualRadius = "soft" | "rounded" | "square";
@@ -148,6 +148,16 @@ export const VISUAL_PRESETS: Record<VisualPreset, { label: string; description: 
     description: "Tarjetas flotantes, acento vivo y máxima profundidad — la versión más expresiva.",
     prefs: { accent: "rose", density: "comfortable", shadow: "elevated", radius: "rounded", cardStyle: "floating" },
   },
+  "instrumento-precision": {
+    label: "Instrumento de Precisión",
+    description: "Oscuro por default, un solo acento cobre, cifras en mono — panel de instrumento, no app.",
+    prefs: { accent: "copper", density: "comfortable", shadow: "elevated", radius: "square", cardStyle: "bordered" },
+  },
+  "atlas-clinico": {
+    label: "Atlas Clínico",
+    description: "Papel cálido y cifras en serif editorial — casa editorial seria, no plantilla de SaaS.",
+    prefs: { accent: "oxblood", density: "comfortable", shadow: "soft", radius: "square", cardStyle: "bordered" },
+  },
 };
 
 export const VISUAL_PRESET_KEYS = Object.keys(VISUAL_PRESETS) as VisualPreset[];
@@ -159,6 +169,8 @@ export const VISUAL_ACCENTS: { key: VisualAccent; label: string }[] = [
   { key: "amber", label: "Ámbar" },
   { key: "rose", label: "Rosa" },
   { key: "slate", label: "Slate" },
+  { key: "copper", label: "Cobre" },
+  { key: "oxblood", label: "Oxblood" },
 ];
 
 // FASE 1M-D — opciones curadas de fondo y marca.
@@ -208,8 +220,8 @@ export const MAX_BACKGROUND_IMAGE_BYTES = 700 * 1024;
 
 export const STORAGE_KEY = "nelzzon.visualPrefs.v1";
 
-export const DEFAULT_BRAND_NAME = "nelzzon";
-export const DEFAULT_BRAND_TAGLINE = "Sistema operativo para servicios";
+export const DEFAULT_BRAND_NAME = "Nelzzon";
+export const DEFAULT_BRAND_TAGLINE = "El sistema operativo de tu clínica dental";
 
 // ============================================================
 // FASE 1M-E — Galería de fondos (≥30 presets, sin imágenes externas)

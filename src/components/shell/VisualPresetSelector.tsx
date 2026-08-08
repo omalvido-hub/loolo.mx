@@ -52,6 +52,8 @@ const ACCENT_SWATCH_CLASS: Record<string, string> = {
   amber: "bg-amber-500",
   rose: "bg-rose-500",
   slate: "bg-slate-500",
+  copper: "bg-orange-700",
+  oxblood: "bg-red-900",
 };
 
 function Segmented<T extends string>({

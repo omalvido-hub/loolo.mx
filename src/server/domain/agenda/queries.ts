@@ -43,6 +43,11 @@ export interface ResourceListResult {
   total: number;
 }
 
+export interface ChairCapacityToday {
+  chairCount: number;
+  availableMinutes: number;
+}
+
 /** Devuelve el timestamp UTC que corresponde a 00:00:00 en America/Mexico_City del día dado. */
 function mxMidnightUTC(dateStr: string): Date {
   // MX usa CDT (UTC-5) en verano y CST (UTC-6) en invierno.
@@ -171,5 +176,49 @@ export async function listResources(
     }));
 
     return ok({ items, total: items.length });
+  });
+}
+
+/**
+ * Capacidad real de sillones hoy: cuántos sillones activos hay y cuántos
+ * minutos de atención tienen disponibles hoy según su regla de disponibilidad
+ * semanal (weekday igual a EXTRACT(DOW), en el timezone del propio recurso).
+ * Sin reglas para hoy (ej. clínica cerrada ese día) → availableMinutes = 0.
+ */
+export async function getChairCapacityToday(
+  run: TenantRunner,
+  ctx: ActorContext,
+): Promise<Result<ChairCapacityToday>> {
+  if (!ctx.organizationId) return fail("FORBIDDEN", "Falta organizationId (fail-closed).");
+  if (!ctx.userId) return fail("FORBIDDEN", "Falta userId (fail-closed).");
+
+  if (!can(ctx.permissions, "resources.view")) {
+    await run(async (exec) => {
+      await recordPermissionDenied(exec, {
+        organizationId: ctx.organizationId,
+        actorUserId: ctx.userId,
+        permission: "resources.view",
+        entityType: "resource_list",
+      });
+    });
+    return fail("FORBIDDEN", "Falta el permiso: resources.view");
+  }
+
+  return run(async (exec): Promise<Result<ChairCapacityToday>> => {
+    const rows: any[] = await exec(
+      `SELECT r."id",
+              COALESCE(SUM(ar."endMinute" - ar."startMinute"), 0) AS "minutes"
+       FROM "resources" r
+       LEFT JOIN "availability_rules" ar
+         ON ar."resourceId" = r."id"
+        AND ar."active"
+        AND ar."weekday" = EXTRACT(DOW FROM (now() AT TIME ZONE r."timezone"))::int
+       WHERE r."kind" = 'CHAIR' AND r."active"
+       GROUP BY r."id"`,
+      [],
+    );
+
+    const availableMinutes = rows.reduce((sum, r) => sum + Number(r.minutes), 0);
+    return ok({ chairCount: rows.length, availableMinutes });
   });
 }

@@ -15,18 +15,21 @@ import { PersonalizationPanel } from "@/components/shell/PersonalizationPanel";
 import { hasPermission } from "@/lib/permissions";
 import { VisualPreferencesProvider } from "@/lib/visual-preferences";
 import { ModuleIdentityProvider } from "@/lib/module-identity";
+import { isValidHexColor, readableForeground } from "@/lib/color";
 import type { PersonalizationMode } from "@/components/shell/PersonalizationPreviewToggle";
 
 interface AppShellProps {
   roleKey: string;
   orgName: string;
+  orgLogo?: string | null;
+  orgBrandColor?: string | null;
   userName: string;
   userEmail: string;
   roleName: string;
   children: React.ReactNode;
 }
 
-export function AppShell({ roleKey, orgName, userName, userEmail, roleName, children }: AppShellProps) {
+export function AppShell({ roleKey, orgName, orgLogo, orgBrandColor, userName, userEmail, roleName, children }: AppShellProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [dockOpen, setDockOpen] = useState(true);
   const [catalogOpen, setCatalogOpen] = useState(false);
@@ -36,13 +39,21 @@ export function AppShell({ roleKey, orgName, userName, userEmail, roleName, chil
   const showSearch = hasPermission(roleKey, "patients.view");
   const toggleSidebarCollapse = () => setSidebarCollapsed((v) => !v);
 
+  // Color de marca de la clínica: opcional. Si no está configurado, no se
+  // fija ningún estilo y --primary/--primary-foreground quedan en sus
+  // valores por defecto (cero cambio visual para clínicas sin marca propia).
+  const brandStyle = isValidHexColor(orgBrandColor)
+    ? ({ "--primary": orgBrandColor, "--primary-foreground": readableForeground(orgBrandColor) } as React.CSSProperties)
+    : undefined;
+
   return (
     <VisualPreferencesProvider>
     <ModuleIdentityProvider>
-      <div className="flex min-h-screen bg-background">
+      <div className="flex min-h-screen bg-background" style={brandStyle}>
         <AppSidebar
           roleKey={roleKey}
           orgName={orgName}
+          orgLogo={orgLogo}
           collapsed={sidebarCollapsed}
           onToggleCollapse={toggleSidebarCollapse}
           onOpenPersonalization={() => setPersonalizationOpen(true)}
@@ -52,6 +63,7 @@ export function AppShell({ roleKey, orgName, userName, userEmail, roleName, chil
           <AppTopbar
             showSearch={showSearch}
             orgName={orgName}
+            orgBrandColor={isValidHexColor(orgBrandColor) ? orgBrandColor : null}
             userName={userName}
             userEmail={userEmail}
             roleName={roleName}

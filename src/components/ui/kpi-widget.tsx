@@ -35,6 +35,8 @@ export interface KpiWidgetProps {
   /** Elemento decorativo pequeño en la esquina superior derecha (p. ej. icono de info). */
   cornerAccessory?: React.ReactNode;
   className?: string;
+  /** Clases extra para el valor principal — p. ej. `font-mono tabular-nums` para cifras. */
+  valueClassName?: string;
   /**
    * Si es `false`, `icon` se renderiza tal cual, sin el contenedor con tono
    * (size-8/rounded-lg/color). Úsalo cuando `icon` ya es autocontenido, p. ej.
@@ -68,6 +70,7 @@ export function KpiWidget({
   trend,
   cornerAccessory,
   className,
+  valueClassName,
   iconWrapped = true,
   iconPosition = "auto",
   iconSize = "auto",
@@ -133,7 +136,7 @@ export function KpiWidget({
             )}
             <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground truncate">{label}</p>
           </div>
-          <p className="mt-1 text-2xl font-semibold tracking-tight truncate">{value}</p>
+          <p className={cn("kpi-widget-value mt-1 text-2xl font-semibold tracking-tight truncate", valueClassName)}>{value}</p>
           {description && <p className="mt-0.5 text-xs text-muted-foreground truncate">{description}</p>}
         </div>
       </div>

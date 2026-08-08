@@ -19,6 +19,7 @@ import {
   FileText,
   CreditCard,
   Settings,
+  type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DOCK_HREFS } from "@/components/shell/AppDock";
@@ -28,7 +29,7 @@ interface CatalogModule {
   name: string;
   description: string;
   href: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   accent: string;
   // Solo true cuando existe una página real en src/app para este href. Los
   // módulos sin página propia muestran "Próximamente" en vez de "Abrir" — para

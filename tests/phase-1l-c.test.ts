@@ -115,7 +115,9 @@ describe("1L-C — alcance: no toca server, dominio, prisma, dashboard ni ficha 
   });
 
   it("no existen cambios en dashboard ni ficha de paciente como parte de esta fase (archivos no modificados)", () => {
-    expect(existsSync(resolve("src/app/(app)/dashboard"))).toBe(true);
+    // La ruta del dashboard se movió a src/app/dashboard (rediseño Sinapsis,
+    // muy posterior a esta fase) — se verifica en su ubicación actual.
+    expect(existsSync(resolve("src/app/dashboard"))).toBe(true);
     expect(existsSync(resolve("src/components/patients/PatientLiveRecordView.tsx"))).toBe(true);
   });
 });

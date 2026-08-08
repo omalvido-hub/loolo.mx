@@ -5,7 +5,7 @@
 // su espacio (plano, interactivo, edición). Por ahora NO persiste nada — vive dentro
 // de PersonalizationPanel como una vista previa de la dirección de producto.
 
-import { Layers, MousePointerClick, PencilRuler } from "lucide-react";
+import { Layers, MousePointerClick, PencilRuler, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type PersonalizationMode = "flat" | "interactive" | "edit";
@@ -14,7 +14,7 @@ const MODES: {
   key: PersonalizationMode;
   label: string;
   description: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
 }[] = [
   {
     key: "flat",

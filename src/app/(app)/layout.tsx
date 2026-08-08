@@ -1,8 +1,11 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSessionWithMemberships } from "@/lib/session";
 import { selectOrganization } from "@/server/auth/organization";
 import { AppShell } from "@/components/shell/AppShell";
+import { TenantAccessDenied } from "@/components/shell/TenantAccessDenied";
 import { ROLES } from "@/server/domain/identity/rbac";
+import { TENANT_HEADER } from "@/lib/tenant";
 
 export default async function AppLayout({
   children,
@@ -14,8 +17,20 @@ export default async function AppLayout({
 
   const { session, memberships } = data;
 
-  // Usa la primera membresía activa del usuario.
-  const membership = memberships[0];
+  // El subdominio (clinicaperez.nelzzon.app) es solo una PISTA de qué
+  // organización se espera — nunca decide acceso por sí solo. Si el usuario
+  // no es miembro de esa clínica, se le niega el paso aquí mismo, sin usar
+  // ninguna otra membresía suya como fallback silencioso.
+  const tenantSlug = (await headers()).get(TENANT_HEADER);
+  const tenantMembership = tenantSlug
+    ? memberships.find((m) => m.organization.slug === tenantSlug)
+    : null;
+  if (tenantSlug && !tenantMembership) {
+    return <TenantAccessDenied tenantSlug={tenantSlug} />;
+  }
+
+  // Con subdominio válido, usa esa membresía; si no, la primera del usuario.
+  const membership = tenantMembership ?? memberships[0];
   if (!membership) redirect("/login");
 
   // Si la sesión no tiene organización activa y el usuario tiene exactamente una membresía,
@@ -24,7 +39,9 @@ export default async function AppLayout({
   const activeOrgId =
     (session.session as { activeOrganizationId?: string | null })
       ?.activeOrganizationId ?? null;
-  if (!activeOrgId && memberships.length === 1) {
+  if (tenantMembership && activeOrgId !== tenantMembership.organizationId) {
+    await selectOrganization(session.user.id, tenantMembership.organizationId);
+  } else if (!tenantMembership && !activeOrgId && memberships.length === 1) {
     await selectOrganization(session.user.id, membership.organizationId);
   }
 
@@ -36,6 +53,8 @@ export default async function AppLayout({
     <AppShell
       roleKey={roleKey}
       orgName={membership.organization.name}
+      orgLogo={membership.organization.logo}
+      orgBrandColor={membership.organization.brandColor}
       userName={session.user.name}
       userEmail={session.user.email}
       roleName={roleName}

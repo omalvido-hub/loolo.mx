@@ -18,6 +18,7 @@ import {
   PanelLeft,
   Type,
   Wand2,
+  type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -27,6 +28,7 @@ import {
 import { VisualPresetSelector } from "@/components/shell/VisualPresetSelector";
 import { PersonalizationPreviewCanvas } from "@/components/shell/PersonalizationPreviewCanvas";
 import { ModuleIdentityCustomizer } from "@/components/shell/ModuleIdentityCustomizer";
+import { useModuleIdentities } from "@/lib/module-identity";
 import { BackgroundCustomizer } from "@/components/shell/BackgroundCustomizer";
 import { BrandCustomizer } from "@/components/shell/BrandCustomizer";
 import {
@@ -293,7 +295,7 @@ interface PersonalizationBlock {
   key: string;
   label: string;
   description: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   badgeClass: string;
 }
 
@@ -467,6 +469,17 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
   const [activeKey, setActiveKey] = useState(BLOCKS[0].key);
   const [query, setQuery] = useState("");
   const { resetAllPersonalization, enterDraftMode, applyDraft, discardDraft } = useVisualPreferences();
+  const { resetAllIdentities } = useModuleIdentities();
+
+  // "Restablecer predeterminado" debe limpiar TODA la personalización guardada
+  // en este navegador — no solo acento/fondo/sombra (visual-preferences), sino
+  // también el tipo de icono por tarjeta (emoji/icono/iniciales), que vive en
+  // un storage aparte (module-identity). Antes solo se llamaba a la primera,
+  // dejando emoji viejos "vivos" aunque el usuario ya hubiera reseteado.
+  function resetEverything() {
+    resetAllPersonalization();
+    resetAllIdentities();
+  }
 
   // Activa modo borrador al abrir; lo descarta si el componente se desmonta sin aplicar.
   useEffect(() => {
@@ -706,7 +719,7 @@ export function PersonalizationPanel({ mode, onChange, onClose, onOpenModuleLibr
         <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
-            onClick={resetAllPersonalization}
+            onClick={resetEverything}
             className="inline-flex items-center rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors hover:bg-muted"
           >
             Restablecer predeterminado

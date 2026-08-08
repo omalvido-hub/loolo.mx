@@ -54,6 +54,21 @@ export interface TreatmentPlansPatientView {
   totalPlans: number;
 }
 
+export interface TreatmentPlanOverviewItem {
+  id: string;
+  status: string;
+  title: string | null;
+  patientId: string;
+  patientName: string;
+  itemsCount: number;
+  createdAt: string;
+}
+
+export interface TreatmentPlansOverviewView {
+  plans: TreatmentPlanOverviewItem[];
+  totalPlans: number;
+}
+
 // ─── getTreatmentPlansSafeView ────────────────────────────────────────────
 
 /**
@@ -190,6 +205,83 @@ export async function getTreatmentPlansSafeView(
       patientId,
       plans,
       activePlan,
+      totalPlans: plans.length,
+    });
+  });
+}
+
+// ─── getTreatmentPlansOverviewSafeView ─────────────────────────────────────
+
+/**
+ * Listado global (todo el tenant) de planes de tratamiento, con conteo de ítems.
+ * Exige treatment.view. Fail-closed si falta tenant, actor o permiso.
+ * NUNCA devuelve notes, note, createdBy ni organizationId.
+ * Audita el acceso sin contenido clínico.
+ */
+export async function getTreatmentPlansOverviewSafeView(
+  run: TenantRunner,
+  ctx: ActorContext,
+  options?: { statuses?: string[]; limit?: number },
+): Promise<Result<TreatmentPlansOverviewView>> {
+  if (!ctx.organizationId || !ctx.userId) {
+    return fail("FORBIDDEN", "Actor o tenant no válido (fail-closed).");
+  }
+
+  if (!can(ctx.permissions, "treatment.view")) {
+    await run(async (exec) => {
+      await recordPermissionDenied(exec, {
+        organizationId: ctx.organizationId,
+        actorUserId: ctx.userId,
+        permission: "treatment.view",
+        entityType: "organization",
+        entityId: ctx.organizationId,
+      });
+    });
+    return fail("FORBIDDEN", "Falta el permiso: treatment.view");
+  }
+
+  const limit = options?.limit ?? 100;
+
+  return run(async (exec) => {
+    const statusFilter = options?.statuses?.length ? ` AND tp."status" = ANY($2)` : "";
+    const params: unknown[] = [limit];
+    if (options?.statuses?.length) params.push(options.statuses);
+
+    // SELECT explícito — sin notes, sin createdBy, sin organizationId.
+    const planRows = await exec(
+      `SELECT tp."id",tp."status",tp."title",tp."patientId",tp."createdAt",c."fullName" AS "patientName",
+              (SELECT COUNT(*) FROM "treatment_plan_items" tpi WHERE tpi."planId" = tp."id") AS "itemsCount"
+       FROM "treatment_plans" tp
+       JOIN "patients" p ON p."id" = tp."patientId"
+       JOIN "contacts" c ON c."id" = p."contactId"
+       WHERE TRUE${statusFilter}
+       ORDER BY tp."createdAt" DESC
+       LIMIT $1`,
+      params,
+    );
+
+    const plans: TreatmentPlanOverviewItem[] = planRows.map((p: any) => ({
+      id: p.id,
+      status: p.status,
+      title: p.title ?? null,
+      patientId: p.patientId,
+      patientName: p.patientName ?? "—",
+      itemsCount: Number(p.itemsCount),
+      createdAt: toIso(p.createdAt) ?? new Date().toISOString(),
+    }));
+
+    await recordAudit(exec, {
+      organizationId: ctx.organizationId,
+      actorUserId: ctx.userId,
+      actorType: "USER",
+      action: "treatment.viewed",
+      entityType: "organization",
+      entityId: ctx.organizationId,
+      metadata: { accessType: "getTreatmentPlansOverviewSafeView", count: plans.length },
+    });
+
+    return ok<TreatmentPlansOverviewView>({
+      plans,
       totalPlans: plans.length,
     });
   });

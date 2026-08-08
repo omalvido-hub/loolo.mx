@@ -91,7 +91,7 @@ export function BrandCustomizer() {
           type="text"
           value={preferences.brandTagline}
           onChange={(e) => setBrandTagline(e.target.value)}
-          placeholder="Sistema operativo para servicios"
+          placeholder="El sistema operativo de tu clínica dental"
           className="w-full rounded-lg border bg-muted/30 px-2.5 py-1.5 text-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
       </div>

@@ -6,7 +6,6 @@
 
 @theme inline {
     --font-heading: var(--font-sans);
-    --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -91,11 +90,12 @@
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
 
-    /* Acento de marca "clínico premium": azul-teal sutil, distinto de
-       verde/rojo/ámbar (éxito/error/advertencia) para no chocar con esos
-       significados semánticos. */
-    --brand-accent: oklch(0.58 0.10 232);
-    --brand-accent-soft: oklch(0.95 0.025 232);
+    /* Acento de marca "Diagrama Vivo": coral diagnóstico — el mismo rojo que
+       marca un hallazgo en un odontograma, no un azul/teal genérico de SaaS
+       de salud. Un solo acento, usado como punto + regla delgada, nunca
+       como relleno de tarjeta completa. */
+    --brand-accent: oklch(0.55 0.16 25);
+    --brand-accent-soft: oklch(0.95 0.03 25);
     --brand-accent-foreground: oklch(0.985 0 0);
     --surface-elevated: oklch(1 0 0);
     --shadow-soft-value: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 1px 0 rgb(0 0 0 / 0.03);
@@ -136,9 +136,10 @@
     --sidebar-ring: oklch(0.556 0 0);
 
     /* Acento de marca y superficie elevada (1L-B), variante oscura: mismo
-       matiz que :root, ajustado de luminosidad/contraste para fondo oscuro. */
-    --brand-accent: oklch(0.7 0.10 232);
-    --brand-accent-soft: oklch(0.32 0.035 232);
+       matiz coral que :root, ajustado de luminosidad/contraste para fondo
+       oscuro. */
+    --brand-accent: oklch(0.68 0.15 25);
+    --brand-accent-soft: oklch(0.32 0.05 25);
     --brand-accent-foreground: oklch(0.145 0 0);
     --surface-elevated: oklch(0.23 0 0);
     --shadow-soft-value: 0 1px 2px 0 rgb(0 0 0 / 0.4), 0 1px 1px 0 rgb(0 0 0 / 0.3);
@@ -151,11 +152,15 @@
     }
   body {
     @apply bg-background text-foreground;
+    /* Geist se carga en layout.tsx vía next/font/google y queda disponible
+       aquí como var(--font-sans) (className geistSans.variable en <body>).
+       Antes @theme inline redefinía --font-sans con un stack de sistema y lo
+       aplicaba en <html> — un ancestro de <body>, que nunca podía ver la
+       variable de next/font — así que Geist quedaba cargada pero sin usarse
+       en ningún lado. */
+    font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    }
-  html {
-    @apply font-sans;
     }
   h1, h2, h3 {
     @apply tracking-tight;
@@ -217,6 +222,27 @@
 .dark[data-visual-accent="slate"] {
   --brand-accent: oklch(0.75 0.02 250);
   --brand-accent-soft: oklch(0.32 0.01 250);
+}
+
+/* Cobre quemado — acento único del preset "Instrumento de Precisión". */
+[data-visual-accent="copper"] {
+  --brand-accent: oklch(0.6 0.11 55);
+  --brand-accent-soft: oklch(0.95 0.03 55);
+}
+.dark[data-visual-accent="copper"],
+[data-visual-preset="instrumento-precision"] {
+  --brand-accent: oklch(0.68 0.12 55);
+  --brand-accent-soft: oklch(0.32 0.045 55);
+}
+
+/* Oxblood — acento único del preset "Atlas Clínico". */
+[data-visual-accent="oxblood"] {
+  --brand-accent: oklch(0.42 0.13 20);
+  --brand-accent-soft: oklch(0.94 0.025 20);
+}
+.dark[data-visual-accent="oxblood"] {
+  --brand-accent: oklch(0.62 0.14 20);
+  --brand-accent-soft: oklch(0.3 0.045 20);
 }
 
 /* ---- Sombra: "elevated" y "glass" reutilizan --shadow-soft-value, que
@@ -318,6 +344,59 @@
 [data-visual-preset="ejecutivo"] .module-card > .border-b {
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+/* ---- Instrumento de Precisión: oscuro por default, independiente del
+   modo claro/oscuro del sistema — es una identidad, no un tema. Un solo
+   acento (cobre), superficies grafito, sombras profundas. ---- */
+[data-visual-preset="instrumento-precision"] {
+  --background: oklch(0.16 0.005 55);
+  --foreground: oklch(0.92 0.01 60);
+  --card: oklch(0.19 0.006 55);
+  --card-foreground: oklch(0.92 0.01 60);
+  --popover: oklch(0.19 0.006 55);
+  --popover-foreground: oklch(0.92 0.01 60);
+  --muted: oklch(0.23 0.006 55);
+  --muted-foreground: oklch(0.62 0.015 60);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 10%);
+  --surface-elevated: oklch(0.19 0.006 55);
+  --sidebar: oklch(0.145 0.005 55);
+  --sidebar-foreground: oklch(0.92 0.01 60);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --shadow-soft-value: 0 1px 2px 0 rgb(0 0 0 / 0.4), 0 1px 1px 0 rgb(0 0 0 / 0.3);
+  --shadow-elevated-value: 0 20px 48px -20px rgb(0 0 0 / 0.7), 0 4px 14px -2px rgb(0 0 0 / 0.4);
+}
+[data-visual-preset="instrumento-precision"] .kpi-widget-value {
+  font-family: var(--font-mono);
+  letter-spacing: -0.01em;
+}
+[data-visual-preset="instrumento-precision"] .kpi-widget {
+  border-color: color-mix(in oklch, var(--brand-accent) 16%, var(--border));
+}
+
+/* ---- Atlas Clínico: papel cálido, cifras en serif editorial (Fraunces) en
+   vez de sans/mono — la tipografía es la firma, no el color ni el fondo. ---- */
+[data-visual-preset="atlas-clinico"] {
+  --background: oklch(0.97 0.008 75);
+  --foreground: oklch(0.22 0.01 50);
+  --card: oklch(0.985 0.006 75);
+  --card-foreground: oklch(0.22 0.01 50);
+  --muted: oklch(0.94 0.01 75);
+  --muted-foreground: oklch(0.5 0.015 60);
+  --border: oklch(0.88 0.012 70);
+  --surface-elevated: oklch(0.985 0.006 75);
+  --sidebar: oklch(0.96 0.008 75);
+  --sidebar-border: oklch(0.88 0.012 70);
+}
+[data-visual-preset="atlas-clinico"] .kpi-widget-value {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+[data-visual-preset="atlas-clinico"] .kpi-widget {
+  border-bottom-width: 2px;
+  border-bottom-color: var(--brand-accent);
 }
 
 /* ============================================================
