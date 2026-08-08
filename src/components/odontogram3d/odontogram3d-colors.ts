@@ -29,6 +29,7 @@ export const TOOTH_STATUS_COLOR_HEX: Record<string, string> = {
 
 export const SELECTED_OUTLINE_COLOR_HEX = "#60a5fa";
 export const HOVER_TINT_COLOR_HEX = "#93c5fd";
+export const SURFACE_DOT_COLOR_HEX = "#94a3b8";
 
 /** Color dominante de una pieza: hallazgo activo de mayor prioridad, o el estado base de la pieza. */
 export function pickToothColorHex(status: string, findings: FindingPanelItem[]): string {

@@ -119,6 +119,8 @@ interface Props {
   canActOnFindings?: boolean;
   /** FDI de pieza a preseleccionar al abrir (viene de ?toothFdi= en la URL). */
   initialToothFdi?: number;
+  /** Superficie a preseleccionar al abrir (viene de ?surface= en la URL, clic en 3D). */
+  initialSurface?: string;
   /** Si true y hay consulta activa, abre el formulario de hallazgo al montar. */
   autoOpenForm?: boolean;
 }
@@ -152,6 +154,7 @@ export function EncounterFindings({
   canVoid,
   canActOnFindings,
   initialToothFdi,
+  initialSurface,
   autoOpenForm,
 }: Props) {
   const { findingsPanel, summary, teeth } = view;
@@ -165,6 +168,7 @@ export function EncounterFindings({
   const [form, setForm] = useState<FormState>(() => ({
     ...EMPTY_FORM,
     toothFdi: initialToothFdi != null ? String(initialToothFdi) : "",
+    surface: initialSurface ?? "",
   }));
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();

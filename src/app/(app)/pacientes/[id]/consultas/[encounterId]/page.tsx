@@ -15,12 +15,13 @@ export default async function ConsultaDetallePage({
   searchParams,
 }: {
   params: Promise<{ id: string; encounterId: string }>;
-  searchParams: Promise<{ toothFdi?: string; openFinding?: string }>;
+  searchParams: Promise<{ toothFdi?: string; openFinding?: string; surface?: string }>;
 }) {
   const { id, encounterId } = await params;
   const sp = await searchParams;
   const initialToothFdi = sp.toothFdi ? parseInt(sp.toothFdi, 10) : undefined;
   const autoOpenForm = sp.openFinding === "1";
+  const initialSurface = sp.surface || undefined;
 
   let organizationId: string;
   let userId: string;
@@ -92,6 +93,7 @@ export default async function ConsultaDetallePage({
                 canVoid={canVoid}
                 canActOnFindings={canActOnFindings}
                 initialToothFdi={initialToothFdi}
+                initialSurface={initialSurface}
                 autoOpenForm={autoOpenForm}
               />
             ) : odoResult.reason === "FORBIDDEN" ? (

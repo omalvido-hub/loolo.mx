@@ -127,6 +127,8 @@ interface Props {
   onClose: () => void;
   canVoid?: boolean;
   canActOnFindings?: boolean;
+  /** Superficie preseleccionada por clic en el odontograma 3D (Fase 2). Ajena al 2D. */
+  initialSurface?: string | null;
 }
 
 // ─── Componente ──────────────────────────────────────────────────────────────
@@ -140,6 +142,7 @@ export function ToothDetailPanel({
   onClose,
   canVoid,
   canActOnFindings,
+  initialSurface,
 }: Props) {
   const name = getToothName(fdi);
   const statusLabel = TOOTH_STATUS_LABEL[status] ?? status;
@@ -258,6 +261,11 @@ export function ToothDetailPanel({
             <p className="text-[12px] text-muted-foreground mt-1 leading-tight font-medium">
               {name.full}
             </p>
+            {initialSurface && (
+              <p className="text-[10px] text-blue-600 mt-1 font-medium">
+                Superficie: {SURFACE_LABEL[initialSurface] ?? initialSurface}
+              </p>
+            )}
           </div>
         </div>
         <button
@@ -512,7 +520,7 @@ export function ToothDetailPanel({
       <div className="px-3 pb-3">
         {activeEncounterId && patientId ? (
           <Link
-            href={`/pacientes/${patientId}/consultas/${activeEncounterId}?toothFdi=${fdi}&openFinding=1`}
+            href={`/pacientes/${patientId}/consultas/${activeEncounterId}?toothFdi=${fdi}&openFinding=1${initialSurface ? `&surface=${initialSurface}` : ""}`}
             className="flex items-center justify-center w-full text-xs py-1.5 px-3 rounded border border-blue-200 bg-blue-50/60 text-blue-700 hover:bg-blue-100 transition-colors font-medium"
           >
             + Agregar hallazgo en consulta activa

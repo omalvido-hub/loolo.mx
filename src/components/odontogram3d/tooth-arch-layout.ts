@@ -41,3 +41,75 @@ export function getToothArchPosition(fdi: number): ToothArchPosition | null {
 
   return null;
 }
+
+// ─── Posiciones de superficie (Fase 2 — clic por superficie) ────────────────
+// Mismos valores que ToothSurfaceZ en odontogram-schemas.ts.
+
+export type ToothSurfaceKind = "MESIAL" | "DISTAL" | "OCCLUSAL" | "VESTIBULAR" | "LINGUAL" | "INCISAL";
+
+export interface ToothSurfaceWorldPosition {
+  surface: ToothSurfaceKind;
+  x: number;
+  y: number;
+  z: number;
+}
+
+// El arco (x = R sinθ, z = R(1-cosθ)) es un círculo de radio ARCH_RADIUS
+// centrado en (0, ARCH_RADIUS) en el plano XZ — ese centro es el punto de
+// referencia para "hacia afuera" (vestibular) vs "hacia adentro" (lingual).
+const ARCH_CENTER_Z = ARCH_RADIUS;
+
+// Distancia de los marcadores de superficie al centro de la pieza. Fuera del
+// radio de la zona de clic de la pieza completa (ver ToothNode3D) para que el
+// rayo siempre golpee primero el marcador de superficie, nunca la pieza entera.
+const SURFACE_DOT_OFFSET = 0.42;
+
+/**
+ * Posiciones absolutas (mundo) de las 5 zonas de superficie de una pieza:
+ * vestibular/lingual (radial, hacia/desde el centro del arco), mesial/distal
+ * (tangencial, hacia/desde la línea media) y oclusal u incisal (hacia la
+ * arcada opuesta). Piezas 1-3 (incisivos/canino) usan INCISAL; 4-8
+ * (premolares/molares) usan OCCLUSAL — igual que el odontograma 2D.
+ */
+export function getToothSurfacePositions(fdi: number): ToothSurfaceWorldPosition[] | null {
+  const base = getToothArchPosition(fdi);
+  if (!base) return null;
+
+  const isUpper = UPPER_ORDER.includes(fdi);
+  const positionInQuadrant = fdi % 10;
+  const isAnterior = positionInQuadrant >= 1 && positionInQuadrant <= 3;
+
+  // Vestibular: dirección radial hacia afuera desde el centro de curvatura del arco.
+  const dx = base.x;
+  const dz = base.z - ARCH_CENTER_Z;
+  const outLen = Math.hypot(dx, dz) || 1;
+  const outward = { x: dx / outLen, z: dz / outLen };
+
+  // Mesial: tangente al arco, apuntando hacia la línea media (θ → 0). Se
+  // calcula por diferencia finita — evita errores de signo por cuadrante.
+  const order = isUpper ? UPPER_ORDER : LOWER_ORDER;
+  const index = order.indexOf(fdi);
+  const t = index / (order.length - 1);
+  const angleDeg = -ARCH_HALF_ANGLE_DEG + t * (2 * ARCH_HALF_ANGLE_DEG);
+  const stepDeg = angleDeg > 0 ? -0.5 : 0.5;
+  const neighborAngleRad = ((angleDeg + stepDeg) * Math.PI) / 180;
+  const neighborX = ARCH_RADIUS * Math.sin(neighborAngleRad);
+  const neighborZ = -ARCH_RADIUS * Math.cos(neighborAngleRad) + ARCH_RADIUS;
+  let mx = neighborX - base.x;
+  let mz = neighborZ - base.z;
+  const mLen = Math.hypot(mx, mz) || 1;
+  const mesial = { x: mx / mLen, z: mz / mLen };
+
+  // Oclusal/incisal: hacia la arcada opuesta (abajo si es superior, arriba si es inferior).
+  const occlusalDirY = isUpper ? -1 : 1;
+
+  const zones: ToothSurfaceWorldPosition[] = [
+    { surface: "VESTIBULAR", x: base.x + outward.x * SURFACE_DOT_OFFSET, y: base.y, z: base.z + outward.z * SURFACE_DOT_OFFSET },
+    { surface: "LINGUAL", x: base.x - outward.x * SURFACE_DOT_OFFSET, y: base.y, z: base.z - outward.z * SURFACE_DOT_OFFSET },
+    { surface: "MESIAL", x: base.x + mesial.x * SURFACE_DOT_OFFSET, y: base.y, z: base.z + mesial.z * SURFACE_DOT_OFFSET },
+    { surface: "DISTAL", x: base.x - mesial.x * SURFACE_DOT_OFFSET, y: base.y, z: base.z - mesial.z * SURFACE_DOT_OFFSET },
+    { surface: isAnterior ? "INCISAL" : "OCCLUSAL", x: base.x, y: base.y + occlusalDirY * SURFACE_DOT_OFFSET, z: base.z },
+  ];
+
+  return zones;
+}
