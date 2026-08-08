@@ -5,7 +5,7 @@
 // Acciones disponibles según permisos: tratar, resolver, controlar, observación, anular.
 // No expone lifecycleReason ni IDs internos sensibles en vistas públicas.
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import type { FindingPanelItem, ToothHistoryEntry } from "@/server/domain/clinical/odontogram-views";
 import { getToothName } from "./tooth-names";
@@ -129,6 +129,8 @@ interface Props {
   canActOnFindings?: boolean;
   /** Superficie preseleccionada por clic en el odontograma 3D (Fase 2). Ajena al 2D. */
   initialSurface?: string | null;
+  /** Se dispara al mover el slider de historial (Fase 3, 3D). Ajena al 2D. */
+  onHistoryPreview?: (entry: ToothHistoryEntry | null) => void;
 }
 
 // ─── Componente ──────────────────────────────────────────────────────────────
@@ -143,6 +145,7 @@ export function ToothDetailPanel({
   canVoid,
   canActOnFindings,
   initialSurface,
+  onHistoryPreview,
 }: Props) {
   const name = getToothName(fdi);
   const statusLabel = TOOTH_STATUS_LABEL[status] ?? status;
@@ -159,9 +162,22 @@ export function ToothDetailPanel({
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [isHistoryPending, startHistoryTransition] = useTransition();
 
+  // ── Slider de historial (Fase 3, odontograma 3D) — solo lectura, previsualiza
+  // un punto del historial ya cargado. onHistoryPreview es ajeno al uso 2D.
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    setPreviewIndex(null);
+    onHistoryPreview?.(null);
+    // Solo debe reiniciar al cambiar de pieza — no en cada render de onHistoryPreview.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fdi]);
+
   function toggleHistory() {
     if (historyOpen) {
       setHistoryOpen(false);
+      setPreviewIndex(null);
+      onHistoryPreview?.(null);
       return;
     }
     setHistoryOpen(true);
@@ -176,6 +192,18 @@ export function ToothDetailPanel({
         }
       });
     }
+  }
+
+  function scrubHistory(index: number) {
+    setPreviewIndex(index);
+    if (historyEntries && historyEntries[index]) {
+      onHistoryPreview?.(historyEntries[index]);
+    }
+  }
+
+  function clearHistoryPreview() {
+    setPreviewIndex(null);
+    onHistoryPreview?.(null);
   }
 
   function openAction(findingId: string, action: ActionType) {
@@ -308,44 +336,83 @@ export function ToothDetailPanel({
                 Sin registros históricos para esta pieza.
               </p>
             ) : (
-              <ol className="space-y-1.5">
-                {historyEntries.map((h, i) => {
-                  const color = FINDING_TYPE_COLOR[h.findingType] ?? "#9ca3af";
-                  const chip = LIFECYCLE_CHIP[h.lifecycleStatus] ?? LIFECYCLE_CHIP.ACTIVE;
-                  return (
-                    <li key={h.findingId} className="flex items-start gap-2 text-xs">
-                      <span className="mt-0.5 text-[9px] font-medium text-muted-foreground/70 w-4 text-right shrink-0">
-                        {i + 1}.
+              <>
+                {onHistoryPreview && historyEntries.length > 1 && (
+                  <div className="mb-2.5 pb-2 border-b border-muted-foreground/10">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] text-muted-foreground">
+                        {previewIndex !== null
+                          ? `Viendo: ${fDate(historyEntries[previewIndex].createdAt)}`
+                          : "Estado actual"}
                       </span>
-                      <div
-                        className="mt-1 w-2 h-2 rounded-sm flex-shrink-0"
-                        style={{ backgroundColor: color }}
-                      />
-                      <div className="min-w-0">
-                        <span className="font-medium">
-                          {FINDING_TYPE_LABEL[h.findingType] ?? h.findingType}
+                      {previewIndex !== null && (
+                        <button
+                          type="button"
+                          onClick={clearHistoryPreview}
+                          className="text-[9px] font-medium text-blue-600 hover:text-blue-700"
+                        >
+                          Ver estado actual
+                        </button>
+                      )}
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={historyEntries.length - 1}
+                      step={1}
+                      value={previewIndex ?? historyEntries.length - 1}
+                      onChange={(e) => scrubHistory(Number(e.target.value))}
+                      className="w-full accent-blue-600"
+                      aria-label="Deslizar por el historial de la pieza"
+                    />
+                  </div>
+                )}
+                <ol className="space-y-1.5">
+                  {historyEntries.map((h, i) => {
+                    const color = FINDING_TYPE_COLOR[h.findingType] ?? "#9ca3af";
+                    const chip = LIFECYCLE_CHIP[h.lifecycleStatus] ?? LIFECYCLE_CHIP.ACTIVE;
+                    const isPreviewed = onHistoryPreview && previewIndex === i;
+                    return (
+                      <li
+                        key={h.findingId}
+                        onClick={onHistoryPreview ? () => scrubHistory(i) : undefined}
+                        className={`flex items-start gap-2 text-xs rounded px-1 -mx-1 ${
+                          onHistoryPreview ? "cursor-pointer hover:bg-muted/50" : ""
+                        } ${isPreviewed ? "bg-blue-50/60 ring-1 ring-blue-200" : ""}`}
+                      >
+                        <span className="mt-0.5 text-[9px] font-medium text-muted-foreground/70 w-4 text-right shrink-0">
+                          {i + 1}.
                         </span>
-                        {h.surface && (
-                          <span className="text-muted-foreground">
-                            {" · "}{SURFACE_LABEL[h.surface] ?? h.surface}
+                        <div
+                          className="mt-1 w-2 h-2 rounded-sm flex-shrink-0"
+                          style={{ backgroundColor: color }}
+                        />
+                        <div className="min-w-0">
+                          <span className="font-medium">
+                            {FINDING_TYPE_LABEL[h.findingType] ?? h.findingType}
                           </span>
-                        )}
-                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                          <span className={`text-[9px] font-medium px-1 py-px rounded border ${chip.cls}`}>
-                            {chip.label}
-                          </span>
-                          <span className="text-[10px] text-muted-foreground">{fDate(h.createdAt)}</span>
-                          {h.supersedesFindingId && (
-                            <span className="text-[9px] text-muted-foreground/70 italic">
-                              reemplaza registro anterior
+                          {h.surface && (
+                            <span className="text-muted-foreground">
+                              {" · "}{SURFACE_LABEL[h.surface] ?? h.surface}
                             </span>
                           )}
+                          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                            <span className={`text-[9px] font-medium px-1 py-px rounded border ${chip.cls}`}>
+                              {chip.label}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">{fDate(h.createdAt)}</span>
+                            {h.supersedesFindingId && (
+                              <span className="text-[9px] text-muted-foreground/70 italic">
+                                reemplaza registro anterior
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </>
             )}
           </div>
         )}

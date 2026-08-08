@@ -16,13 +16,23 @@ interface Props {
   archPosition: ToothArchPosition;
   isSelected: boolean;
   selectedSurface: ToothSurfaceKind | null;
+  /** Color de una pieza en un punto pasado de su historial (Fase 3). Reemplaza el color en vivo. */
+  previewColorOverride?: string | null;
   onSelect: (fdi: number) => void;
   onSelectSurface: (fdi: number, surface: ToothSurfaceKind) => void;
 }
 
 const ABSENT_STATUSES = new Set(["ABSENT", "EXTRACTED", "MISSING"]);
 
-export function ToothNode3D({ tooth, archPosition, isSelected, selectedSurface, onSelect, onSelectSurface }: Props) {
+export function ToothNode3D({
+  tooth,
+  archPosition,
+  isSelected,
+  selectedSurface,
+  previewColorOverride,
+  onSelect,
+  onSelectSurface,
+}: Props) {
   const [hovered, setHovered] = useState(false);
 
   const baseColor = useMemo(
@@ -30,7 +40,14 @@ export function ToothNode3D({ tooth, archPosition, isSelected, selectedSurface, 
     [tooth.status, tooth.findings],
   );
   const isAbsent = ABSENT_STATUSES.has(tooth.status);
-  const color = isSelected ? SELECTED_OUTLINE_COLOR_HEX : hovered ? HOVER_TINT_COLOR_HEX : baseColor;
+  const isPreviewing = previewColorOverride != null;
+  const color = isPreviewing
+    ? previewColorOverride
+    : isSelected
+      ? SELECTED_OUTLINE_COLOR_HEX
+      : hovered
+        ? HOVER_TINT_COLOR_HEX
+        : baseColor;
 
   function handleClick(e: ThreeEvent<MouseEvent>) {
     e.stopPropagation();
@@ -55,7 +72,14 @@ export function ToothNode3D({ tooth, archPosition, isSelected, selectedSurface, 
             posterior sin tocar la lógica de clic, que vive en la malla invisible de abajo. */}
         <mesh scale={isSelected || hovered ? 1.15 : 1}>
           <capsuleGeometry args={[0.16, 0.32, 4, 8]} />
-          <meshStandardMaterial color={color} opacity={isAbsent ? 0.35 : 1} transparent={isAbsent} roughness={0.6} />
+          {/* Opacidad reducida en vista histórica (Fase 3): comunica que es un
+              estado pasado, no el estado en vivo de la pieza. */}
+          <meshStandardMaterial
+            color={color}
+            opacity={isPreviewing ? 0.6 : isAbsent ? 0.35 : 1}
+            transparent={isPreviewing || isAbsent}
+            roughness={0.6}
+          />
         </mesh>
 
         {/* Zona de clic invisible, independiente de la malla visual — su tamaño y

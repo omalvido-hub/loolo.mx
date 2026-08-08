@@ -4,8 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { Odontogram3DScene } from "./Odontogram3DScene";
 import type { ToothSurfaceKind } from "./tooth-arch-layout";
+import { FINDING_TYPE_COLOR_HEX, TOOTH_STATUS_COLOR_HEX } from "./odontogram3d-colors";
 import { ToothDetailPanel } from "@/components/odontogram/ToothDetailPanel";
-import type { ToothView } from "@/server/domain/clinical/odontogram-views";
+import type { ToothView, ToothHistoryEntry } from "@/server/domain/clinical/odontogram-views";
 
 interface Props {
   patientId: string;
@@ -19,21 +20,31 @@ interface Props {
 export function Odontogram3DShell({ patientId, patientName, teeth, activeEncounterId, canVoid, canActOnFindings }: Props) {
   const [selectedFdi, setSelectedFdi] = useState<number | null>(null);
   const [selectedSurface, setSelectedSurface] = useState<ToothSurfaceKind | null>(null);
+  const [historyPreview, setHistoryPreview] = useState<ToothHistoryEntry | null>(null);
   const selectedTooth = selectedFdi !== null ? teeth.find((t) => t.fdi === selectedFdi) ?? null : null;
+
+  // Color de la pieza tal como estaba en el punto del historial que se está
+  // previsualizando (Fase 3) — reemplaza el color en vivo solo en esa pieza.
+  const historyPreviewColor = historyPreview
+    ? FINDING_TYPE_COLOR_HEX[historyPreview.findingType] ?? TOOTH_STATUS_COLOR_HEX[historyPreview.toothStatus] ?? null
+    : null;
 
   function handleSelectTooth(fdi: number) {
     setSelectedFdi(fdi);
     setSelectedSurface(null);
+    setHistoryPreview(null);
   }
 
   function handleSelectSurface(fdi: number, surface: ToothSurfaceKind) {
     setSelectedFdi(fdi);
     setSelectedSurface(surface);
+    setHistoryPreview(null);
   }
 
   function handleClosePanel() {
     setSelectedFdi(null);
     setSelectedSurface(null);
+    setHistoryPreview(null);
   }
 
   return (
@@ -53,6 +64,7 @@ export function Odontogram3DShell({ patientId, patientName, teeth, activeEncount
           teeth={teeth}
           selectedFdi={selectedFdi}
           selectedSurface={selectedSurface}
+          historyPreviewColor={historyPreviewColor}
           onSelectTooth={handleSelectTooth}
           onSelectSurface={handleSelectSurface}
         />
@@ -69,6 +81,7 @@ export function Odontogram3DShell({ patientId, patientName, teeth, activeEncount
               canVoid={canVoid}
               canActOnFindings={canActOnFindings}
               initialSurface={selectedSurface}
+              onHistoryPreview={setHistoryPreview}
             />
           </div>
         )}

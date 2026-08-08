@@ -10,11 +10,19 @@ interface Props {
   teeth: ToothView[];
   selectedFdi: number | null;
   selectedSurface: ToothSurfaceKind | null;
+  historyPreviewColor: string | null;
   onSelectTooth: (fdi: number) => void;
   onSelectSurface: (fdi: number, surface: ToothSurfaceKind) => void;
 }
 
-export function Odontogram3DScene({ teeth, selectedFdi, selectedSurface, onSelectTooth, onSelectSurface }: Props) {
+export function Odontogram3DScene({
+  teeth,
+  selectedFdi,
+  selectedSurface,
+  historyPreviewColor,
+  onSelectTooth,
+  onSelectSurface,
+}: Props) {
   return (
     <Canvas camera={{ position: [0, 0.5, 9], fov: 42 }} style={{ position: "absolute", inset: 0 }}>
       <ambientLight intensity={0.7} />
@@ -31,6 +39,7 @@ export function Odontogram3DScene({ teeth, selectedFdi, selectedSurface, onSelec
             archPosition={archPosition}
             isSelected={isSelected}
             selectedSurface={isSelected ? selectedSurface : null}
+            previewColorOverride={isSelected ? historyPreviewColor : null}
             onSelect={onSelectTooth}
             onSelectSurface={onSelectSurface}
           />
